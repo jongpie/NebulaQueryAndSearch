@@ -11,10 +11,10 @@ public class QueryGenerator {
     private Set<String> queryFields;
 
     public QueryGenerator(Schema.FieldSet fieldSet) {
-        this.fieldSet      = fieldSet;
+        this.fieldSet    = fieldSet;
 
-        this.sobjectType   = fieldSet.getSObjectType();
-        this.queryFields   = new Set<String>{'Id'}; // Always add the ID field, just in case it's not in the field set
+        this.sobjectType = fieldSet.getSObjectType();
+        this.queryFields = new Set<String>{'Id'}; // Always add the ID field, just in case it's not in the field set
 
         this.parseFieldSetMembers();
     }
