@@ -17,7 +17,7 @@ public class QueryGenerator {
         this.fieldSet      = fieldSet;
         this.sobjectResult = sobjectResult;
 
-        this.sobjectType   = fieldSet != null ? fieldSet.getSObjectType() : sobjectResult.getSobjectType();
+        this.sobjectType   = fieldSet != null ? fieldSet.getSObjectType() : sobjectResult.getSObjectType();
         this.queryFields   = new Set<String>{'Id'};
 
         if(this.fieldSet == null) this.parseSObjectFields();
@@ -25,7 +25,7 @@ public class QueryGenerator {
     }
 
     public String buildQuery() {
-        return this.buildQuery('');
+        return this.buildQuery(null);
     }
 
     public String buildQuery(String whereClause) {
