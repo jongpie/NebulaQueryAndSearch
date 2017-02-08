@@ -1,5 +1,8 @@
 public class LeadQueryRepository {
 
+    // Each SObject should have its own repository class that contains methods for commonly used queries
+    // Each method can use a different field set to generate the query fields,
+    // or you can use 1 field set for all methods - tweak the code to fit your use case
     public static Lead getLeadById(Id leadId) {
         // Created a string for your where clause
         String whereClause = 'WHERE Id = :leadId';
