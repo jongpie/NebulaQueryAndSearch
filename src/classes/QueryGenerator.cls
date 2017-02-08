@@ -18,7 +18,7 @@ public class QueryGenerator {
         this.sobjectResult = sobjectResult;
 
         this.sobjectType   = fieldSet != null ? fieldSet.getSObjectType() : sobjectResult.getSObjectType();
-        this.queryFields   = new Set<String>{'Id'};
+        this.queryFields   = new Set<String>{'Id'}; // Always add the ID field, just in case it's not in the field set
 
         if(this.fieldSet == null) this.parseSObjectFields();
         else this.parseFieldSetMembers();
