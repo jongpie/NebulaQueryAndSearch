@@ -2,26 +2,15 @@ public class QueryGenerator {
 
     private Schema.FieldSet fieldSet;
     private SObjectType sobjectType;
-    private Schema.DescribeSObjectResult sobjectResult;
     private Set<String> queryFields;
 
-    public QueryGenerator(Schema.DescribeSObjectResult sobjectResult) {
-        this(sobjectResult, null);
-    }
-
     public QueryGenerator(Schema.FieldSet fieldSet) {
-        this(null, fieldSet);
-    }
-
-    private QueryGenerator(Schema.DescribeSObjectResult sobjectResult, Schema.FieldSet fieldSet) {
         this.fieldSet      = fieldSet;
-        this.sobjectResult = sobjectResult;
 
-        this.sobjectType   = fieldSet != null ? fieldSet.getSObjectType() : sobjectResult.getSObjectType();
+        this.sobjectType   = fieldSet.getSObjectType();
         this.queryFields   = new Set<String>{'Id'}; // Always add the ID field, just in case it's not in the field set
 
-        if(this.fieldSet == null) this.parseSObjectFields();
-        else this.parseFieldSetMembers();
+        this.parseFieldSetMembers();
     }
 
     public String buildQuery() {
@@ -36,12 +25,6 @@ public class QueryGenerator {
         if(!String.isEmpty(whereClause)) query += ' ' + whereClause;
 
         return query;
-    }
-
-    public void parseSObjectFields() {
-         for(Schema.SObjectField sobjectField : this.sobjectResult.fields.getMap().values()) {
-            this.queryFields.add(sobjectField.getDescribe().getName());
-         }
     }
 
     private void parseFieldSetMembers() {
