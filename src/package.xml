@@ -4,5 +4,9 @@
 		<members>*</members>
 		<name>ApexClass</name>
 	</types>
-	<version>34.0</version>
+	<types>
+        <members>Lead.MyFieldSet</members>
+        <name>FieldSet</name>
+    </types>
+	<version>38.0</version>
 </Package>
