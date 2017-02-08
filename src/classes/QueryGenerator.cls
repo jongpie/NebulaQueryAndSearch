@@ -33,7 +33,7 @@ public class QueryGenerator {
             'SELECT ' + String.join(new List<String>(this.queryFields), ', ')
             + ' FROM ' + this.sobjectType;
 
-        if(!String.isEmpty(whereClause)) query = query + whereClause;
+        if(!String.isEmpty(whereClause)) query += ' ' + whereClause;
 
         return query;
     }
