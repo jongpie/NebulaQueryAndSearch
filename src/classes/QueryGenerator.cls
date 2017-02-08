@@ -1,5 +1,11 @@
 public class QueryGenerator {
 
+    // Each query repository class will have one or more methods that handle generating a query
+    // This class handles taking a fieldSet and an optional string for a WHERE statement
+    // Everything is parsed and a query string is returned to the originating query repository class
+    // The query repository should handle executing the query so that any relevant variables are in scope
+    // Finally, it should cast the SObjects to the appropriate SObjectType
+
     private Schema.FieldSet fieldSet;
     private SObjectType sobjectType;
     private Set<String> queryFields;
