@@ -10,7 +10,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
     private String query;
     private Schema.FieldSet fieldSet;
     private List<String> whereClauseList;
-    private Map<Schema.SObjectField, SortOrder> orderByMap;
+    private List<String> orderByList;
     private Integer limitCount;
     private Boolean forUpdate;
 
@@ -21,7 +21,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
         this.sobjectTypeFieldMap = this.sobjectType.getDescribe().fields.getMap();
         this.queryFields         = new Set<String>{'Id'}; // Always add the ID field, just in case it's not in the field set
         this.whereClauseList     = new List<String>();
-        this.orderByMap          = new Map<Schema.SObjectField, SortOrder>();
+        this.orderByList         = new List<String>();
         this.forUpdate           = false;
 
         this.parseFieldSetMembers();
@@ -72,7 +72,12 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     public ISObjectRepository orderBy(Schema.SObjectField orderByField, SObjectRepository.SortOrder sortOrder) {
-        this.orderByMap.put(orderByField, sortOrder);
+        String sortOrderSoql = '';
+        if(sortOrder == SObjectRepository.SortOrder.ASCENDING) sortOrderSoql = ' ASC';
+        else if(sortOrder == SObjectRepository.SortOrder.DESCENDING) sortOrderSoql = ' DESC';
+
+        this.orderByList.add(orderByField.getDescribe().getName() + sortOrderSoql);
+
         return this;
     }
 
@@ -106,24 +111,10 @@ public abstract class SObjectRepository implements ISObjectRepository {
             + ' FROM ' + this.sobjectType;
 
         // Generate the where clause
-        if(!this.whereClauseList.isEmpty()) query += ' WHERE ' + String.join(this.whereClauseList, ' AND ');
+        if(!this.whereClauseList.isEmpty()) this.query += ' WHERE ' + String.join(this.whereClauseList, ' AND ');
 
         // Generate the order by clause
-        if(!this.orderByMap.isEmpty()) {
-            Set<String> parsedOrderByList = new Set<String>();
-
-            for(Schema.SObjectField field : this.orderByMap.keySet()) {
-                SortOrder sortOrder = this.orderByMap.get(field);
-
-                String sortOrderSoql = '';
-                if(sortOrder == SObjectRepository.SortOrder.ASCENDING) sortOrderSoql = ' ASC';
-                else if(sortOrder == SObjectRepository.SortOrder.DESCENDING) sortOrderSoql = ' DESC';
-
-                parsedOrderByList.add(field.getDescribe().getName() + sortOrderSoql);
-            }
-
-            this.query += ' ORDER BY ' + String.join(new List<String>(parsedOrderByList), ', ');
-        }
+        if(!this.orderByList.isEmpty()) this.query += ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
 
         // Add the LIMIT if provided
         if(this.limitCount != null) this.query += ' LIMIT '+ this.limitCount;

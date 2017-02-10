@@ -23,7 +23,7 @@ public without sharing class LeadRepository extends SObjectRepository {
             .whereIsConverted(false)
             .whereStatusEquals(status)
             .limitCount(limitCount)
-            .orderBy(Schema.Lead.Name, SObjectRepository.SortOrder.ASCENDING)
+            .orderBy(Schema.Lead.Name, SObjectRepository.SortOrder.DESCENDING)
             .setAsUpdate(true)
             .getList();
     }
