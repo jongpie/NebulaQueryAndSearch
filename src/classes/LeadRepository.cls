@@ -12,7 +12,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     }
 
     public static List<Lead> getLeadsById(List<Id> leadIdList) {
-        String query = new LeadRepository()
+        String query = new LeadRepository(SObjectType.Lead.FieldSets.AnotherFieldSet, false)
             .addConditionIdIn(leadIdList)
             .getQuery();
 
@@ -53,6 +53,10 @@ public without sharing class LeadRepository extends SObjectRepository {
     /** Instance bits **/
     private LeadRepository() {
         super(LeadRepository.DEFAULT_FIELD_SET);
+    }
+
+    private LeadRepository(Schema.FieldSet fieldSet, Boolean addCommonQueryFields) {
+        super(fieldSet, addCommonQueryFields);
     }
 
     // You can add additional methods for any commonly used filters for this SObject
