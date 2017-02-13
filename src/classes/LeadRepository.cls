@@ -1,52 +1,67 @@
 public without sharing class LeadRepository extends SObjectRepository {
 
-    /**Static bits**/
+    /** Static bits **/
     private static final Schema.FieldSet DEFAULT_FIELD_SET = SObjectType.Lead.FieldSets.MyFieldSet;
 
     public static Lead getLeadById(Id leadId) {
-        return (Lead)new LeadRepository()
-            .whereIdEquals(leadId)
-            .getRecord();
+        String query = new LeadRepository()
+            .addConditionIdEquals(StringUtils.wrapInSingleQuotes(leadId))
+            .buildQuery();
+
+        return (Lead)Database.query(query)[0];
+    }
+
+    public static List<Lead> getLeadsById(List<Id> leadIdList) {
+        String query = new LeadRepository()
+            .addConditionIdIn(leadIdList)
+            .buildQuery();
+
+        return (List<Lead>)Database.query(query);
+    }
+
+    public static List<Lead> getLeadsBySource(List<String> leadSourceList) {
+        String query = new LeadRepository()
+            .addCondition(Schema.Lead.LeadSource + ' IN ' + CollectionUtils.toString(leadSourceList))
+            .buildQuery();
+
+        return (List<Lead>)Database.query(query);
     }
 
     public static List<Lead> getConvertedLeads() {
-        return new LeadRepository()
-            .whereIsConverted(true)
+        String query = new LeadRepository()
+            .addConditionIsConverted(true)
             .limitCount(10)
-            .orderBy(Schema.Lead.Name)
+            .orderBy(Schema.Lead.CreatedDate)
             .setAsUpdate(true)
-            .getList();
+            .buildQuery();
+
+        return (List<Lead>)Database.query(query);
     }
 
     public static List<Lead> getLeadsByStatus(String status, Integer limitCount) {
-        return new LeadRepository()
-            .whereIsConverted(false)
-            .whereStatusEquals(status)
+        String query = new LeadRepository()
+            .addConditionIsConverted(false)
+            .addConditionStatusEquals(status)
             .limitCount(limitCount)
-            .orderBy(Schema.Lead.Name, SObjectRepository.SortOrder.DESCENDING)
+            .orderBy(Schema.Lead.LastModifiedDate, SObjectRepository.SortOrder.DESCENDING)
             .setAsUpdate(true)
-            .getList();
+            .buildQuery();
+
+        return (List<Lead>)Database.query(query);
     }
 
-    /**Instance bits**/
+    /** Instance bits **/
     private LeadRepository() {
         super(LeadRepository.DEFAULT_FIELD_SET);
     }
 
-    public Lead getRecord() {
-        return (Lead)super.getSObjectRecord();
+    // You can add additional methods for any commonly used filters for this SObject
+    public LeadRepository addConditionIsConverted(Boolean bool) {
+        return (LeadRepository)this.addCondition(Schema.Lead.IsConverted + ' = ' + bool);
     }
 
-    public List<Lead> getList() {
-        return (List<Lead>)super.getSObjectList();
-    }
-
-    public LeadRepository whereIsConverted(Boolean bool) {
-        return (LeadRepository)super.whereFieldEquals(Schema.Lead.IsConverted, bool);
-    }
-
-    public LeadRepository whereStatusEquals(String status) {
-        return (LeadRepository)this.whereFieldEquals(Schema.Lead.Status, status);
+    public LeadRepository addConditionStatusEquals(String status) {
+        return (LeadRepository)this.addCondition(Schema.Lead.Status + ' = ' + StringUtils.wrapInSingleQuotes(status));
     }
 
 }

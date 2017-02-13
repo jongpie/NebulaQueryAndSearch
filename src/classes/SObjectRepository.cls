@@ -27,44 +27,21 @@ public abstract class SObjectRepository implements ISObjectRepository {
         this.parseFieldSetMembers();
     }
 
-    public ISObjectRepository whereFieldEquals(Schema.SObjectField field, Object value) {
-        if(value instanceOf String) value = '\'' + value + '\'';
-        this.whereClauseList.add(field + ' = ' + value);
+    public ISObjectRepository addCondition(String condition) {
+        this.whereClauseList.add(condition);
         return this;
     }
 
-    public ISObjectRepository whereFieldIn(Schema.SObjectField field, Set<Object> valueSet) {
-        return this.whereFieldIn(field, new List<Object>(valueSet));
+    public ISObjectRepository addConditionIdEquals(Id recordId) {
+        return this.addCondition('Id = ' + StringUtils.wrapInSingleQuotes(recordId));
     }
 
-    public ISObjectRepository whereFieldIn(Schema.SObjectField field, Map<Id, Object> valueMap) {
-        return this.whereFieldIn(field, valueMap.values());
+    public ISObjectRepository addConditionIdIn(Set<Id> recordIdSet) {
+        return this.addConditionIdIn(new List<Id>(recordIdSet));
     }
 
-    public ISObjectRepository whereFieldIn(Schema.SObjectField field, List<Object> valueList) {
-        this.whereClauseList.add(field + ' IN :valueList');
-        return this;
-    }
-
-    public ISObjectRepository whereIdEquals(Id recordId) {
-        return this.whereFieldEquals(this.sobjectTypeFieldMap.get('Id'), recordId);
-    }
-
-    public ISObjectRepository whereIdIn(Set<SObject> recordSet) {
-        return this.whereFieldIn(this.sobjectTypeFieldMap.get('Id'), new List<SObject>(recordSet));
-    }
-
-    public ISObjectRepository whereIdIn(Map<Id, SObject> recordMap) {
-        return this.whereFieldIn(this.sobjectTypeFieldMap.get('Id'), recordMap.values());
-    }
-
-    public ISObjectRepository whereIdIn(List<SObject> recordList) {
-        this.whereClauseList.add(this.sobjectTypeFieldMap.get('Id') + ' IN :recordList');
-        return this;
-    }
-
-    public ISObjectRepository whereRecordTypeIdEquals(Id recordTypeId) {
-        return this.whereFieldEquals(this.sobjectTypeFieldMap.get('RecordTypeId'), recordTypeId);
+    public ISObjectRepository addConditionIdIn(List<Id> recordList) {
+        return this.addCondition('Id IN ' + CollectionUtils.toString(recordList));
     }
 
     public ISObjectRepository orderBy(Schema.SObjectField orderByField) {
@@ -91,29 +68,20 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this;
     }
 
-    protected SObject getSObjectRecord() {
-        return this.getSObjectList()[0];
-    }
-
-    protected List<SObject> getSObjectList() {
-        this.buildQuery();
-        return Database.query(this.query);
-    }
-
     private void parseFieldSetMembers() {
         if(this.fieldSet == null) return;
 
         for(Schema.FieldSetMember field : this.fieldSet.getFields()) this.queryFields.add(field.getFieldPath());
     }
 
-    private void buildQuery() {
+    public String buildQuery() {
         this.query = 'SELECT ' + String.join(new List<String>(this.queryFields), ', ')
             + ' FROM ' + this.sobjectType;
 
-        // Generate the where clause
+        // Generate the WHERE clause
         if(!this.whereClauseList.isEmpty()) this.query += ' WHERE ' + String.join(this.whereClauseList, ' AND ');
 
-        // Generate the order by clause
+        // Generate the ORDER BY clause
         if(!this.orderByList.isEmpty()) this.query += ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
 
         // Add the LIMIT if provided
@@ -122,6 +90,8 @@ public abstract class SObjectRepository implements ISObjectRepository {
         if(this.limitCount == null && this.forUpdate) this.query += ' FOR UPDATE';
         // Show the final query
         System.debug(this.query);
+
+        return this.query;
     }
 
 }
