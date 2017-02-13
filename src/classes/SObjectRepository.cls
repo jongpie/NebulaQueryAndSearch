@@ -79,6 +79,26 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this;
     }
 
+    public String getQuery() {
+        this.query = 'SELECT ' + String.join(new List<String>(this.queryFields), ', ')
+            + ' FROM ' + this.sobjectType;
+
+        // Generate the WHERE clause
+        if(!this.whereClauseList.isEmpty()) this.query += ' WHERE ' + String.join(this.whereClauseList, ' AND ');
+
+        // Generate the ORDER BY clause
+        if(!this.orderByList.isEmpty()) this.query += ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
+
+        // Add the LIMIT if provided
+        if(this.limitCount != null) this.query += ' LIMIT '+ this.limitCount;
+        // Mark the query as FOR UPDATE if true. You can't use LIMIT and FOR UPDATE together
+        if(this.limitCount == null && this.forUpdate) this.query += ' FOR UPDATE';
+        // Show the final query
+        System.debug(this.query);
+
+        return this.query;
+    }
+
     private void addCommonQueryFields() {
         if(!this.addCommonQueryFields) return;
 
@@ -99,26 +119,6 @@ public abstract class SObjectRepository implements ISObjectRepository {
         if(this.fieldSet == null) return;
 
         for(Schema.FieldSetMember field : this.fieldSet.getFields()) this.queryFields.add(field.getFieldPath());
-    }
-
-    public String buildQuery() {
-        this.query = 'SELECT ' + String.join(new List<String>(this.queryFields), ', ')
-            + ' FROM ' + this.sobjectType;
-
-        // Generate the WHERE clause
-        if(!this.whereClauseList.isEmpty()) this.query += ' WHERE ' + String.join(this.whereClauseList, ' AND ');
-
-        // Generate the ORDER BY clause
-        if(!this.orderByList.isEmpty()) this.query += ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
-
-        // Add the LIMIT if provided
-        if(this.limitCount != null) this.query += ' LIMIT '+ this.limitCount;
-        // Mark the query as FOR UPDATE if true. You can't use LIMIT and FOR UPDATE together
-        if(this.limitCount == null && this.forUpdate) this.query += ' FOR UPDATE';
-        // Show the final query
-        System.debug(this.query);
-
-        return this.query;
     }
 
 }
