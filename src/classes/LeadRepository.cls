@@ -6,6 +6,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public static Lead getLeadById(Id leadId) {
         String query = new LeadRepository()
             .addConditionIdEquals(leadId)
+            .setAsUpdate(true)
             .getQuery();
 
         return (Lead)Database.query(query)[0];
@@ -32,7 +33,6 @@ public without sharing class LeadRepository extends SObjectRepository {
             .addConditionIsConverted(true)
             .limitCount(10)
             .orderBy(Schema.Lead.CreatedDate)
-            .setAsUpdate(true)
             .getQuery();
 
         return (List<Lead>)Database.query(query);
