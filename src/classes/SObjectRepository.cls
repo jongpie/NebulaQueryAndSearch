@@ -4,6 +4,10 @@ public abstract class SObjectRepository implements ISObjectRepository {
         ASCENDING, DESCENDING
     }
 
+    public enum NullsSortOrder {
+        FIRST, LAST
+    }
+
     private SObjectType sobjectType;
     private Map<String, Schema.SObjectField> sobjectTypeFieldMap;
     private Set<String> queryFields;
@@ -45,13 +49,19 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     public ISObjectRepository orderBy(Schema.SObjectField orderByField) {
-        return this.orderBy(orderByField, null);
+        return this.orderBy(orderByField, null, null);
     }
 
     public ISObjectRepository orderBy(Schema.SObjectField orderByField, SObjectRepository.SortOrder sortOrder) {
+        return orderBy(orderByField, sortOrder, null);
+    }
+
+    public ISObjectRepository orderBy(Schema.SObjectField orderByField, SObjectRepository.SortOrder sortOrder, SObjectRepository.NullsSortOrder nullsSortOrder) {
         String sortOrderSoql = '';
         if(sortOrder == SObjectRepository.SortOrder.ASCENDING) sortOrderSoql = ' ASC';
         else if(sortOrder == SObjectRepository.SortOrder.DESCENDING) sortOrderSoql = ' DESC';
+
+        if(nullsSortOrder != null) sortOrderSoql += ' NULLS ' + nullsSortOrder;
 
         this.orderByList.add(orderByField.getDescribe().getName() + sortOrderSoql);
 
