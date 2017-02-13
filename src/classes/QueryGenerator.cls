@@ -1,4 +1,4 @@
-public class QueryGenerator {
+public without sharing class QueryGenerator {
 
     // Each query repository class will have one or more methods that handle generating a query
     // This class handles taking a fieldSet and an optional string for a WHERE statement

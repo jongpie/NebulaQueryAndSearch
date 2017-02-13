@@ -6,6 +6,7 @@
 	</types>
 	<types>
         <members>Lead.MyFieldSet</members>
+		<members>Task.MyFieldSet</members>
         <name>FieldSet</name>
     </types>
 	<version>38.0</version>

@@ -1,4 +1,4 @@
-public class LeadQueryRepository {
+public without sharing class LeadQueryRepository {
 
     // Each SObject should have its own repository class that contains methods for commonly used queries
     // Each method can use a different field set to generate the query fields,
