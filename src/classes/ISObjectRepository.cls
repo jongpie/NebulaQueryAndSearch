@@ -9,6 +9,6 @@ public interface ISObjectRepository {
     ISObjectRepository limitCount(Integer limitCount);
     ISObjectRepository setAsUpdate(Boolean bool);
 
-    String buildQuery();
+    String getQuery();
 
 }
