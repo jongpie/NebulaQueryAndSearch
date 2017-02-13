@@ -23,11 +23,11 @@ public abstract class SObjectRepository implements ISObjectRepository {
 
         this.sobjectType         = fieldSet.getSObjectType();
         this.sobjectTypeFieldMap = this.sobjectType.getDescribe().fields.getMap();
-        this.queryFields         = new Set<String>{'Id'}; // Always add the ID field, just in case it's not in the field set
         this.whereClauseList     = new List<String>();
         this.orderByList         = new List<String>();
         this.forUpdate           = false;
 
+        this.addCommonQueryFields();
         this.parseFieldSetMembers();
     }
 
@@ -76,6 +76,19 @@ public abstract class SObjectRepository implements ISObjectRepository {
     public ISObjectRepository setAsUpdate(Boolean bool) {
         this.forUpdate = bool;
         return this;
+    }
+
+    private void addCommonQueryFields() {
+        this.queryFields = new Set<String>();
+        // Always add the default fields that are available for the SObject Type
+        List<String> commonFieldNameList = new List<String>{
+            'Id', 'CaseNumber', 'CreatedById', 'CreatedDate', 'LastModifiedById', 'LastModifiedDate', 'Name', 'OwnerId', 'Subject', 'RecordTypeId', 'SystemModStamp'
+        };
+        for(String commonFieldName : commonFieldNameList) {
+            if(!this.sobjectTypeFieldMap.containsKey(commonFieldName)) continue;
+
+            this.queryFields.add(commonFieldName);
+        }
     }
 
     private void parseFieldSetMembers() {
