@@ -6,7 +6,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public static Lead getLeadById(Id leadId) {
         String query = new LeadRepository()
             .addConditionIdEquals(leadId)
-            .buildQuery();
+            .getQuery();
 
         return (Lead)Database.query(query)[0];
     }
@@ -14,7 +14,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public static List<Lead> getLeadsById(List<Id> leadIdList) {
         String query = new LeadRepository()
             .addConditionIdIn(leadIdList)
-            .buildQuery();
+            .getQuery();
 
         return (List<Lead>)Database.query(query);
     }
@@ -22,7 +22,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public static List<Lead> getLeadsBySource(List<String> leadSourceList) {
         String query = new LeadRepository()
             .addCondition(Schema.Lead.LeadSource + ' IN ' + CollectionUtils.toString(leadSourceList))
-            .buildQuery();
+            .getQuery();
 
         return (List<Lead>)Database.query(query);
     }
@@ -33,7 +33,7 @@ public without sharing class LeadRepository extends SObjectRepository {
             .limitCount(10)
             .orderBy(Schema.Lead.CreatedDate)
             .setAsUpdate(true)
-            .buildQuery();
+            .getQuery();
 
         return (List<Lead>)Database.query(query);
     }
@@ -45,7 +45,7 @@ public without sharing class LeadRepository extends SObjectRepository {
             .limitCount(limitCount)
             .orderBy(Schema.Lead.LastModifiedDate, SObjectRepository.SortOrder.DESCENDING)
             .setAsUpdate(true)
-            .buildQuery();
+            .getQuery();
 
         return (List<Lead>)Database.query(query);
     }
