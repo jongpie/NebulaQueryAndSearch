@@ -1,12 +1,7 @@
 public abstract class SObjectRepository implements ISObjectRepository {
 
-    public enum SortOrder {
-        ASCENDING, DESCENDING
-    }
-
-    public enum NullsSortOrder {
-        FIRST, LAST
-    }
+    public enum SortOrder { ASCENDING, DESCENDING }
+    public enum NullsSortOrder { FIRST, LAST }
 
     private SObjectType sobjectType;
     private Map<String, Schema.SObjectField> sobjectTypeFieldMap;
