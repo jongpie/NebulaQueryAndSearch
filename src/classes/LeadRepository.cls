@@ -5,7 +5,7 @@ public without sharing class LeadRepository extends SObjectRepository {
 
     public static Lead getLeadById(Id leadId) {
         String query = new LeadRepository()
-            .addConditionIdEquals(StringUtils.wrapInSingleQuotes(leadId))
+            .addConditionIdEquals(leadId)
             .buildQuery();
 
         return (Lead)Database.query(query)[0];
