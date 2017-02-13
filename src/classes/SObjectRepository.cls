@@ -23,7 +23,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
         this.forUpdate           = false;
 
         this.addCommonQueryFields();
-        this.parseFieldSetMembers();
+        this.addFieldSetMembers();
     }
 
     public ISObjectRepository addCondition(String condition) {
@@ -87,7 +87,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
         }
     }
 
-    private void parseFieldSetMembers() {
+    private void addFieldSetMembers() {
         if(this.fieldSet == null) return;
 
         for(Schema.FieldSetMember field : this.fieldSet.getFields()) this.queryFields.add(field.getFieldPath());
