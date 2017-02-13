@@ -7,6 +7,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
     private Map<String, Schema.SObjectField> sobjectTypeFieldMap;
     private Set<String> queryFields;
     private String query;
+    private Boolean addCommonQueryFields;
     private Schema.FieldSet fieldSet;
     private List<String> whereClauseList;
     private List<String> orderByList;
@@ -14,7 +15,12 @@ public abstract class SObjectRepository implements ISObjectRepository {
     private Boolean forUpdate;
 
     protected SObjectRepository(Schema.FieldSet fieldSet) {
-        this.fieldSet = fieldSet;
+        this(fieldSet, true);
+    }
+
+    protected SObjectRepository(Schema.FieldSet fieldSet, Boolean addCommonQueryFields) {
+        this.fieldSet             = fieldSet;
+        this.addCommonQueryFields = addCommonQueryFields;
 
         this.sobjectType         = fieldSet.getSObjectType();
         this.sobjectTypeFieldMap = this.sobjectType.getDescribe().fields.getMap();
@@ -74,6 +80,8 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     private void addCommonQueryFields() {
+        if(!this.addCommonQueryFields) return;
+
         this.queryFields = new Set<String>();
         // Auto-add the common fields that are available for the SObject Type
         List<String> commonFieldNameList = new List<String>{
