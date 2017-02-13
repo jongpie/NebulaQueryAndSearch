@@ -80,9 +80,10 @@ public abstract class SObjectRepository implements ISObjectRepository {
 
     private void addCommonQueryFields() {
         this.queryFields = new Set<String>();
-        // Always add the default fields that are available for the SObject Type
+        // Auto-add the common fields that are available for the SObject Type
         List<String> commonFieldNameList = new List<String>{
-            'Id', 'CaseNumber', 'CreatedById', 'CreatedDate', 'LastModifiedById', 'LastModifiedDate', 'Name', 'OwnerId', 'Subject', 'RecordTypeId', 'SystemModStamp'
+            'Id', 'CaseNumber', 'CreatedById', 'CreatedDate', 'LastModifiedById', 'LastModifiedDate',
+            'Name', 'OwnerId', 'Subject', 'RecordTypeId', 'SystemModStamp'
         };
         for(String commonFieldName : commonFieldNameList) {
             if(!this.sobjectTypeFieldMap.containsKey(commonFieldName)) continue;
