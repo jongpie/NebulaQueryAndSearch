@@ -105,7 +105,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
 
         // Auto-add the common fields that are available for the SObject Type
         List<String> commonFieldNameList = new List<String>{
-            'Id', 'CaseNumber', 'CreatedById', 'CreatedDate', 'LastModifiedById', 'LastModifiedDate',
+            'Id', 'CaseNumber', 'CreatedById', 'CreatedDate',  'IsClosed', 'LastModifiedById', 'LastModifiedDate',
             'Name', 'OwnerId', 'Subject', 'RecordTypeId', 'SystemModStamp'
         };
         for(String commonFieldName : commonFieldNameList) {
