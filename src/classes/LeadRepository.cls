@@ -31,7 +31,7 @@ public without sharing class LeadRepository extends SObjectRepository {
 
     // Add public methods that return the results of any queries needed
     // All 'builder' methods should be kept as private or protected
-    public List<Lead> getLeadsBySource(List<String> leadSourceList) {
+    public List<Lead> getListForSources(List<String> leadSourceList) {
         String query = this
             .addCondition(Schema.Lead.LeadSource + ' IN ' + CollectionUtils.toString(leadSourceList))
             .getQuery();
@@ -39,7 +39,7 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (List<Lead>)Database.query(query);
     }
 
-    public List<Lead> getRecentlyConvertedLeads() {
+    public List<Lead> getRecentlyConvertedList() {
         String query = this
             .addConditionIsConverted(true)
             .addCondition(Schema.Lead.ConvertedDate + ' >= N_DAYS_AGO:7')
@@ -50,7 +50,7 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (List<Lead>)Database.query(query);
     }
 
-    public List<Lead> getLeadsByStatus(String status, Integer limitCount) {
+    public List<Lead> getListForStatus(String status, Integer limitCount) {
         String query = this
             .addConditionIsConverted(false)
             .addConditionStatusEquals(status)
