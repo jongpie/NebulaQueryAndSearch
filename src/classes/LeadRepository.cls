@@ -6,6 +6,7 @@ public without sharing class LeadRepository extends SObjectRepository {
         super(LeadRepository.DEFAULT_FIELD_SET);
     }
 
+    // Overload the constructor if you want to allow other code to specify the field set used
     public LeadRepository(Schema.FieldSet fieldSet, Boolean addCommonQueryFields) {
         super(fieldSet, addCommonQueryFields);
     }
