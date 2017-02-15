@@ -92,8 +92,8 @@ public abstract class SObjectRepository implements ISObjectRepository {
 
         // Add the LIMIT if provided
         if(this.limitCount != null) this.query += ' LIMIT '+ this.limitCount;
-        // Mark the query as FOR UPDATE if true. You can't use LIMIT and FOR UPDATE together
-        if(this.limitCount == null && this.forUpdate) this.query += ' FOR UPDATE';
+        // Mark the query as FOR UPDATE if true. You can't use ORDER BY and FOR UPDATE together
+        if(this.orderByList.isEmpty() && this.forUpdate) this.query += ' FOR UPDATE';
 
         System.debug(this.query);
 
