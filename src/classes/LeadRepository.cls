@@ -1,10 +1,19 @@
 public without sharing class LeadRepository extends SObjectRepository {
 
-    /** Static bits **/
     private static final Schema.FieldSet DEFAULT_FIELD_SET = SObjectType.Lead.FieldSets.MyFieldSet;
 
-    public static Lead getLeadById(Id leadId) {
-        String query = new LeadRepository()
+    public LeadRepository() {
+        super(LeadRepository.DEFAULT_FIELD_SET);
+    }
+
+    // Overload the constructor if you want to allow other code to specify the field set used
+    public LeadRepository(Schema.FieldSet fieldSet, Boolean addCommonQueryFields) {
+        super(fieldSet, addCommonQueryFields);
+    }
+
+    // ISObjectRepository requires at least 2 methods, getRecord & getList
+    public Lead getRecord(Id leadId) {
+        String query = this
             .addConditionIdEquals(leadId)
             .setAsUpdate(true)
             .getQuery();
@@ -12,34 +21,38 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (Lead)Database.query(query)[0];
     }
 
-    public static List<Lead> getLeadsById(List<Id> leadIdList) {
-        String query = new LeadRepository(SObjectType.Lead.FieldSets.AnotherFieldSet, false)
+    public List<Lead> getList(List<Id> leadIdList) {
+        String query = this
             .addConditionIdIn(leadIdList)
+            .setAsUpdate(true)
             .getQuery();
 
         return (List<Lead>)Database.query(query);
     }
 
-    public static List<Lead> getLeadsBySource(List<String> leadSourceList) {
-        String query = new LeadRepository()
+    // Add public methods that return the results of any queries needed
+    // All 'builder' methods should be kept as private or protected
+    public List<Lead> getListForSources(List<String> leadSourceList) {
+        String query = this
             .addCondition(Schema.Lead.LeadSource + ' IN ' + CollectionUtils.toString(leadSourceList))
             .getQuery();
 
         return (List<Lead>)Database.query(query);
     }
 
-    public static List<Lead> getConvertedLeads() {
-        String query = new LeadRepository()
+    public List<Lead> getRecentlyConvertedList() {
+        String query = this
             .addConditionIsConverted(true)
+            .addCondition(Schema.Lead.ConvertedDate + ' >= N_DAYS_AGO:7')
             .limitCount(10)
-            .orderBy(Schema.Lead.CreatedDate)
+            .orderBy(Schema.Lead.ConvertedDate, SObjectRepository.SortOrder.DESCENDING)
             .getQuery();
 
         return (List<Lead>)Database.query(query);
     }
 
-    public static List<Lead> getLeadsByStatus(String status, Integer limitCount) {
-        String query = new LeadRepository()
+    public List<Lead> getListForStatus(String status, Integer limitCount) {
+        String query = this
             .addConditionIsConverted(false)
             .addConditionStatusEquals(status)
             .limitCount(limitCount)
@@ -50,21 +63,12 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (List<Lead>)Database.query(query);
     }
 
-    /** Instance bits **/
-    private LeadRepository() {
-        super(LeadRepository.DEFAULT_FIELD_SET);
-    }
-
-    private LeadRepository(Schema.FieldSet fieldSet, Boolean addCommonQueryFields) {
-        super(fieldSet, addCommonQueryFields);
-    }
-
     // You can add additional methods for any commonly used filters for this SObject
-    public LeadRepository addConditionIsConverted(Boolean bool) {
+    private LeadRepository addConditionIsConverted(Boolean bool) {
         return (LeadRepository)this.addCondition(Schema.Lead.IsConverted + ' = ' + bool);
     }
 
-    public LeadRepository addConditionStatusEquals(String status) {
+    private LeadRepository addConditionStatusEquals(String status) {
         return (LeadRepository)this.addCondition(Schema.Lead.Status + ' = ' + StringUtils.wrapInSingleQuotes(status));
     }
 
