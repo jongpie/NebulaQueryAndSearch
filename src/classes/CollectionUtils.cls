@@ -1,9 +1,5 @@
 public without sharing class CollectionUtils {
 
-    public static String toString(Set<SObject> recordSet) {
-        return toString(new List<SObject>(recordSet));
-    }
-
     public static String toString(List<SObject> recordList) {
         return toString(new Map<Id, SObject>(recordList).keySet());
     }
