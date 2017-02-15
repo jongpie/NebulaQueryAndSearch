@@ -21,13 +21,13 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (Lead)Database.query(query)[0];
     }
 
-    public Lead getList(List<Id> leadIdList) {
+    public List<Lead> getList(List<Id> leadIdList) {
         String query = this
             .addConditionIdIn(leadIdList)
             .setAsUpdate(true)
             .getQuery();
 
-        return (Lead)Database.query(query)[0];
+        return (List<Lead>)Database.query(query);
     }
 
     // Add public methods that return the results of any queries needed
