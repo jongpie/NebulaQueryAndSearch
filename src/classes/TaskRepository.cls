@@ -15,13 +15,13 @@ public without sharing class TaskRepository extends SObjectRepository {
         return (Task)Database.query(query)[0];
     }
 
-     public Task getList(List<Id> taskIdList) {
+     public List<Task> getList(List<Id> taskIdList) {
         String query = this
             .addConditionIdIn(taskIdList)
             .setAsUpdate(true)
             .getQuery();
 
-        return (Task)Database.query(query)[0];
+        return (List<Task>)Database.query(query);
     }
 
     public List<Task> getListOfOpenByWhoId(Id whoId) {
