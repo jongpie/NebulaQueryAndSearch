@@ -27,6 +27,19 @@ private class LeadRepository_Tests {
     }
 
     @isTest
+    static void getRecord_WHEN_fieldSetIsSpecified() {
+        Schema.FieldSet expectedFieldSet = SObjectType.Lead.FieldSets.AnotherFieldSet;
+        Lead expectedLead = [SELECT Id FROM Lead LIMIT 1];
+
+        Test.startTest();
+
+        Lead returnedLead = new LeadRepository(expectedFieldSet, false).getRecord(expectedLead.Id);
+        System.assertEquals(expectedLead.Id, returnedLead.Id);
+
+        Test.stopTest();
+    }
+
+    @isTest
     static void getList() {
         List<Lead> expectedLeadList = [SELECT Id FROM Lead];
         List<Id> expectedLeadIdList = new List<Id>(new Map<Id, Lead>(expectedLeadList).keySet());

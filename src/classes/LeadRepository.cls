@@ -35,6 +35,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public List<Lead> getListForSources(List<String> leadSourceList) {
         String query = this
             .addCondition(Schema.Lead.LeadSource + ' IN ' + CollectionUtils.toString(leadSourceList))
+            .orderBy(Schema.Lead.CreatedDate)
             .getQuery();
 
         return (List<Lead>)Database.query(query);
