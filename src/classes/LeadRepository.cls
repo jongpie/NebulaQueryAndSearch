@@ -30,22 +30,11 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (List<Lead>)Database.query(query);
     }
 
-    // Add public methods that return the results of any queries needed
-    // All 'builder' methods should be kept as private or protected
+    // Add public methods needed that return the query results
+    // Only methods that return an SObject or collection of SObjects should be made public
     public List<Lead> getListForSources(List<String> leadSourceList) {
         String query = this
             .addCondition(Schema.Lead.LeadSource + ' IN ' + CollectionUtils.toString(leadSourceList))
-            .getQuery();
-
-        return (List<Lead>)Database.query(query);
-    }
-
-    public List<Lead> getRecentlyConvertedList() {
-        String query = this
-            .addConditionIsConverted(true)
-            .addCondition(Schema.Lead.ConvertedDate + ' >= N_DAYS_AGO:7')
-            .limitCount(10)
-            .orderBy(Schema.Lead.ConvertedDate, SObjectRepository.SortOrder.DESCENDING)
             .getQuery();
 
         return (List<Lead>)Database.query(query);
@@ -63,7 +52,8 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (List<Lead>)Database.query(query);
     }
 
-    // You can add additional methods for any commonly used filters for this SObject
+    // You can add additional builder methods for any commonly used filters for this SObject
+    // All builder methods should be kept as private or protected
     private LeadRepository addConditionIsConverted(Boolean bool) {
         return (LeadRepository)this.addCondition(Schema.Lead.IsConverted + ' = ' + bool);
     }

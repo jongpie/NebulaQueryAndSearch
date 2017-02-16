@@ -48,4 +48,24 @@ private class CollectionUtils_Test {
         System.assertEquals(expectedString, returnedString);
     }
 
+    @isTest
+    static void toString_WHEN_stringSet() {
+        Set<String> stringSet = new Set<String>{'Hola', 'Hello'};
+
+        String expectedString = '(\'' + String.join(new List<String>(stringSet), '\',\'') + '\')';
+        String returnedString = CollectionUtils.toString(stringSet);
+
+        System.assertEquals(expectedString, returnedString);
+    }
+
+    @isTest
+    static void toString_WHEN_stringList() {
+        List<String> stringList = new List<String>{'Hola', 'Hello'};
+
+        String expectedString = '(\'' + String.join(stringList, '\',\'') + '\')';
+        String returnedString = CollectionUtils.toString(stringList);
+
+        System.assertEquals(expectedString, returnedString);
+    }
+
 }
