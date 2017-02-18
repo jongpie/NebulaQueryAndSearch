@@ -3,6 +3,8 @@ public abstract class SObjectRepository implements ISObjectRepository {
     public enum SortOrder { ASCENDING, DESCENDING }
     public enum NullsSortOrder { FIRST, LAST }
 
+    public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
+
     private SObjectType sobjectType;
     private Map<String, Schema.SObjectField> sobjectTypeFieldMap;
     private Set<String> queryFields;
@@ -94,6 +96,24 @@ public abstract class SObjectRepository implements ISObjectRepository {
         if(this.limitCount != null) this.query += ' LIMIT '+ this.limitCount;
         // Mark the query as FOR UPDATE if true. You can't use ORDER BY and FOR UPDATE together
         if(this.orderByList.isEmpty() && this.forUpdate) this.query += ' FOR UPDATE';
+
+        System.debug(this.query);
+
+        return this.query;
+    }
+
+    protected String getSearchQuery(String searchTerm) {
+        return this.getSearchQuery(StringUtils.wrapInSingleQuotes(searchTerm), SObjectRepository.SearchGroup.ALL_FIELDS);
+    }
+
+    protected String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
+        String whereClause = '';
+        if(!this.whereClauseList.isEmpty()) whereClause = ' WHERE ' + String.join(this.whereClauseList, ' AND ');
+
+        String queryFieldsString = String.join(new List<String>(this.queryFields), ',');
+        this.query = 'FIND ' + searchTerm
+            + ' IN ' + searchGroup.name().replace('_', ' ')
+            + ' RETURNING ' + this.sobjectType + '(' + queryFieldsString + ') ' + whereClause;
 
         System.debug(this.query);
 

@@ -30,6 +30,13 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (List<Lead>)Database.query(query);
     }
 
+    public List<Lead> searchInAllFields(String searchTerm) {
+        String query = this
+            .getSearchQuery(searchTerm);
+
+        return (List<Lead>)Search.query(query)[0];
+    }
+
     // Add public methods needed that return the query results
     // Only methods that return an SObject or collection of SObjects should be made public
     public List<Lead> getListForSources(List<String> leadSourceList) {
