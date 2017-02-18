@@ -113,7 +113,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
         String queryFieldsString = String.join(new List<String>(this.queryFields), ',');
         this.query = 'FIND ' + searchTerm
             + ' IN ' + searchGroup.name().replace('_', ' ')
-            + ' RETURNING ' + this.sobjectType + '(' + queryFieldsString + ') ' + whereClause;
+            + ' RETURNING ' + this.sobjectType + '(' + queryFieldsString + whereClause + ') ';
 
         System.debug(this.query);
 
