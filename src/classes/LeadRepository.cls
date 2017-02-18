@@ -32,6 +32,7 @@ public without sharing class LeadRepository extends SObjectRepository {
 
     public List<Lead> searchInAllFields(String searchTerm) {
         String query = this
+            .addConditionIsConverted(false)
             .getSearchQuery(searchTerm);
 
         return (List<Lead>)Search.query(query)[0];
