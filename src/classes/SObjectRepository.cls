@@ -95,10 +95,6 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this.query;
     }
 
-    protected String getSearchQuery(String searchTerm) {
-        return this.getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
-    }
-
     protected String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
         this.query = 'FIND ' + StringUtils.wrapInSingleQuotes(searchTerm)
             + ' IN ' + searchGroup.name().replace('_', ' ')
