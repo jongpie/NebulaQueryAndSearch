@@ -3,6 +3,8 @@ public abstract class SObjectRepository implements ISObjectRepository {
     public enum SortOrder { ASCENDING, DESCENDING }
     public enum NullsSortOrder { FIRST, LAST }
 
+    public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
+
     private SObjectType sobjectType;
     private Map<String, Schema.SObjectField> sobjectTypeFieldMap;
     private Set<String> queryFields;
@@ -75,25 +77,35 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this;
     }
 
-    protected SObjectRepository setAsUpdate(Boolean bool) {
-        this.forUpdate = bool;
+    protected SObjectRepository setAsUpdate() {
+        this.forUpdate = true;
         return this;
     }
 
     protected String getQuery() {
-        this.query = 'SELECT ' + String.join(new List<String>(this.queryFields), ', ')
-            + ' FROM ' + this.sobjectType;
+        this.query = 'SELECT ' + this.getQueryFieldString()
+            + ' FROM ' + this.sobjectType
+            + this.getWhereClauseString()
+            + this.getOrderByString()
+            + this.getLimitCountString()
+            + this.getForUpdateString();
 
-        // Generate the WHERE clause
-        if(!this.whereClauseList.isEmpty()) this.query += ' WHERE ' + String.join(this.whereClauseList, ' AND ');
+        System.debug(this.query);
 
-        // Generate the ORDER BY clause
-        if(!this.orderByList.isEmpty()) this.query += ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
+        return this.query;
+    }
 
-        // Add the LIMIT if provided
-        if(this.limitCount != null) this.query += ' LIMIT '+ this.limitCount;
-        // Mark the query as FOR UPDATE if true. You can't use ORDER BY and FOR UPDATE together
-        if(this.orderByList.isEmpty() && this.forUpdate) this.query += ' FOR UPDATE';
+    protected String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
+        this.query = 'FIND ' + StringUtils.wrapInSingleQuotes(searchTerm)
+            + ' IN ' + searchGroup.name().replace('_', ' ')
+            + ' RETURNING ' + this.sobjectType + '('
+                + this.getQueryFieldString()
+                + this.getWhereClauseString()
+                + this.getOrderByString()
+                + this.getLimitCountString()
+            + ')';
+
+        if(this.forUpdate) System.debug(LoggingLevel.WARN, 'getSearchQuery method flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
 
         System.debug(this.query);
 
@@ -119,6 +131,34 @@ public abstract class SObjectRepository implements ISObjectRepository {
         if(this.fieldSet == null) return;
 
         for(Schema.FieldSetMember field : this.fieldSet.getFields()) this.queryFields.add(field.getFieldPath());
+    }
+
+    private String getQueryFieldString() {
+        return String.join(new List<String>(this.queryFields), ',');
+    }
+
+    private String getWhereClauseString() {
+        String whereClauseString = '';
+        if(!this.whereClauseList.isEmpty()) whereClauseString = ' WHERE ' + String.join(this.whereClauseList, ' AND ');
+        return whereClauseString;
+    }
+
+    private String getOrderByString() {
+        String orderByString = '';
+        if(!this.orderByList.isEmpty()) orderByString = ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
+        return orderByString;
+    }
+
+    private String getLimitCountString() {
+        String limitString = '';
+        if(this.limitCount != null) limitString = ' LIMIT '+ this.limitCount;
+        return limitString;
+    }
+
+    private String getForUpdateString() {
+        String forUpdateString = '';
+        if(this.orderByList.isEmpty() && this.forUpdate) forUpdateString = ' FOR UPDATE';
+        return forUpdateString;
     }
 
 }

@@ -9,7 +9,7 @@ public without sharing class TaskRepository extends SObjectRepository {
     public Task getRecord(Id taskId) {
         String query = this
             .addConditionIdEquals(taskId)
-            .setAsUpdate(true)
+            .setAsUpdate()
             .getQuery();
 
         return (Task)Database.query(query)[0];
@@ -18,17 +18,17 @@ public without sharing class TaskRepository extends SObjectRepository {
      public List<Task> getList(List<Id> taskIdList) {
         String query = this
             .addConditionIdIn(taskIdList)
-            .setAsUpdate(true)
+            .setAsUpdate()
             .getQuery();
 
         return (List<Task>)Database.query(query);
     }
 
-    public List<Task> getListOfOpenByWhoId(Id whoId) {
-        return getListOfOpenByWhoId(new List<Id>{whoId});
+    public List<Task> getListOfOpenForWhoId(Id whoId) {
+        return getListOfOpenForWhoId(new List<Id>{whoId});
     }
 
-    public List<Task> getListOfOpenByWhoId(List<Id> whoIdList) {
+    public List<Task> getListOfOpenForWhoId(List<Id> whoIdList) {
         String query = this
             .addConditionWhoIdIn(whoIdList)
             .addConditionIsClosed(false)
@@ -37,6 +37,16 @@ public without sharing class TaskRepository extends SObjectRepository {
             .getQuery();
 
         return (List<Task>)Database.query(query);
+    }
+
+    public List<Task> searchInAllFields(String searchTerm) {
+        String query = this
+            .addConditionIsClosed(false)
+            .orderBy(Schema.Task.WhoId)
+            .limitCount(10)
+            .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
+
+        return (List<Task>)Search.query(query)[0];
     }
 
     private TaskRepository addConditionIsClosed(Boolean bool) {

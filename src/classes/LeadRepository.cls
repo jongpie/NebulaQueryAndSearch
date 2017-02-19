@@ -15,7 +15,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public Lead getRecord(Id leadId) {
         String query = this
             .addConditionIdEquals(leadId)
-            .setAsUpdate(true)
+            .setAsUpdate()
             .getQuery();
 
         return (Lead)Database.query(query)[0];
@@ -24,7 +24,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public List<Lead> getList(List<Id> leadIdList) {
         String query = this
             .addConditionIdIn(leadIdList)
-            .setAsUpdate(true)
+            .setAsUpdate()
             .getQuery();
 
         return (List<Lead>)Database.query(query);
@@ -47,10 +47,21 @@ public without sharing class LeadRepository extends SObjectRepository {
             .addConditionStatusEquals(status)
             .limitCount(limitCount)
             .orderBy(Schema.Lead.LastModifiedDate, SObjectRepository.SortOrder.DESCENDING)
-            .setAsUpdate(true)
+            .setAsUpdate()
             .getQuery();
 
         return (List<Lead>)Database.query(query);
+    }
+
+    public List<Lead> searchInAllFields(String searchTerm) {
+        String query = this
+            .addConditionIsConverted(false)
+            .orderBy(Schema.Lead.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
+            .limitCount(10)
+            .setAsUpdate() // SOSL cannot use FOR UPDATE. This will execute, but a warning debug statement will indicate that it is ignored
+            .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
+
+        return (List<Lead>)Search.query(query)[0];
     }
 
     // You can add additional builder methods for any commonly used filters for this SObject
