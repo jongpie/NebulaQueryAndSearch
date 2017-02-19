@@ -30,17 +30,6 @@ public without sharing class LeadRepository extends SObjectRepository {
         return (List<Lead>)Database.query(query);
     }
 
-    public List<Lead> searchInAllFields(String searchTerm) {
-        String query = this
-            .addConditionIsConverted(false)
-            .orderBy(Schema.Lead.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
-            .limitCount(10)
-            .setAsForUpdate()
-            .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
-
-        return (List<Lead>)Search.query(query)[0];
-    }
-
     // Add public methods needed that return the query results
     // Only methods that return an SObject or collection of SObjects should be made public
     public List<Lead> getListForSources(List<String> leadSourceList) {
@@ -62,6 +51,17 @@ public without sharing class LeadRepository extends SObjectRepository {
             .getQuery();
 
         return (List<Lead>)Database.query(query);
+    }
+
+    public List<Lead> searchInAllFields(String searchTerm) {
+        String query = this
+            .addConditionIsConverted(false)
+            .orderBy(Schema.Lead.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
+            .limitCount(10)
+            .setAsForUpdate()
+            .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
+
+        return (List<Lead>)Search.query(query)[0];
     }
 
     // You can add additional builder methods for any commonly used filters for this SObject
