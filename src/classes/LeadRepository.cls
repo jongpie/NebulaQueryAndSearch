@@ -33,7 +33,10 @@ public without sharing class LeadRepository extends SObjectRepository {
     public List<Lead> searchInAllFields(String searchTerm) {
         String query = this
             .addConditionIsConverted(false)
-            .getSearchQuery(searchTerm);
+            .orderBy(Schema.Lead.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
+            .limitCount(10)
+            .setAsForUpdate()
+            .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
 
         return (List<Lead>)Search.query(query)[0];
     }

@@ -100,13 +100,16 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     protected String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
-        String whereClause = '';
-        if(!this.whereClauseList.isEmpty()) whereClause = ' WHERE ' + String.join(this.whereClauseList, ' AND ');
-
-        String queryFieldsString = String.join(new List<String>(this.queryFields), ',');
         this.query = 'FIND ' + StringUtils.wrapInSingleQuotes(searchTerm)
             + ' IN ' + searchGroup.name().replace('_', ' ')
-            + ' RETURNING ' + this.sobjectType + '(' + queryFieldsString + whereClause + ') ';
+            + ' RETURNING ' + this.sobjectType + '('
+                + this.getQueryFieldString()
+                + this.getWhereClauseString()
+                + this.getOrderByString()
+                + this.getLimitCountString()
+            + ') ';
+
+        if(this.forUpdate) System.debug(Logginglevel.WARN, 'Search Query flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
 
         System.debug(this.query);
 
@@ -132,6 +135,34 @@ public abstract class SObjectRepository implements ISObjectRepository {
         if(this.fieldSet == null) return;
 
         for(Schema.FieldSetMember field : this.fieldSet.getFields()) this.queryFields.add(field.getFieldPath());
+    }
+
+    private String getQueryFieldString() {
+        return String.join(new List<String>(this.queryFields), ',');
+    }
+
+    private String getWhereClauseString() {
+        String whereClauseString = '';
+        if(!this.whereClauseList.isEmpty()) whereClauseString = ' WHERE ' + String.join(this.whereClauseList, ' AND ');
+        return whereClauseString;
+    }
+
+    private String getOrderByString() {
+        String orderByString = '';
+        if(!this.orderByList.isEmpty()) orderByString = ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
+        return orderByString;
+    }
+
+    private String getLimitCountString() {
+        String limitString = '';
+        if(this.limitCount != null) limitString = ' LIMIT '+ this.limitCount;
+        return limitString;
+    }
+
+    private String getForUpdateString() {
+        String forUpdateString = '';
+        if(this.orderByList.isEmpty() && this.forUpdate) forUpdateString = ' FOR UPDATE';
+        return forUpdateString;
     }
 
 }

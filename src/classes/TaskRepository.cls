@@ -39,6 +39,16 @@ public without sharing class TaskRepository extends SObjectRepository {
         return (List<Task>)Database.query(query);
     }
 
+    public List<Task> searchInAllFields(String searchTerm) {
+        String query = this
+            .addConditionIsClosed(false)
+            .orderBy(Schema.Task.WhoId)
+            .limitCount(10)
+            .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
+
+        return (List<Task>)Search.query(query)[0];
+    }
+
     private TaskRepository addConditionIsClosed(Boolean bool) {
         return (TaskRepository)this.addCondition(Schema.Task.IsClosed + ' = ' + bool);
     }
