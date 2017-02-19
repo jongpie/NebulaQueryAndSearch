@@ -103,7 +103,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     protected String getSearchQuery(String searchTerm) {
-        return this.getSearchQuery(StringUtils.wrapInSingleQuotes(searchTerm), SObjectRepository.SearchGroup.ALL_FIELDS);
+        return this.getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
     }
 
     protected String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
@@ -111,7 +111,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
         if(!this.whereClauseList.isEmpty()) whereClause = ' WHERE ' + String.join(this.whereClauseList, ' AND ');
 
         String queryFieldsString = String.join(new List<String>(this.queryFields), ',');
-        this.query = 'FIND ' + searchTerm
+        this.query = 'FIND ' + StringUtils.wrapInSingleQuotes(searchTerm)
             + ' IN ' + searchGroup.name().replace('_', ' ')
             + ' RETURNING ' + this.sobjectType + '(' + queryFieldsString + whereClause + ') ';
 
