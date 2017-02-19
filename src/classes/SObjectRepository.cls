@@ -77,7 +77,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this;
     }
 
-    protected SObjectRepository setAsForUpdate() {
+    protected SObjectRepository setAsUpdate() {
         this.forUpdate = true;
         return this;
     }
@@ -105,7 +105,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
                 + this.getLimitCountString()
             + ') ';
 
-        if(this.forUpdate) System.debug(Logginglevel.WARN, 'Search Query flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
+        if(this.forUpdate) System.debug(Logginglevel.WARN, 'getSearchQuery() flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
 
         System.debug(this.query);
 

@@ -15,7 +15,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public Lead getRecord(Id leadId) {
         String query = this
             .addConditionIdEquals(leadId)
-            .setAsForUpdate()
+            .setAsUpdate()
             .getQuery();
 
         return (Lead)Database.query(query)[0];
@@ -24,7 +24,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public List<Lead> getList(List<Id> leadIdList) {
         String query = this
             .addConditionIdIn(leadIdList)
-            .setAsForUpdate()
+            .setAsUpdate()
             .getQuery();
 
         return (List<Lead>)Database.query(query);
@@ -47,7 +47,7 @@ public without sharing class LeadRepository extends SObjectRepository {
             .addConditionStatusEquals(status)
             .limitCount(limitCount)
             .orderBy(Schema.Lead.LastModifiedDate, SObjectRepository.SortOrder.DESCENDING)
-            .setAsForUpdate()
+            .setAsUpdate() // SOSL cannot use FOR UPDATE. This will execute, but a warning debug statement will indicate that it is ignored
             .getQuery();
 
         return (List<Lead>)Database.query(query);
@@ -58,7 +58,7 @@ public without sharing class LeadRepository extends SObjectRepository {
             .addConditionIsConverted(false)
             .orderBy(Schema.Lead.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
             .limitCount(10)
-            .setAsForUpdate()
+            .setAsUpdate()
             .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
 
         return (List<Lead>)Search.query(query)[0];
