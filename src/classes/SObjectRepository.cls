@@ -103,9 +103,9 @@ public abstract class SObjectRepository implements ISObjectRepository {
                 + this.getWhereClauseString()
                 + this.getOrderByString()
                 + this.getLimitCountString()
-            + ') ';
+            + ')';
 
-        if(this.forUpdate) System.debug(Logginglevel.WARN, 'getSearchQuery() flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
+        if(this.forUpdate) System.debug(LoggingLevel.WARN, 'getSearchQuery method flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
 
         System.debug(this.query);
 
