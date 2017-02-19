@@ -24,11 +24,11 @@ public without sharing class TaskRepository extends SObjectRepository {
         return (List<Task>)Database.query(query);
     }
 
-    public List<Task> getListOfOpenByWhoId(Id whoId) {
-        return getListOfOpenByWhoId(new List<Id>{whoId});
+    public List<Task> getListOfOpenForWhoId(Id whoId) {
+        return getListOfOpenForWhoId(new List<Id>{whoId});
     }
 
-    public List<Task> getListOfOpenByWhoId(List<Id> whoIdList) {
+    public List<Task> getListOfOpenForWhoId(List<Id> whoIdList) {
         String query = this
             .addConditionWhoIdIn(whoIdList)
             .addConditionIsClosed(false)

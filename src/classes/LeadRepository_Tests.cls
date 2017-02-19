@@ -56,7 +56,7 @@ private class LeadRepository_Tests {
     static void getListForSources() {
         String expectedLeadSource = 'GitHub';
 
-        List<Lead> leadList       = [SELECT Id, LeadSource FROM Lead LIMIT 2];
+        List<Lead> leadList = [SELECT Id, LeadSource FROM Lead LIMIT 2];
         for(Lead lead : leadList) lead.LeadSource = expectedLeadSource;
         update leadList;
 
@@ -72,7 +72,7 @@ private class LeadRepository_Tests {
 
     @isTest
     static void getListForStatus() {
-        String expectedStatus              = [SELECT Status FROM Lead LIMIT 1].Status;
+        String expectedStatus = [SELECT Status FROM Lead LIMIT 1].Status;
         Integer leadCountForExpectedStatus = [SELECT COUNT() FROM Lead WHERE Status = :expectedStatus];
         System.assert(leadCountForExpectedStatus > 0);
         Integer limitCount = leadCountForExpectedStatus - 1;
@@ -88,12 +88,12 @@ private class LeadRepository_Tests {
     @isTest
     static void searchInAllFields() {
         String searchTerm = [SELECT LastName FROM Lead WHERE LastName != null LIMIT 1].LastName;
-        List<Lead> expectedResults = (List<Lead>)[FIND :searchTerm IN ALL FIELDS RETURNING Lead(Id WHERE IsConverted = false)][0];
+        List<Lead> expectedLeadList = (List<Lead>)[FIND :searchTerm IN ALL FIELDS RETURNING Lead(Id WHERE IsConverted = false)][0];
 
         Test.startTest();
 
         List<Lead> returnedLeadList = new LeadRepository().searchInAllFields(searchTerm);
-        System.assertEquals(expectedResults.size(), returnedLeadList.size());
+        System.assertEquals(expectedLeadList.size(), returnedLeadList.size());
 
         Test.stopTest();
     }
