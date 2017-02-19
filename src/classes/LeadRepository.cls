@@ -15,7 +15,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public Lead getRecord(Id leadId) {
         String query = this
             .addConditionIdEquals(leadId)
-            .setAsUpdate(true)
+            .setAsForUpdate()
             .getQuery();
 
         return (Lead)Database.query(query)[0];
@@ -24,7 +24,7 @@ public without sharing class LeadRepository extends SObjectRepository {
     public List<Lead> getList(List<Id> leadIdList) {
         String query = this
             .addConditionIdIn(leadIdList)
-            .setAsUpdate(true)
+            .setAsForUpdate()
             .getQuery();
 
         return (List<Lead>)Database.query(query);
@@ -55,7 +55,7 @@ public without sharing class LeadRepository extends SObjectRepository {
             .addConditionStatusEquals(status)
             .limitCount(limitCount)
             .orderBy(Schema.Lead.LastModifiedDate, SObjectRepository.SortOrder.DESCENDING)
-            .setAsUpdate(true)
+            .setAsForUpdate()
             .getQuery();
 
         return (List<Lead>)Database.query(query);

@@ -9,7 +9,7 @@ public without sharing class TaskRepository extends SObjectRepository {
     public Task getRecord(Id taskId) {
         String query = this
             .addConditionIdEquals(taskId)
-            .setAsUpdate(true)
+            .setAsForUpdate()
             .getQuery();
 
         return (Task)Database.query(query)[0];
@@ -18,7 +18,7 @@ public without sharing class TaskRepository extends SObjectRepository {
      public List<Task> getList(List<Id> taskIdList) {
         String query = this
             .addConditionIdIn(taskIdList)
-            .setAsUpdate(true)
+            .setAsForUpdate()
             .getQuery();
 
         return (List<Task>)Database.query(query);

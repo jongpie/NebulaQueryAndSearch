@@ -77,25 +77,18 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this;
     }
 
-    protected SObjectRepository setAsUpdate(Boolean bool) {
-        this.forUpdate = bool;
+    protected SObjectRepository setAsForUpdate() {
+        this.forUpdate = true;
         return this;
     }
 
     protected String getQuery() {
         this.query = 'SELECT ' + String.join(new List<String>(this.queryFields), ', ')
-            + ' FROM ' + this.sobjectType;
-
-        // Generate the WHERE clause
-        if(!this.whereClauseList.isEmpty()) this.query += ' WHERE ' + String.join(this.whereClauseList, ' AND ');
-
-        // Generate the ORDER BY clause
-        if(!this.orderByList.isEmpty()) this.query += ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
-
-        // Add the LIMIT if provided
-        if(this.limitCount != null) this.query += ' LIMIT '+ this.limitCount;
-        // Mark the query as FOR UPDATE if true. You can't use ORDER BY and FOR UPDATE together
-        if(this.orderByList.isEmpty() && this.forUpdate) this.query += ' FOR UPDATE';
+            + ' FROM ' + this.sobjectType
+            + this.getWhereClauseString()
+            + this.getOrderByString()
+            + this.getLimitCountString()
+            + this.getForUpdateString();
 
         System.debug(this.query);
 
