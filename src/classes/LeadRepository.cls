@@ -47,7 +47,7 @@ public without sharing class LeadRepository extends SObjectRepository {
             .addConditionStatusEquals(status)
             .limitCount(limitCount)
             .orderBy(Schema.Lead.LastModifiedDate, SObjectRepository.SortOrder.DESCENDING)
-            .setAsUpdate() // SOSL cannot use FOR UPDATE. This will execute, but a warning debug statement will indicate that it is ignored
+            .setAsUpdate()
             .getQuery();
 
         return (List<Lead>)Database.query(query);
@@ -58,7 +58,7 @@ public without sharing class LeadRepository extends SObjectRepository {
             .addConditionIsConverted(false)
             .orderBy(Schema.Lead.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
             .limitCount(10)
-            .setAsUpdate()
+            .setAsUpdate() // SOSL cannot use FOR UPDATE. This will execute, but a warning debug statement will indicate that it is ignored
             .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
 
         return (List<Lead>)Search.query(query)[0];
