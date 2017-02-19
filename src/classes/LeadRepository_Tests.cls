@@ -85,4 +85,17 @@ private class LeadRepository_Tests {
         Test.stopTest();
     }
 
+    @isTest
+    static void searchInAllFields() {
+        String searchTerm = [SELECT LastName FROM Lead WHERE LastName != null LIMIT 1].LastName;
+        List<Lead> expectedResults = (List<Lead>)[FIND :searchTerm IN ALL FIELDS RETURNING Lead(Id WHERE IsConverted = false)][0];
+
+        Test.startTest();
+
+        List<Lead> returnedLeadList = new LeadRepository().searchInAllFields(searchTerm);
+        System.assertEquals(expectedResults.size(), returnedLeadList.size());
+
+        Test.stopTest();
+    }
+
 }
