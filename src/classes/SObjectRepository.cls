@@ -83,7 +83,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     protected String getQuery() {
-        this.query = 'SELECT ' + String.join(new List<String>(this.queryFields), ', ')
+        this.query = 'SELECT ' + this.getQueryFieldString()
             + ' FROM ' + this.sobjectType
             + this.getWhereClauseString()
             + this.getOrderByString()
