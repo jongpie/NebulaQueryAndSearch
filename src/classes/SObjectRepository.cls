@@ -36,20 +36,72 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     protected SObjectRepository addCondition(String condition) {
-        this.whereClauseList.add(condition);
+        this.whereClauseList.add('(' + condition + ')');
         return this;
     }
 
-    protected SObjectRepository addConditionIdEquals(Id recordId) {
-        return this.addCondition('Id = ' + StringUtils.wrapInSingleQuotes(recordId));
+protected SObjectRepository whereIdEquals(Id recordId) {
+    return this.whereFieldEquals(sobjectTypeFieldMap.get('Id'), SOQLUtils.toSOQLString(recordId));
+}
+
+protected SObjectRepository whereIdIn(Set<Id> recordIdSet) {
+    return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), new List<Id>(recordIdSet));
+}
+
+protected SObjectRepository whereIdIn(List<Id> recordList) {
+    return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), recordList);
+}
+
+    protected SObjectRepository whereFieldEquals(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '=', SOQLUtils.toSOQLString(value));
     }
 
-    protected SObjectRepository addConditionIdIn(Set<Id> recordIdSet) {
-        return this.addConditionIdIn(new List<Id>(recordIdSet));
+    protected SObjectRepository whereFieldDoesNotEqual(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '!=', SOQLUtils.toSOQLString(value));
     }
 
-    protected SObjectRepository addConditionIdIn(List<Id> recordList) {
-        return this.addCondition('Id IN ' + CollectionUtils.toString(recordList));
+    protected SObjectRepository whereFieldGreaterThan(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '>', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldGreaterThanOrEqualTo(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '>=', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldLessThan(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '<', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldLessThanOrEqualTo(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '<=', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldIn(Schema.SObjectField field, List<Object> valueList) {
+        return this.addCondition(field, 'IN', SOQLUtils.toSOQLString(valueList));
+    }
+
+    protected SObjectRepository whereFieldNotIn(Schema.SObjectField field, List<Object> valueList) {
+        return this.addCondition(field, 'NOT IN', SOQLUtils.toSOQLString(valueList));
+    }
+
+    protected SObjectRepository whereFieldIncludes(Schema.SObjectField field, List<Object> valueList) {
+        return this.addCondition(field, 'INCLUDES', SOQLUtils.toSOQLString(valueList));
+    }
+
+    protected SObjectRepository whereFieldExcludes(Schema.SObjectField field, List<Object> valueList) {
+        return this.addCondition(field, 'EXCLUDES', SOQLUtils.toSOQLString(valueList));
+    }
+
+    protected SObjectRepository whereFieldLike(Schema.SObjectField field, String comparisonValue) {
+        return this.addCondition(field, 'LIKE', comparisonValue);
+    }
+
+    protected SObjectRepository whereFieldNotLike(Schema.SObjectField field, String comparisonValue) {
+        return this.addCondition(field, 'NOT LIKE', comparisonValue);
+    }
+
+private SObjectRepository addCondition(Schema.SObjectField field, String operator, String value) {
+        return this.addCondition(field + ' ' + operator.trim() + ' ' + value);
     }
 
     protected SObjectRepository orderBy(Schema.SObjectField orderByField) {
@@ -82,7 +134,19 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this;
     }
 
-    protected String getQuery() {
+    protected SObject getFirstQueryResult() {
+        return this.getQueryResults()[0];
+    }
+
+    protected List<SObject> getQueryResults() {
+        return Database.query(this.getQuery());
+    }
+
+    protected List<SObject> getSearchResults(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
+        return Search.query(this.getSearchQuery(searchTerm, searchGroup))[0];
+    }
+
+private String getQuery() {
         this.query = 'SELECT ' + this.getQueryFieldString()
             + ' FROM ' + this.sobjectType
             + this.getWhereClauseString()
@@ -95,8 +159,8 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this.query;
     }
 
-    protected String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
-        this.query = 'FIND ' + StringUtils.wrapInSingleQuotes(searchTerm)
+private String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
+        this.query = 'FIND ' + SOQLUtils.toSOQLString(searchTerm)
             + ' IN ' + searchGroup.name().replace('_', ' ')
             + ' RETURNING ' + this.sobjectType + '('
                 + this.getQueryFieldString()
@@ -105,7 +169,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
                 + this.getLimitCountString()
             + ')';
 
-        if(this.forUpdate) System.debug(LoggingLevel.WARN, 'getSearchQuery method flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
+        if(this.forUpdate) System.debug(LoggingLevel.WARN, 'SOSL Search Query method flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
 
         System.debug(this.query);
 
@@ -139,25 +203,25 @@ public abstract class SObjectRepository implements ISObjectRepository {
 
     private String getWhereClauseString() {
         String whereClauseString = '';
-        if(!this.whereClauseList.isEmpty()) whereClauseString = ' WHERE ' + String.join(this.whereClauseList, ' AND ');
+        if(!this.whereClauseList.isEmpty()) whereClauseString = '\nWHERE ' + String.join(this.whereClauseList, '\nAND ');
         return whereClauseString;
     }
 
     private String getOrderByString() {
         String orderByString = '';
-        if(!this.orderByList.isEmpty()) orderByString = ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
+        if(!this.orderByList.isEmpty()) orderByString = '\nORDER BY ' + String.join(new List<String>(orderByList), ', ');
         return orderByString;
     }
 
     private String getLimitCountString() {
         String limitString = '';
-        if(this.limitCount != null) limitString = ' LIMIT '+ this.limitCount;
+        if(this.limitCount != null) limitString = '\nLIMIT '+ this.limitCount;
         return limitString;
     }
 
     private String getForUpdateString() {
         String forUpdateString = '';
-        if(this.orderByList.isEmpty() && this.forUpdate) forUpdateString = ' FOR UPDATE';
+        if(this.orderByList.isEmpty() && this.forUpdate) forUpdateString = '\nFOR UPDATE';
         return forUpdateString;
     }
 
