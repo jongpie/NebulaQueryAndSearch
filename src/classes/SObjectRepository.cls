@@ -35,22 +35,17 @@ public abstract class SObjectRepository implements ISObjectRepository {
         this.addFieldSetMembers();
     }
 
-    protected SObjectRepository addCondition(String condition) {
-        this.whereClauseList.add('(' + condition + ')');
-        return this;
+    protected SObjectRepository whereIdEquals(Id recordId) {
+        return this.whereFieldEquals(sobjectTypeFieldMap.get('Id'), SOQLUtils.toSOQLString(recordId));
     }
 
-protected SObjectRepository whereIdEquals(Id recordId) {
-    return this.whereFieldEquals(sobjectTypeFieldMap.get('Id'), SOQLUtils.toSOQLString(recordId));
-}
+    protected SObjectRepository whereIdIn(Set<Id> recordIdSet) {
+        return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), new List<Id>(recordIdSet));
+    }
 
-protected SObjectRepository whereIdIn(Set<Id> recordIdSet) {
-    return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), new List<Id>(recordIdSet));
-}
-
-protected SObjectRepository whereIdIn(List<Id> recordList) {
-    return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), recordList);
-}
+    protected SObjectRepository whereIdIn(List<Id> recordList) {
+        return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), recordList);
+    }
 
     protected SObjectRepository whereFieldEquals(Schema.SObjectField field, Object value) {
         return this.addCondition(field, '=', SOQLUtils.toSOQLString(value));
@@ -100,10 +95,6 @@ protected SObjectRepository whereIdIn(List<Id> recordList) {
         return this.addCondition(field, 'NOT LIKE', comparisonValue);
     }
 
-private SObjectRepository addCondition(Schema.SObjectField field, String operator, String value) {
-        return this.addCondition(field + ' ' + operator.trim() + ' ' + value);
-    }
-
     protected SObjectRepository orderBy(Schema.SObjectField orderByField) {
         return this.orderBy(orderByField, null, null);
     }
@@ -146,36 +137,6 @@ private SObjectRepository addCondition(Schema.SObjectField field, String operato
         return Search.query(this.getSearchQuery(searchTerm, searchGroup))[0];
     }
 
-private String getQuery() {
-        this.query = 'SELECT ' + this.getQueryFieldString()
-            + ' FROM ' + this.sobjectType
-            + this.getWhereClauseString()
-            + this.getOrderByString()
-            + this.getLimitCountString()
-            + this.getForUpdateString();
-
-        System.debug(this.query);
-
-        return this.query;
-    }
-
-private String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
-        this.query = 'FIND ' + SOQLUtils.toSOQLString(searchTerm)
-            + ' IN ' + searchGroup.name().replace('_', ' ')
-            + ' RETURNING ' + this.sobjectType + '('
-                + this.getQueryFieldString()
-                + this.getWhereClauseString()
-                + this.getOrderByString()
-                + this.getLimitCountString()
-            + ')';
-
-        if(this.forUpdate) System.debug(LoggingLevel.WARN, 'SOSL Search Query method flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
-
-        System.debug(this.query);
-
-        return this.query;
-    }
-
     private void addCommonQueryFields() {
         if(!this.addCommonQueryFields) return;
 
@@ -195,6 +156,11 @@ private String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup s
         if(this.fieldSet == null) return;
 
         for(Schema.FieldSetMember field : this.fieldSet.getFields()) this.queryFields.add(field.getFieldPath());
+    }
+
+    private SObjectRepository addCondition(Schema.SObjectField field, String operator, String value) {
+        this.whereClauseList.add('(' + field + ' ' + operator.trim() + ' ' + value + ')');
+        return this;
     }
 
     private String getQueryFieldString() {
@@ -223,6 +189,36 @@ private String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup s
         String forUpdateString = '';
         if(this.orderByList.isEmpty() && this.forUpdate) forUpdateString = '\nFOR UPDATE';
         return forUpdateString;
+    }
+
+    private String getQuery() {
+        this.query = 'SELECT ' + this.getQueryFieldString()
+            + ' FROM ' + this.sobjectType
+            + this.getWhereClauseString()
+            + this.getOrderByString()
+            + this.getLimitCountString()
+            + this.getForUpdateString();
+
+        System.debug(this.query);
+
+        return this.query;
+    }
+
+    private String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
+        this.query = 'FIND ' + SOQLUtils.toSOQLString(searchTerm)
+            + ' IN ' + searchGroup.name().replace('_', ' ')
+            + ' RETURNING ' + this.sobjectType + '('
+                + this.getQueryFieldString()
+                + this.getWhereClauseString()
+                + this.getOrderByString()
+                + this.getLimitCountString()
+            + ')';
+
+        if(this.forUpdate) System.debug(LoggingLevel.WARN, 'SOSL Search Query method flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
+
+        System.debug(this.query);
+
+        return this.query;
     }
 
 }
