@@ -7,54 +7,53 @@ public without sharing class TaskRepository extends SObjectRepository {
     }
 
     public Task getRecord(Id taskId) {
-        String query = this
-            .addConditionIdEquals(taskId)
+        return (Task)this
+            .whereIdEquals(taskId)
             .setAsUpdate()
-            .getQuery();
-
-        return (Task)Database.query(query)[0];
+            .getFirstQueryResult();
     }
 
      public List<Task> getList(List<Id> taskIdList) {
-        String query = this
-            .addConditionIdIn(taskIdList)
+        return (List<Task>)this
+            .whereIdIn(taskIdList)
             .setAsUpdate()
-            .getQuery();
-
-        return (List<Task>)Database.query(query);
+            .getQueryResults();
     }
 
     public List<Task> getListOfOpenForWhoId(Id whoId) {
         return getListOfOpenForWhoId(new List<Id>{whoId});
     }
 
+    public List<Task> getListOfCreatedSinceLastWeek() {
+        return (List<Task>)this
+            .whereFieldGreaterThanOrEqualTo(Schema.Lead.CreatedDate, 'LAST_WEEK')
+            .setAsUpdate()
+            .getQueryResults();
+    }
+
     public List<Task> getListOfOpenForWhoId(List<Id> whoIdList) {
-        String query = this
-            .addConditionWhoIdIn(whoIdList)
-            .addConditionIsClosed(false)
+        return (List<Task>)this
+            .whereWhoIdIn(whoIdList)
+            .whereIsClosed(false)
             .orderBy(Schema.Task.WhoId)
             .orderBy(Schema.Task.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
-            .getQuery();
-
-        return (List<Task>)Database.query(query);
+            .getQueryResults();
     }
 
     public List<Task> searchInAllFields(String searchTerm) {
-        String query = this
-            .addConditionIsClosed(false)
+        return (List<Task>)this
+            .whereIsClosed(false)
             .orderBy(Schema.Task.WhoId)
             .limitCount(10)
-            .getSearchQuery(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
-
-        return (List<Task>)Search.query(query)[0];
+            .getSearchResults(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
     }
 
-    private TaskRepository addConditionIsClosed(Boolean bool) {
-        return (TaskRepository)this.addCondition(Schema.Task.IsClosed + ' = ' + bool);
+    private TaskRepository whereIsClosed(Boolean bool) {
+        return (TaskRepository)this.whereFieldEquals(Schema.Task.IsClosed, bool);
     }
 
-    private TaskRepository addConditionWhoIdIn(List<Id> whoIdList) {
-        return (TaskRepository)this.addCondition(Schema.Task.WhoId + ' IN ' + CollectionUtils.toString(whoIdList));
+    private TaskRepository whereWhoIdIn(List<Id> whoIdList) {
+        return (TaskRepository)this.whereFieldIn(Schema.Task.WhoId, whoIdList);
     }
 
 }

@@ -35,21 +35,64 @@ public abstract class SObjectRepository implements ISObjectRepository {
         this.addFieldSetMembers();
     }
 
-    protected SObjectRepository addCondition(String condition) {
-        this.whereClauseList.add(condition);
-        return this;
+    protected SObjectRepository whereIdEquals(Id recordId) {
+        return this.whereFieldEquals(sobjectTypeFieldMap.get('Id'), SOQLUtils.toSOQLString(recordId));
     }
 
-    protected SObjectRepository addConditionIdEquals(Id recordId) {
-        return this.addCondition('Id = ' + StringUtils.wrapInSingleQuotes(recordId));
+    protected SObjectRepository whereIdIn(Set<Id> recordIdSet) {
+        return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), new List<Id>(recordIdSet));
     }
 
-    protected SObjectRepository addConditionIdIn(Set<Id> recordIdSet) {
-        return this.addConditionIdIn(new List<Id>(recordIdSet));
+    protected SObjectRepository whereIdIn(List<Id> recordList) {
+        return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), recordList);
     }
 
-    protected SObjectRepository addConditionIdIn(List<Id> recordList) {
-        return this.addCondition('Id IN ' + CollectionUtils.toString(recordList));
+    protected SObjectRepository whereFieldEquals(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '=', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldDoesNotEqual(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '!=', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldGreaterThan(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '>', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldGreaterThanOrEqualTo(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '>=', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldLessThan(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '<', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldLessThanOrEqualTo(Schema.SObjectField field, Object value) {
+        return this.addCondition(field, '<=', SOQLUtils.toSOQLString(value));
+    }
+
+    protected SObjectRepository whereFieldIn(Schema.SObjectField field, List<Object> valueList) {
+        return this.addCondition(field, 'IN', SOQLUtils.toSOQLString(valueList));
+    }
+
+    protected SObjectRepository whereFieldNotIn(Schema.SObjectField field, List<Object> valueList) {
+        return this.addCondition(field, 'NOT IN', SOQLUtils.toSOQLString(valueList));
+    }
+
+    protected SObjectRepository whereFieldIncludes(Schema.SObjectField field, List<Object> valueList) {
+        return this.addCondition(field, 'INCLUDES', SOQLUtils.toSOQLString(valueList));
+    }
+
+    protected SObjectRepository whereFieldExcludes(Schema.SObjectField field, List<Object> valueList) {
+        return this.addCondition(field, 'EXCLUDES', SOQLUtils.toSOQLString(valueList));
+    }
+
+    protected SObjectRepository whereFieldLike(Schema.SObjectField field, String comparisonValue) {
+        return this.addCondition(field, 'LIKE', comparisonValue);
+    }
+
+    protected SObjectRepository whereFieldNotLike(Schema.SObjectField field, String comparisonValue) {
+        return this.addCondition(field, 'NOT LIKE', comparisonValue);
     }
 
     protected SObjectRepository orderBy(Schema.SObjectField orderByField) {
@@ -82,34 +125,16 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return this;
     }
 
-    protected String getQuery() {
-        this.query = 'SELECT ' + this.getQueryFieldString()
-            + ' FROM ' + this.sobjectType
-            + this.getWhereClauseString()
-            + this.getOrderByString()
-            + this.getLimitCountString()
-            + this.getForUpdateString();
-
-        System.debug(this.query);
-
-        return this.query;
+    protected SObject getFirstQueryResult() {
+        return this.getQueryResults()[0];
     }
 
-    protected String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
-        this.query = 'FIND ' + StringUtils.wrapInSingleQuotes(searchTerm)
-            + ' IN ' + searchGroup.name().replace('_', ' ')
-            + ' RETURNING ' + this.sobjectType + '('
-                + this.getQueryFieldString()
-                + this.getWhereClauseString()
-                + this.getOrderByString()
-                + this.getLimitCountString()
-            + ')';
+    protected List<SObject> getQueryResults() {
+        return Database.query(this.getQuery());
+    }
 
-        if(this.forUpdate) System.debug(LoggingLevel.WARN, 'getSearchQuery method flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
-
-        System.debug(this.query);
-
-        return this.query;
+    protected List<SObject> getSearchResults(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
+        return Search.query(this.getSearchQuery(searchTerm, searchGroup))[0];
     }
 
     private void addCommonQueryFields() {
@@ -133,32 +158,67 @@ public abstract class SObjectRepository implements ISObjectRepository {
         for(Schema.FieldSetMember field : this.fieldSet.getFields()) this.queryFields.add(field.getFieldPath());
     }
 
+    private SObjectRepository addCondition(Schema.SObjectField field, String operator, String value) {
+        this.whereClauseList.add('(' + field + ' ' + operator.trim() + ' ' + value + ')');
+        return this;
+    }
+
     private String getQueryFieldString() {
         return String.join(new List<String>(this.queryFields), ',');
     }
 
     private String getWhereClauseString() {
         String whereClauseString = '';
-        if(!this.whereClauseList.isEmpty()) whereClauseString = ' WHERE ' + String.join(this.whereClauseList, ' AND ');
+        if(!this.whereClauseList.isEmpty()) whereClauseString = '\nWHERE ' + String.join(this.whereClauseList, '\nAND ');
         return whereClauseString;
     }
 
     private String getOrderByString() {
         String orderByString = '';
-        if(!this.orderByList.isEmpty()) orderByString = ' ORDER BY ' + String.join(new List<String>(orderByList), ', ');
+        if(!this.orderByList.isEmpty()) orderByString = '\nORDER BY ' + String.join(new List<String>(orderByList), ', ');
         return orderByString;
     }
 
     private String getLimitCountString() {
         String limitString = '';
-        if(this.limitCount != null) limitString = ' LIMIT '+ this.limitCount;
+        if(this.limitCount != null) limitString = '\nLIMIT '+ this.limitCount;
         return limitString;
     }
 
     private String getForUpdateString() {
         String forUpdateString = '';
-        if(this.orderByList.isEmpty() && this.forUpdate) forUpdateString = ' FOR UPDATE';
+        if(this.orderByList.isEmpty() && this.forUpdate) forUpdateString = '\nFOR UPDATE';
         return forUpdateString;
+    }
+
+    private String getQuery() {
+        this.query = 'SELECT ' + this.getQueryFieldString()
+            + ' FROM ' + this.sobjectType
+            + this.getWhereClauseString()
+            + this.getOrderByString()
+            + this.getLimitCountString()
+            + this.getForUpdateString();
+
+        System.debug(this.query);
+
+        return this.query;
+    }
+
+    private String getSearchQuery(String searchTerm, SObjectRepository.SearchGroup searchGroup) {
+        this.query = 'FIND ' + SOQLUtils.toSOQLString(searchTerm)
+            + ' IN ' + searchGroup.name().replace('_', ' ')
+            + ' RETURNING ' + this.sobjectType + '('
+                + this.getQueryFieldString()
+                + this.getWhereClauseString()
+                + this.getOrderByString()
+                + this.getLimitCountString()
+            + ')';
+
+        if(this.forUpdate) System.debug(LoggingLevel.WARN, 'SOSL Search Query method flagged as FOR UPDATE. SOSL cannot use FOR UPDATE, ignoring');
+
+        System.debug(this.query);
+
+        return this.query;
     }
 
 }
