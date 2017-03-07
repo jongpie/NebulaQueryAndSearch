@@ -26,7 +26,7 @@ private class TaskRepository_Tests {
     }
 
     @isTest
-    static void getRecord() {
+    static void it_should_return_specific_tasks_by_Id() {
         Task expectedTask = [SELECT Id FROM Task LIMIT 1];
 
         Test.startTest();
@@ -38,7 +38,7 @@ private class TaskRepository_Tests {
     }
 
     @isTest
-    static void getList() {
+    static void it_should_return_tasks_by_list() {
         List<Task> expectedTaskList = [SELECT Id FROM Task];
         List<Id> expectedTaskIdList = new List<Id>(new Map<Id, Task>(expectedTaskList).keySet());
 
@@ -51,7 +51,7 @@ private class TaskRepository_Tests {
     }
 
     @isTest
-    static void getListOfOpenForWhoId() {
+    static void it_should_return_all_open_tasks_by_who_Id() {
         Lead lead = [SELECT Id FROM Lead LIMIT 1];
 
         Map<Id, Task> expectedTaskMap = new Map<Id, Task>([SELECT Id, WhoId FROM Task WHERE WhoId = :lead.Id AND IsClosed = false]);
@@ -70,6 +70,24 @@ private class TaskRepository_Tests {
 
     @isTest
     static void searchInAllFields() {
+    @isTest
+    static void it_should_not_return_a_task_created_more_than_two_weeks_ago_when_querying_for_last_week() {
+        Lead lead = [SELECT Id FROM Lead LIMIT 1];
+
+        Task task = TestDataGenerator.createCommunicationTask(lead.Id, null);
+        task.CreatedDate = (Datetime)System.today().addDays(-15);
+
+        Test.startTest();
+        Map<Id, Task> returnedTaskMap = new Map<Id,Task>(new TaskRepository().getListOfCreatedSinceLastWeek());
+        Test.stopTest();
+
+        for(Task tsk : returnedTaskMap.values()) {
+            System.assertEquals(false,returnedTaskMap.containsKey(task.Id));
+        }
+    }
+
+    @isTest
+    static void it_should_return_appropriate_tasks_when_querying_with_SOSL() {
         String searchTerm = 'thing';
         List<Task> expectedTaskList = (List<Task>)[FIND :searchTerm IN ALL FIELDS RETURNING Task(Id WHERE IsClosed = false)][0];
 

@@ -6,6 +6,10 @@ public without sharing class TaskRepository extends SObjectRepository {
         super(TaskRepository.DEFAULT_FIELD_SET);
     }
 
+    public TaskRepository(Boolean returnCommonFields) {
+        super(TaskRepository.DEFAULT_FIELD_SET,returnCommonFields);
+    }
+
     public Task getRecord(Id taskId) {
         return (Task)this
             .whereIdEquals(taskId)
@@ -26,8 +30,7 @@ public without sharing class TaskRepository extends SObjectRepository {
 
     public List<Task> getListOfCreatedSinceLastWeek() {
         return (List<Task>)this
-            .whereFieldGreaterThanOrEqualTo(Schema.Lead.CreatedDate, 'LAST_WEEK')
-            .setAsUpdate()
+            .whereFieldGreaterThanOrEqualTo(Schema.Lead.CreatedDate, new DateLiterals().LAST_WEEK)
             .getQueryResults();
     }
 
@@ -35,6 +38,15 @@ public without sharing class TaskRepository extends SObjectRepository {
         return (List<Task>)this
             .whereWhoIdIn(whoIdList)
             .whereIsClosed(false)
+            .orderBy(Schema.Task.WhoId)
+            .orderBy(Schema.Task.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
+            .getQueryResults();
+    }
+
+    public List<Task> getListByFieldForWhoIds(Schema.SObjectField field, String value, List<Id> whoIdList) {
+        return (List<Task>)this
+            .whereWhoIdIn(whoIdList)
+            .whereFieldEquals(field,value)
             .orderBy(Schema.Task.WhoId)
             .orderBy(Schema.Task.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
             .getQueryResults();
