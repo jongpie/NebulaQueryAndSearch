@@ -30,7 +30,7 @@ public without sharing class TaskRepository extends SObjectRepository {
 
     public List<Task> getListOfCreatedSinceLastWeek() {
         return (List<Task>)this
-            .whereFieldGreaterThanOrEqualTo(Schema.Lead.CreatedDate, new DateLiteralConstant().LAST_WEEK)
+            .whereFieldGreaterThanOrEqualTo(Schema.Lead.CreatedDate, new DateLiterals().LAST_WEEK)
             .getQueryResults();
     }
 
