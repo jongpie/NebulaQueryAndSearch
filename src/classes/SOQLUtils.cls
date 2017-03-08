@@ -9,7 +9,7 @@ public without sharing class SOQLUtils {
     public static String toSOQLString(Object value) {
         if(value == null) return null;
         else if(value instanceof DateLiterals) {
-            DateLiterals dateLiteral = (DateLiterals) value;
+            DateLiterals dateLiteral = (DateLiterals)value;
             return dateLiteral.value;
         }
         else if(value instanceof Boolean) return String.valueOf((Boolean)value);

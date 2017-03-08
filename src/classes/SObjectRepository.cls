@@ -35,64 +35,12 @@ public abstract class SObjectRepository implements ISObjectRepository {
         this.addFieldSetMembers();
     }
 
-    protected SObjectRepository whereIdEquals(Id recordId) {
-        return this.whereFieldEquals(sobjectTypeFieldMap.get('Id'), SOQLUtils.toSOQLString(recordId));
+    protected SObjectRepository whereFieldOperatorEqualsValue(Schema.SObjectField field, String operator, Object value) {
+        return this.addCondition(field, operator, SOQLUtils.toSOQLString(value));
     }
 
-    protected SObjectRepository whereIdIn(Set<Id> recordIdSet) {
-        return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), new List<Id>(recordIdSet));
-    }
-
-    protected SObjectRepository whereIdIn(List<Id> recordList) {
-        return this.whereFieldIn(sobjectTypeFieldMap.get('Id'), recordList);
-    }
-
-    protected SObjectRepository whereFieldEquals(Schema.SObjectField field, Object value) {
-        return this.addCondition(field, '=', SOQLUtils.toSOQLString(value));
-    }
-
-    protected SObjectRepository whereFieldDoesNotEqual(Schema.SObjectField field, Object value) {
-        return this.addCondition(field, '!=', SOQLUtils.toSOQLString(value));
-    }
-
-    protected SObjectRepository whereFieldGreaterThan(Schema.SObjectField field, Object value) {
-        return this.addCondition(field, '>', SOQLUtils.toSOQLString(value));
-    }
-
-    protected SObjectRepository whereFieldGreaterThanOrEqualTo(Schema.SObjectField field, Object value) {
-        return this.addCondition(field, '>=', SOQLUtils.toSOQLString(value));
-    }
-
-    protected SObjectRepository whereFieldLessThan(Schema.SObjectField field, Object value) {
-        return this.addCondition(field, '<', SOQLUtils.toSOQLString(value));
-    }
-
-    protected SObjectRepository whereFieldLessThanOrEqualTo(Schema.SObjectField field, Object value) {
-        return this.addCondition(field, '<=', SOQLUtils.toSOQLString(value));
-    }
-
-    protected SObjectRepository whereFieldIn(Schema.SObjectField field, List<Object> valueList) {
-        return this.addCondition(field, 'IN', SOQLUtils.toSOQLString(valueList));
-    }
-
-    protected SObjectRepository whereFieldNotIn(Schema.SObjectField field, List<Object> valueList) {
-        return this.addCondition(field, 'NOT IN', SOQLUtils.toSOQLString(valueList));
-    }
-
-    protected SObjectRepository whereFieldIncludes(Schema.SObjectField field, List<Object> valueList) {
-        return this.addCondition(field, 'INCLUDES', SOQLUtils.toSOQLString(valueList));
-    }
-
-    protected SObjectRepository whereFieldExcludes(Schema.SObjectField field, List<Object> valueList) {
-        return this.addCondition(field, 'EXCLUDES', SOQLUtils.toSOQLString(valueList));
-    }
-
-    protected SObjectRepository whereFieldLike(Schema.SObjectField field, String comparisonValue) {
-        return this.addCondition(field, 'LIKE', comparisonValue);
-    }
-
-    protected SObjectRepository whereFieldNotLike(Schema.SObjectField field, String comparisonValue) {
-        return this.addCondition(field, 'NOT LIKE', comparisonValue);
+    protected SObjectRepository whereFieldOperatorEqualsListValues(Schema.SObjectField field, String operator, List<Object> values) {
+        return this.addCondition(field, operator, SOQLUtils.toSOQLString(values));
     }
 
     protected SObjectRepository orderBy(Schema.SObjectField orderByField) {
@@ -100,7 +48,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     protected SObjectRepository orderBy(Schema.SObjectField orderByField, SObjectRepository.SortOrder sortOrder) {
-        return orderBy(orderByField, sortOrder, null);
+        return this.orderBy(orderByField, sortOrder, null);
     }
 
     protected SObjectRepository orderBy(Schema.SObjectField orderByField, SObjectRepository.SortOrder sortOrder, SObjectRepository.NullsSortOrder nullsSortOrder) {
@@ -137,6 +85,14 @@ public abstract class SObjectRepository implements ISObjectRepository {
         return Search.query(this.getSearchQuery(searchTerm, searchGroup))[0];
     }
 
+
+    //CRUD
+    protected void doInsert(SObject record) {doInsert(new List<SObject>{record});}
+    protected void doInsert(List<SObject> records) {Database.insert(records);}
+    protected void doUpsert(List<SObject> records) {Database.upsert(records);}
+    protected void doUpdate(List<SObject> records) {Database.update(records);}
+    protected void doDelete(List<SObject> records) {Database.delete(records);}
+
     private void addCommonQueryFields() {
         if(!this.addCommonQueryFields) return;
 
@@ -159,7 +115,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
     }
 
     private SObjectRepository addCondition(Schema.SObjectField field, String operator, String value) {
-        this.whereClauseList.add('(' + field + ' ' + operator.trim() + ' ' + value + ')');
+        this.whereClauseList.add(field + ' ' + operator.trim() + ' ' + value);
         return this;
     }
 

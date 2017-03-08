@@ -6,66 +6,77 @@ public without sharing class TaskRepository extends SObjectRepository {
         super(TaskRepository.DEFAULT_FIELD_SET);
     }
 
-    public TaskRepository(Boolean returnCommonFields) {
-        super(TaskRepository.DEFAULT_FIELD_SET,returnCommonFields);
-    }
-
-    public Task getRecord(Id taskId) {
+    //SOQL
+    public Task getById(Id taskId) {
         return (Task)this
-            .whereIdEquals(taskId)
+            .whereFieldOperatorEqualsValue(Schema.Task.Id, '=', taskId)
             .setAsUpdate()
             .getFirstQueryResult();
     }
 
-     public List<Task> getList(List<Id> taskIdList) {
+     public List<Task> getById(List<Id> taskIdList) {
         return (List<Task>)this
-            .whereIdIn(taskIdList)
+            .whereFieldOperatorEqualsListValues(Schema.Task.Id, 'IN', taskIdList)
             .setAsUpdate()
             .getQueryResults();
     }
 
-    public List<Task> getListOfOpenForWhoId(Id whoId) {
-        return getListOfOpenForWhoId(new List<Id>{whoId});
-    }
-
-    public List<Task> getListOfCreatedSinceLastWeek() {
+    public List<Task> getByWhoId(List<Id> taskWhoIdList) {
         return (List<Task>)this
-            .whereFieldGreaterThanOrEqualTo(Schema.Lead.CreatedDate, new DateLiterals().LAST_WEEK)
+            .whereFieldOperatorEqualsListValues(Schema.Task.WhoId, 'IN', taskWhoIdList)
+            .orderBy(Schema.Task.WhoId)
+            .orderBy(Schema.Task.CreatedDate,SObjectRepository.SortOrder.DESCENDING)
             .getQueryResults();
     }
 
-    public List<Task> getListOfOpenForWhoId(List<Id> whoIdList) {
+    public List<Task> getByWhatId(List<Id> taskWhatIdList) {
         return (List<Task>)this
-            .whereWhoIdIn(whoIdList)
-            .whereIsClosed(false)
+            .whereFieldOperatorEqualsListValues(Schema.Task.WhatId,'IN', taskWhatIdList)
+            .orderBy(Schema.Task.CreatedDate,SObjectRepository.SortOrder.DESCENDING)
+            .getQueryResults();
+    }
+
+    public List<Task> getOpenTasksByWhoId(Id whoId) {
+        return getOpenTasksByWhoId(new List<Id>{whoId});
+    }
+
+    public List<Task> getOpenTasksByWhoId(List<Id> whoIdList) {
+        return (List<Task>)this
+            .whereFieldOperatorEqualsListValues(Schema.Task.WhoId, 'IN', whoIdList)
+            .whereFieldOperatorEqualsValue(Schema.Task.IsClosed, '=', false)
             .orderBy(Schema.Task.WhoId)
             .orderBy(Schema.Task.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
             .getQueryResults();
     }
 
-    public List<Task> getListByFieldForWhoIds(Schema.SObjectField field, String value, List<Id> whoIdList) {
+    public List<Task> getByFieldForWhoIds(Schema.SObjectField field, String value, List<Id> whoIdList) {
         return (List<Task>)this
-            .whereWhoIdIn(whoIdList)
-            .whereFieldEquals(field,value)
+            .whereFieldOperatorEqualsListValues(Schema.Task.WhoId, 'IN', whoIdList)
+            .whereFieldOperatorEqualsValue(field, '=', value)
             .orderBy(Schema.Task.WhoId)
             .orderBy(Schema.Task.CreatedDate, SObjectRepository.SortOrder.DESCENDING)
             .getQueryResults();
     }
 
+    public List<Task> getCreatedSinceTimeValue(Object timeValue) {
+        return (List<Task>)this
+            .whereFieldOperatorEqualsValue(Schema.Lead.CreatedDate, '>=', timeValue)
+            .getQueryResults();
+    }
+
+    public List<Task> getByFieldAndTypeForGivenTimePeriod(Schema.SObjectField field, String operator, Object value) {
+        return(List<Task>)this
+            .whereFieldOperatorEqualsValue(field, '=', operator)
+            .whereFieldOperatorEqualsValue(Schema.Task.CreatedDate, '>=', value)
+            .getQueryResults();
+    }
+
+    //SOSL
     public List<Task> searchInAllFields(String searchTerm) {
         return (List<Task>)this
-            .whereIsClosed(false)
+            .whereFieldOperatorEqualsValue(Schema.Task.IsClosed, '=', false)
             .orderBy(Schema.Task.WhoId)
             .limitCount(10)
             .getSearchResults(searchTerm, SObjectRepository.SearchGroup.ALL_FIELDS);
     }
-
-    private TaskRepository whereIsClosed(Boolean bool) {
-        return (TaskRepository)this.whereFieldEquals(Schema.Task.IsClosed, bool);
-    }
-
-    private TaskRepository whereWhoIdIn(List<Id> whoIdList) {
-        return (TaskRepository)this.whereFieldIn(Schema.Task.WhoId, whoIdList);
-    }
-
 }
