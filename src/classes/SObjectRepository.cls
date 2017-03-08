@@ -9,7 +9,7 @@ public abstract class SObjectRepository implements ISObjectRepository {
     private Map<String, Schema.SObjectField> sobjectTypeFieldMap;
     private Set<String> queryFields;
     private String query;
-    private Boolean addCommonQueryFields;
+    private Boolean shouldAddCommonFields;
     private Schema.FieldSet fieldSet;
     private List<String> whereClauseList;
     private List<String> orderByList;
@@ -20,16 +20,16 @@ public abstract class SObjectRepository implements ISObjectRepository {
         this(fieldSet, true);
     }
 
-    protected SObjectRepository(Schema.FieldSet fieldSet, Boolean addCommonQueryFields) {
-        this.fieldSet             = fieldSet;
-        this.addCommonQueryFields = addCommonQueryFields;
+    protected SObjectRepository(Schema.FieldSet fieldSet, Boolean shouldAddCommonFields) {
+        this.fieldSet              = fieldSet;
+        this.shouldAddCommonFields = shouldAddCommonFields;
 
-        this.sobjectType         = fieldSet.getSObjectType();
-        this.sobjectTypeFieldMap = this.sobjectType.getDescribe().fields.getMap();
-        this.queryFields         = new Set<String>();
-        this.whereClauseList     = new List<String>();
-        this.orderByList         = new List<String>();
-        this.forUpdate           = false;
+        this.sobjectType           = fieldSet.getSObjectType();
+        this.sobjectTypeFieldMap   = this.sobjectType.getDescribe().fields.getMap();
+        this.queryFields           = new Set<String>();
+        this.whereClauseList       = new List<String>();
+        this.orderByList           = new List<String>();
+        this.forUpdate             = false;
 
         this.addCommonQueryFields();
         this.addFieldSetMembers();
@@ -94,24 +94,31 @@ public abstract class SObjectRepository implements ISObjectRepository {
     protected void doDelete(List<SObject> records) {Database.delete(records);}
 
     private void addCommonQueryFields() {
-        if(!this.addCommonQueryFields) return;
+        if(!this.shouldAddCommonFields) return;
 
         // Auto-add the common fields that are available for the SObject Type
-        List<String> commonFieldNameList = new List<String>{
+        Set<String> commonFieldNameList = new Set<String>{
             'Id', 'CaseNumber', 'CreatedById', 'CreatedDate',  'IsClosed', 'LastModifiedById', 'LastModifiedDate',
             'Name', 'OwnerId', 'Subject', 'RecordTypeId', 'SystemModStamp'
         };
+
         for(String commonFieldName : commonFieldNameList) {
+            //Verify that the field is available on the object being used
             if(!this.sobjectTypeFieldMap.containsKey(commonFieldName)) continue;
 
-            this.queryFields.add(commonFieldName);
+            //Salesforce has some inconsistencies in casing for standard field names. We'll go lowercase
+            //here and in addFieldSetMembers() to ensure the set is unique
+            this.queryFields.add(commonFieldName.toLowerCase());
         }
     }
 
     private void addFieldSetMembers() {
         if(this.fieldSet == null) return;
 
-        for(Schema.FieldSetMember field : this.fieldSet.getFields()) this.queryFields.add(field.getFieldPath());
+        for(Schema.FieldSetMember field : this.fieldSet.getFields()) {
+            //Lowercase here as well to ensure strings added to the set are unique
+            this.queryFields.add(field.getFieldPath().toLowerCase());
+        }
     }
 
     private SObjectRepository addCondition(Schema.SObjectField field, String operator, String value) {
