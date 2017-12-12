@@ -7,7 +7,5 @@
 *
 * @group Query Builder
 *
-* @description TODO
-*
 */
 public enum QuerySortOrder { ASCENDING, DESCENDING }

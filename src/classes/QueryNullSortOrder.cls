@@ -7,7 +7,5 @@
 *
 * @group Query Builder
 *
-* @description TODO
-*
 */
 public enum QueryNullSortOrder { FIRST, LAST }
