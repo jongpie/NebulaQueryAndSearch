@@ -122,7 +122,6 @@ public abstract class QueryBuilder {
 
     private List<SObject> executeQuery(String query) {
         List<SObject> results = Database.query(query);
-        this.logResults(query, results);
         return results;
     }
 
@@ -141,13 +140,7 @@ public abstract class QueryBuilder {
 
     private List<List<SObject>> executeSearch(String query) {
         List<List<SObject>> results = Search.query(query);
-        this.logResults(query, results);
         return results;
-    }
-
-    private void logResults(String query, List<Object> results) {
-        String logEntry = 'Query:\n' + query + '\n\nResults:\n' + JSON.serializePretty(results);
-        Logger.addEntry(this, logEntry);
     }
 
 }
