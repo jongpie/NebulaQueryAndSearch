@@ -199,16 +199,4 @@ private class QueryArgumentFormatter_Tests {
         System.assertEquals(expectedString, returnedValue);
     }
 
-    @isTest
-    static void it_should_return_query_string_for_unsupported_type() {
-        UUID providedValue  = new UUID();
-        String expectedString = String.valueOf(providedValue);
-
-        Test.startTest();
-        String returnedValue = new QueryArgumentFormatter(providedValue).getValue();
-        Test.stopTest();
-
-        System.assertEquals(expectedString, returnedValue);
-    }
-
 }
