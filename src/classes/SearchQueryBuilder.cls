@@ -13,7 +13,7 @@
 public class SearchQueryBuilder extends QueryBuilder implements ISearchQueryBuilder {
 
     private String searchTerm;
-    private QuerySearchGroup searchGroup;
+    private QueryBuilder.SearchGroup searchGroup;
     private List<ISObjectQueryBuilder> sobjectQueryBuilders;
     private List<String> sobjectQueries;
     private Boolean withHighlight;
@@ -27,7 +27,7 @@ public class SearchQueryBuilder extends QueryBuilder implements ISearchQueryBuil
         this.searchTerm           = searchTerm;
         this.sobjectQueryBuilders = sobjectQueryBuilders;
 
-        this.searchGroup         = QuerySearchGroup.ALL_FIELDS;
+        this.searchGroup         = QueryBuilder.SearchGroup.ALL_FIELDS;
         this.sobjectQueries      = new List<String>();
 
         this.parseSObjectQueryBuilders();
@@ -38,7 +38,7 @@ public class SearchQueryBuilder extends QueryBuilder implements ISearchQueryBuil
         return this;
     }
 
-    public ISearchQueryBuilder inQuerySearchGroup(QuerySearchGroup searchGroup) {
+    public ISearchQueryBuilder inQueryBuilder.SearchGroup(QueryBuilder.SearchGroup searchGroup) {
         this.searchGroup = searchGroup;
         return this;
     }

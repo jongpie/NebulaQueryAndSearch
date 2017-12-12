@@ -2,7 +2,7 @@ public interface ISearchQueryBuilder {
 
     ISearchQueryBuilder cacheResults();
 
-    ISearchQueryBuilder inQuerySearchGroup(QuerySearchGroup searchGroup);
+    ISearchQueryBuilder inSearchGroup(QueryBuilder.SearchGroup searchGroup);
     ISearchQueryBuilder withHighlight(Boolean withHighlight);
     ISearchQueryBuilder withSpellCorrection(Boolean withSpellCorrection);
 

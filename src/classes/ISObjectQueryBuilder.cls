@@ -32,8 +32,8 @@ public interface ISObjectQueryBuilder {
 
     // Order By methods
     ISObjectQueryBuilder orderBy(IQueryField orderByQueryField);
-    ISObjectQueryBuilder orderBy(IQueryField orderByQueryField, QuerySortOrder sortOrder);
-    ISObjectQueryBuilder orderBy(IQueryField orderByQueryField, QuerySortOrder sortOrder, QueryNullSortOrder nullsSortOrder);
+    ISObjectQueryBuilder orderBy(IQueryField orderByQueryField, QueryBuilder.SortOrder sortOrder);
+    ISObjectQueryBuilder orderBy(IQueryField orderByQueryField, QueryBuilder.SortOrder sortOrder, QueryBuilder.NullSortOrder nullsSortOrder);
 
     // Additional query option methods
     ISObjectQueryBuilder limitCount(Integer limitCount);
@@ -41,7 +41,7 @@ public interface ISObjectQueryBuilder {
     ISObjectQueryBuilder forReference();
     ISObjectQueryBuilder forUpdate();
     ISObjectQueryBuilder forView();
-    ISObjectQueryBuilder usingScope(QueryFilterScope filterScope);
+    ISObjectQueryBuilder usingScope(QueryBuilder.FilterScope filterScope);
 
     // Query string methods
     Database.QueryLocator getQueryLocator();

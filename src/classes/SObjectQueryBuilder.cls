@@ -15,7 +15,7 @@ public class SObjectQueryBuilder extends QueryBuilder implements ISObjectQueryBu
     private Set<String> queryFields;
     private Set<String> queryFieldsToExclude;
     private List<String> childRelationshipQueries;
-    private QueryFilterScope filterScope;
+    private QueryBuilder.FilterScope filterScope;
     private Integer offset;
     private Boolean forReference;
     private Boolean forUpdate;
@@ -127,12 +127,12 @@ public class SObjectQueryBuilder extends QueryBuilder implements ISObjectQueryBu
         return this;
     }
 
-    public ISObjectQueryBuilder orderBy(IQueryField orderByQueryField, QuerySortOrder sortOrder) {
+    public ISObjectQueryBuilder orderBy(IQueryField orderByQueryField, QueryBuilder.SortOrder sortOrder) {
         super.doOrderBy(orderByQueryField, sortOrder);
         return this;
     }
 
-    public ISObjectQueryBuilder orderBy(IQueryField orderByQueryField, QuerySortOrder sortOrder, QueryNullSortOrder nullsSortOrder) {
+    public ISObjectQueryBuilder orderBy(IQueryField orderByQueryField, QueryBuilder.SortOrder sortOrder, QueryBuilder.NullSortOrder nullsSortOrder) {
         super.doOrderBy(orderByQueryField, sortOrder, nullsSortOrder);
         return this;
     }
@@ -162,7 +162,7 @@ public class SObjectQueryBuilder extends QueryBuilder implements ISObjectQueryBu
         return this;
     }
 
-    public ISObjectQueryBuilder usingScope(QueryFilterScope filterScope) {
+    public ISObjectQueryBuilder usingScope(QueryBuilder.FilterScope filterScope) {
         this.filterScope = filterScope;
         return this;
     }

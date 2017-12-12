@@ -275,7 +275,7 @@ private class SObjectQueryBuilder_Tests {
 
         Test.startTest();
         SObjectQueryBuilder query = (SObjectQueryBuilder)new SObjectQueryBuilder(sobjectType).addFields(convertToQueryFields(fields));
-        query.orderBy(new QueryField(Schema.Contact.CreatedDate), QuerySortOrder.ASCENDING);
+        query.orderBy(new QueryField(Schema.Contact.CreatedDate), QueryBuilder.SortOrder.ASCENDING);
         Test.stopTest();
 
         String orderByString = getFirstLineThatStartsWith(query.getQuery(), 'ORDER BY');
@@ -292,7 +292,7 @@ private class SObjectQueryBuilder_Tests {
 
         Test.startTest();
         SObjectQueryBuilder query = (SObjectQueryBuilder)new SObjectQueryBuilder(sobjectType).addFields(convertToQueryFields(fields));
-        query.orderBy(new QueryField(Schema.Contact.CreatedDate), QuerySortOrder.DESCENDING);
+        query.orderBy(new QueryField(Schema.Contact.CreatedDate), QueryBuilder.SortOrder.DESCENDING);
         Test.stopTest();
 
         String orderByString = getFirstLineThatStartsWith(query.getQuery(), 'ORDER BY');
@@ -309,7 +309,7 @@ private class SObjectQueryBuilder_Tests {
 
         Test.startTest();
         SObjectQueryBuilder query = (SObjectQueryBuilder)new SObjectQueryBuilder(sobjectType).addFields(convertToQueryFields(fields));
-        query.orderBy(new QueryField(Schema.Contact.FirstName), QuerySortOrder.ASCENDING, QueryNullSortOrder.FIRST);
+        query.orderBy(new QueryField(Schema.Contact.FirstName), QueryBuilder.SortOrder.ASCENDING, QueryBuilder.NullSortOrder.FIRST);
         Test.stopTest();
 
         String orderByString = getFirstLineThatStartsWith(query.getQuery(), 'ORDER BY');
@@ -326,7 +326,7 @@ private class SObjectQueryBuilder_Tests {
 
         Test.startTest();
         SObjectQueryBuilder query = (SObjectQueryBuilder)new SObjectQueryBuilder(sobjectType).addFields(convertToQueryFields(fields));
-        query.orderBy(new QueryField(Schema.Contact.FirstName), QuerySortOrder.DESCENDING, QueryNullSortOrder.FIRST);
+        query.orderBy(new QueryField(Schema.Contact.FirstName), QueryBuilder.SortOrder.DESCENDING, QueryBuilder.NullSortOrder.FIRST);
         Test.stopTest();
 
         String orderByString = getFirstLineThatStartsWith(query.getQuery(), 'ORDER BY');
@@ -343,7 +343,7 @@ private class SObjectQueryBuilder_Tests {
 
         Test.startTest();
         SObjectQueryBuilder query = (SObjectQueryBuilder)new SObjectQueryBuilder(sobjectType).addFields(convertToQueryFields(fields));
-        query.orderBy(new QueryField(Schema.Contact.FirstName), QuerySortOrder.ASCENDING, QueryNullSortOrder.LAST);
+        query.orderBy(new QueryField(Schema.Contact.FirstName), QueryBuilder.SortOrder.ASCENDING, QueryBuilder.NullSortOrder.LAST);
         Test.stopTest();
 
         String orderByString = getFirstLineThatStartsWith(query.getQuery(), 'ORDER BY');
@@ -360,7 +360,7 @@ private class SObjectQueryBuilder_Tests {
 
         Test.startTest();
         SObjectQueryBuilder query = (SObjectQueryBuilder)new SObjectQueryBuilder(sobjectType).addFields(convertToQueryFields(fields));
-        query.orderBy(new QueryField(Schema.Contact.FirstName), QuerySortOrder.DESCENDING, QueryNullSortOrder.LAST);
+        query.orderBy(new QueryField(Schema.Contact.FirstName), QueryBuilder.SortOrder.DESCENDING, QueryBuilder.NullSortOrder.LAST);
         Test.stopTest();
 
         String orderByString = getFirstLineThatStartsWith(query.getQuery(), 'ORDER BY');
@@ -407,7 +407,7 @@ private class SObjectQueryBuilder_Tests {
     static void it_should_set_using_scope() {
         Schema.SObjectType sobjectType = Schema.Contact.SObjectType;
         List<SObjectField> fields = new List<SObjectField>{Schema.Contact.CreatedDate};
-        QueryFilterScope scope = QueryFilterScope.TEAM;
+        QueryBuilder.FilterScope scope = QueryBuilder.FilterScope.TEAM;
 
         Test.startTest();
         SObjectQueryBuilder query = (SObjectQueryBuilder)new SObjectQueryBuilder(sobjectType).addFields(convertToQueryFields(fields));

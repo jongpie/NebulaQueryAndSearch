@@ -12,6 +12,11 @@
 */
 public abstract class QueryBuilder {
 
+    public enum FilterScope   { EVERYTHING, DELEGATED, TEAM, MINE, MY_TERRITORY, MY_TEAM_TERRITORY }
+    public enum NullSortOrder { FIRST, LAST }
+    public enum SearchGroup   { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
+    public enum SortOrder     { ASCENDING, DESCENDING }
+
     private static Map<Integer, List<SObject>> cachedQueryResultsByHashCode        = new Map<Integer, List<SObject>>();
     private static Map<Integer, List<List<SObject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<SObject>>>();
 
@@ -48,14 +53,14 @@ public abstract class QueryBuilder {
         this.doOrderBy(orderByQueryField, null, null);
     }
 
-    protected void doOrderBy(IQueryField orderByQueryField, QuerySortOrder sortOrder) {
+    protected void doOrderBy(IQueryField orderByQueryField, SortOrder sortOrder) {
         this.doOrderBy(orderByQueryField, sortOrder, null);
     }
 
-    protected void doOrderBy(IQueryField orderByQueryField, QuerySortOrder sortOrder, QueryNullSortOrder nullsSortOrder) {
+    protected void doOrderBy(IQueryField orderByQueryField, SortOrder sortOrder, QueryBuilder.NullSortOrder nullsSortOrder) {
         String sortOrderString = '';
-        if(sortOrder == QuerySortOrder.ASCENDING) sortOrderString = ' ASC';
-        else if(sortOrder == QuerySortOrder.DESCENDING) sortOrderString = ' DESC';
+        if(sortOrder == SortOrder.ASCENDING) sortOrderString = ' ASC';
+        else if(sortOrder == SortOrder.DESCENDING) sortOrderString = ' DESC';
 
         if(nullsSortOrder != null) sortOrderString += ' NULLS ' + nullsSortOrder;
 
