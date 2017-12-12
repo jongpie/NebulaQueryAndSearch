@@ -334,8 +334,6 @@ public class SObjectQueryBuilder extends QueryBuilder implements ISObjectQueryBu
     }
 
     private void addCommonQueryFields() {
-        if(!NebulaSettings.SObjectQueryBuilderSettings.IncludeCommonFields__c) return;
-
         // Auto-add the common fields that are available for the SObject Type
         List<String> commonFieldNameList = new List<String>{
             'Id', 'CaseNumber', 'CreatedById', 'CreatedDate', 'IsClosed', 'LastModifiedById', 'LastModifiedDate',

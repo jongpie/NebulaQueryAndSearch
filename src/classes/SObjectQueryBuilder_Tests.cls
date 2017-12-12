@@ -90,9 +90,6 @@ private class SObjectQueryBuilder_Tests {
 
     @isTest
     static void it_should_add_a_list_of_fields() {
-        NebulaSettings.SObjectQueryBuilderSettings.IncludeCommonFields__c = false;
-        upsert NebulaSettings.SObjectQueryBuilderSettings;
-
         Schema.SObjectType sobjectType = Schema.Contact.SObjectType;
         List<SObjectField> fields = new List<SObjectField>{Schema.Contact.Id, Schema.Contact.AccountId, Schema.Contact.CreatedDate};
         List<String> expectedQueryFieldStrings = buildExpectedQueryFieldStrings(fields);
@@ -117,9 +114,6 @@ private class SObjectQueryBuilder_Tests {
 
     @isTest
     static void it_should_add_all_fields() {
-        NebulaSettings.SObjectQueryBuilderSettings.IncludeCommonFields__c = false;
-        upsert NebulaSettings.SObjectQueryBuilderSettings;
-
         Schema.SObjectType sobjectType = Schema.Contact.SObjectType;
         List<String> expectedQueryFieldStrings = buildExpectedQueryFieldStrings(sobjectType.getDescribe().fields.getMap().values());
 
@@ -142,9 +136,6 @@ private class SObjectQueryBuilder_Tests {
 
     @isTest
     static void it_should_add_all_standard_fields() {
-        NebulaSettings.SObjectQueryBuilderSettings.IncludeCommonFields__c = false;
-        upsert NebulaSettings.SObjectQueryBuilderSettings;
-
         Schema.SObjectType sobjectType = Schema.Contact.SObjectType;
         List<Schema.SObjectField> standardFields = new List<Schema.SObjectField>();
         for(Schema.SObjectField field : sobjectType.getDescribe().fields.getMap().values()) {
@@ -173,9 +164,6 @@ private class SObjectQueryBuilder_Tests {
 
     @isTest
     static void it_should_add_all_custom_fields() {
-        NebulaSettings.SObjectQueryBuilderSettings.IncludeCommonFields__c = false;
-        upsert NebulaSettings.SObjectQueryBuilderSettings;
-
         Schema.SObjectType sobjectType = Schema.Contact.SObjectType;
         List<Schema.SObjectField> customFields = new List<Schema.SObjectField>();
         for(Schema.SObjectField field : sobjectType.getDescribe().fields.getMap().values()) {
@@ -204,9 +192,6 @@ private class SObjectQueryBuilder_Tests {
 
     @isTest
     static void it_should_add_all_readable_fields() {
-        NebulaSettings.SObjectQueryBuilderSettings.IncludeCommonFields__c = false;
-        upsert NebulaSettings.SObjectQueryBuilderSettings;
-
         Schema.SObjectType sobjectType = Schema.Contact.SObjectType;
         List<Schema.SObjectField> standardFields = new List<Schema.SObjectField>();
         for(Schema.SObjectField field : sobjectType.getDescribe().fields.getMap().values()) {
@@ -235,9 +220,6 @@ private class SObjectQueryBuilder_Tests {
 
     @isTest
     static void it_should_add_all_editable_fields() {
-        NebulaSettings.SObjectQueryBuilderSettings.IncludeCommonFields__c = false;
-        upsert NebulaSettings.SObjectQueryBuilderSettings;
-
         Schema.SObjectType sobjectType = Schema.Contact.SObjectType;
         List<Schema.SObjectField> standardFields = new List<Schema.SObjectField>();
         for(Schema.SObjectField field : sobjectType.getDescribe().fields.getMap().values()) {
