@@ -10,7 +10,7 @@
 * @description Abstract class that provides some shared properties & methods for SObjectQueryBuilder & AggregateResultQueryBuilder
 *
 */
-public abstract class QueryBuilder extends NebulaCore {
+public abstract class QueryBuilder {
 
     private static Map<Integer, List<SObject>> cachedQueryResultsByHashCode        = new Map<Integer, List<SObject>>();
     private static Map<Integer, List<List<SObject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<SObject>>>();
@@ -25,8 +25,6 @@ public abstract class QueryBuilder extends NebulaCore {
     private Boolean cacheResults;
 
     public QueryBuilder() {
-        this.currentModule = NebulaCore.Module.QUERY_BUILDER;
-
         this.whereClauseList = new List<String>();
         this.orderByList     = new List<String>();
         this.cacheResults    = false;

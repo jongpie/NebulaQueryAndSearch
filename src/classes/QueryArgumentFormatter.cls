@@ -10,12 +10,11 @@
 * @description TODO
 *
 */
-public virtual class QueryArgumentFormatter extends NebulaCore implements IQueryArgumentFormatter {
+public virtual class QueryArgumentFormatter implements IQueryArgumentFormatter {
 
     private String value;
 
     public QueryArgumentFormatter(Object valueToFormat) {
-        this.currentModule = NebulaCore.Module.QUERY_BUILDER;
         this.value = this.objectToQueryString(valueToFormat);
     }
 
