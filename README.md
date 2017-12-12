@@ -1,19 +1,16 @@
 # Apex Query Generator
-<a target="_blank" href="https://githubsfdeploy.herokuapp.com?owner=jongpie&repo=ApexQueryGenerator">
+<a target="_blank" href="https://githubsfdeploy.herokuapp.com">
   <img alt="Deploy to Salesforce"
        src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/src/main/webapp/resources/img/deploy.png">
 </a>
 
-## Issue
---Coming soon--
+## Overview
+This is an freestanding version of the [Nebula framework's](https://github.com/jongpie/NebulaFramework/) query engine - it has been updated to remove any dependencies on the rest of the Nebula framework.
 
-## Goals
-The overall goal of the project is to help auto-generate dynamic SOQL for commonly used queries
-* Provide a structure to centralise frequently used queries for each SObject
-* Provide a configurable way to change the query fields, while still preventing accidental deletion of fields being used
-* Provide a way to create a WHERE statement as a string in Apex, while still preventing accidental deletion of fields being used
-
-## Implementation
---Coming soon--
-
-### Example Implementation: LeadQueryRepository.cls
+## Features
+The overall goal of the project is to generate dynamic SOQL & SOSL queries. Features currently include
+* Leverage field-level security to dynamically include fields
+* Dynamically include filter conditions (not possible with standard SOQL/SOSL)
+* Retain Salesforce's compilation-time errors for invalid fields while still taking advantage of dynamic queries - this helps avoid issues with deleting fields, misspelled field names, etc that can occur when working with strings and dynamic queries
+* Support for nearly all SOQL & SOSL features & keywords, including date literals, aggregate results and more
+* Easy-to-use query caching
