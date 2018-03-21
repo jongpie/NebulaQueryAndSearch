@@ -1,5 +1,5 @@
-# Apex Query
-A lightweight Apex library for easily building dynamic SOQL queries <br />
+# Apex Dynamic SOQL & SOSL Library
+A lightweight Apex library for easily building dynamic SOQL queries & SOSL searches<br />
 <a href="https://githubsfdeploy.herokuapp.com" target="_blank">
     <img alt="Deploy to Salesforce" src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
 </a>
