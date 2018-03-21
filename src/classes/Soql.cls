@@ -15,6 +15,19 @@ public class Soql {
         }
     }
 
+    // TODO this appears to only works if multi-currency is enabled in the org
+    public class IsoCurrency { // TODO https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
+        private String isoCode;
+        private Decimal currencyAmount;
+        public IsoCurrency(String isoCode, Decimal currencyAmount) {
+            this.isoCode        = isoCode;
+            this.currencyAmount = currencyAmount;
+        }
+        public override String toString() {
+            return this.isoCode + this.currencyAmount;
+        }
+    }
+
     private static final FieldCategory DEFAULT_FIELD_CATEGORY   = FieldCategory.ACCESSIBLE;
     private static final SortOrder DEFAULT_SORT_ORDER           = SortOrder.ASCENDING;
     private static final Boolean DEFAULT_NULLS_SORT_ORDER_FIRST = true;
@@ -117,12 +130,12 @@ public class Soql {
         return this;
     }
 
-    public Soql removeField(SobjectField excludedField) {
-        return this.removeFields(new List<SobjectField>{excludedField});
+    public Soql removeField(SobjectField field) {
+        return this.removeFields(new List<SobjectField>{field});
     }
 
-    public Soql removeField(String excludedFieldApiName) {
-        return this.removeFields(new List<String>{excludedFieldApiName});
+    public Soql removeField(String fieldApiName) {
+        return this.removeFields(new List<String>{fieldApiName});
     }
 
     public Soql removeFields(Schema.FieldSet fieldSet) {
