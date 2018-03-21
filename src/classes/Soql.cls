@@ -28,10 +28,10 @@ public class Soql {
     private List<AggregateField> aggregatedFields;
     private Set<String> excludedFieldApiNames;
     private Scope scope;
-    private List<String> whereFilters, groupByFieldApiNames, orderByFieldApiNames;
+    private List<String> whereFilters, orderByFieldApiNames;
     private Integer limitCount;
     private Integer offset;
-    private Boolean forReference, forUpdate, forView, cacheResults, includeLabels;
+    private Boolean forReference, forUpdate, forView, cacheResults, includeLabels, includeFormattedValues;
 
     public Soql(String sobjectApiName) {
         this(Schema.getGlobalDescribe().get(sobjectApiName));
@@ -41,23 +41,24 @@ public class Soql {
         this.sobjectType         = sobjectType;
         this.displayFieldApiName = this.getDisplayFieldApiName(this.sobjectType);
 
-        this.sobjectDescribe                    = this.sobjectType.getDescribe();
-        this.includedFieldApiNamesAndCategory   = new Map<String, FieldCategory>();
-        this.aggregatedFields                   = new List<AggregateField>();
-        this.excludedFieldApiNames              = new Set<String>();
-        this.whereFilters                       = new List<String>();
-        this.groupByFieldApiNames               = new List<String>();
-        this.orderByFieldApiNames               = new List<String>();
-        this.forReference                       = false;
-        this.forUpdate                          = false;
-        this.forView                            = false;
-        this.cacheResults                       = false;
-        this.includeLabels                      = false;
+        this.sobjectDescribe                  = this.sobjectType.getDescribe();
+        this.includedFieldApiNamesAndCategory = new Map<String, FieldCategory>();
+        this.aggregatedFields                 = new List<AggregateField>();
+        this.excludedFieldApiNames            = new Set<String>();
+        this.whereFilters                     = new List<String>();
+        this.orderByFieldApiNames             = new List<String>();
+        this.forReference                     = false;
+        this.forUpdate                        = false;
+        this.forView                          = false;
+        this.cacheResults                     = false;
+        this.includeLabels                    = false;
+        this.includeFormattedValues           = false;
     }
 
     public Soql addField(SobjectField field) {
         return this.addField(field, DEFAULT_FIELD_CATEGORY);
     }
+
     public Soql addField(SobjectField field, Soql.FieldCategory fieldCategory) {
         return this.addFields(new List<SobjectField>{field}, fieldCategory);
     }
@@ -117,7 +118,7 @@ public class Soql {
     }
 
     public Soql removeField(SobjectField excludedField) {
-        return this.removeField(excludedField.getDescribe().getName());
+        return this.removeFields(new List<SobjectField>{excludedField});
     }
 
     public Soql removeField(String excludedFieldApiName) {
@@ -156,7 +157,7 @@ public class Soql {
         return this;
     }
 
-    public Soql filterWhere(String fieldApiName, String operator, String value) {
+    public Soql filterWhere(String fieldApiName, String operator, Object value) {
         return this.filterWhere(fieldApiName + ' ' + operator + ' ' + this.objectToQueryString(value));
     }
 
@@ -219,6 +220,11 @@ public class Soql {
 
     public Soql includeLabels() {
         this.includeLabels = true;
+        return this;
+    }
+
+    public Soql includeFormattedValues() {
+        this.includeFormattedValues = true;
         return this;
     }
 
@@ -313,6 +319,10 @@ public class Soql {
         return 'toLabel(' + fieldApiName + ') ' + fieldApiName.replace('.', '_') + '__Label';
     }
 
+    private String getFieldFormat(String fieldApiName) {
+        return 'format(' + fieldApiName + ') ' + fieldApiName.replace('.', '_') + '__Format';
+    }
+
     private String objectToQueryString(Object valueToFormat) {
         if(valueToFormat == null) return null;
         else if(valueToFormat instanceOf List<Object>) return this.listToQueryString((List<Object>)valueToFormat);
@@ -368,18 +378,34 @@ public class Soql {
         List<String> fieldsToReturn = new List<String>();
         Schema.SobjectField field = this.sobjectDescribe.fields.getMap().get(fieldApiName);
 
-        if(field == null) return fieldsToReturn; // TODO this will skip any parent (or grandparent) fields that are added, so need to improve this
+        if(field == null) {
+            // TODO right now, this adds any field name that can't be parsed. This could be due to
+            //      1. An invalid field name
+            //      2. A parent field, using dot notation. Logic needs to be added to handle this scenario
+            fieldsToReturn.add(fieldApiName);
+            return fieldsToReturn;
+        }
+
         if(fieldCat == null) return fieldsToReturn;
-        if(fieldCat == FieldCategory.ACCESSIBLE && !field.getDescribe().isAccessible()) return fieldsToReturn;
-        if(fieldCat == FieldCategory.UPDATEABLE && !field.getDescribe().isUpdateable()) return fieldsToReturn;
-        if(fieldCat == FieldCategory.STANDARD && field.getDescribe().isCustom()) return fieldsToReturn;
-        if(fieldCat == FieldCategory.CUSTOM && !field.getDescribe().isCustom()) return fieldsToReturn;
+        else if(fieldCat == FieldCategory.ACCESSIBLE && !field.getDescribe().isAccessible()) return fieldsToReturn;
+        else if(fieldCat == FieldCategory.UPDATEABLE && !field.getDescribe().isUpdateable()) return fieldsToReturn;
+        else if(fieldCat == FieldCategory.STANDARD && field.getDescribe().isCustom()) return fieldsToReturn;
+        else if(fieldCat == FieldCategory.CUSTOM && !field.getDescribe().isCustom()) return fieldsToReturn;
 
         fieldsToReturn.add(field.getDescribe().getName());
 
         // If the field has picklist options, then it can be translated
         if(this.includeLabels && !field.getDescribe().getPickListValues().isEmpty()) {
             fieldsToReturn.add(this.getFieldToLabel(field.getDescribe().getName()));
+        }
+
+        // If the field is a number, date, time, or currency, it can be formatted
+        List<Schema.DisplayType> supportedTypesForFormat = new List<Schema.DisplayType>{
+            Schema.DisplayType.CURRENCY, Schema.DisplayType.DATE, Schema.DisplayType.DATETIME, Schema.DisplayType.DOUBLE,
+            Schema.DisplayType.INTEGER, Schema.DisplayType.PERCENT, Schema.DisplayType.TIME
+        };
+        if(this.includeFormattedValues && supportedTypesForFormat.contains(field.getDescribe().getType())) {
+            fieldsToReturn.add(this.getFieldFormat(field.getDescribe().getName()));
         }
 
         // If the field is a lookup, then we need to get the name field from the parent object
@@ -477,14 +503,12 @@ public class Soql {
         private String fieldApiName, fieldAlias;
         private Soql.Aggregate aggregateFunction;
         public AggregateField(String fieldApiName, Soql.Aggregate aggregateFunction) {
-            this.fieldApiName      = fieldApiName;
             this.aggregateFunction = aggregateFunction;
-
-            this.fieldAlias = this.aggregateFunction.name() + '__' + fieldApiName;
+            this.fieldAlias        = aggregateFunction.name() + '__' + fieldApiName;
+            this.fieldApiName      = fieldApiName;
         }
         public override String toString() {
             // Alias: MIN(Schema.Lead.MyField__c) is auto-aliased to MIN_MyField__c
-            system.debug(this.aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias);
             return this.aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
         }
     }
