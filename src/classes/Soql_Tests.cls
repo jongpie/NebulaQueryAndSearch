@@ -20,7 +20,7 @@ private class Soql_Tests {
         Soql userQuery = new Soql(Schema.User.SObjectType)
             .addFields(fieldsToQuery)
             .addField(Schema.User.ProfileId)
-            .addField('Type', Soql.FieldCategory.UPDATEABLE)
+            .addField('Email', Soql.FieldCategory.UPDATEABLE)
             .addFields(Soql.FieldCategory.STANDARD)
             .removeField('Name')
             .removeField(Schema.User.UserRoleId)
@@ -50,10 +50,25 @@ private class Soql_Tests {
     }
 
     @isTest
+    static void it_should_return_results_when_filtering_with_iso_currency() {
+        // If multi-currency isn't enabled, then we cannot use IsoCurrency, so skip running this test
+        if(!UserInfo.isMultiCurrencyOrganization()) return;
+
+        // If multi-currency is enabled, then execute the test
+        Soql accountQuery = new Soql(Schema.Account.SObjectType)
+            .addField(Schema.Account.AnnualRevenue)
+            .filterWhere(Schema.Account.AnnualRevenue, '<', new Soql.IsoCurrency('USD', 100));
+        List<Account> accounts = accountQuery.getQueryResults();
+    }
+
+    @isTest
     static void it_should_cache_query_results_when_enabled() {
         //.cacheResults()
         //.includeLabels()
         //.includeFormattedValues()
+        // TYPEOF support - https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_typeof.htm
+        // converting time zones? https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_convert_time_zone.htm
+        // convert currency https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
         System.assert(false, 'need to finish writing test');
     }
 
