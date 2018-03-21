@@ -5,6 +5,8 @@ public class Soql {
     public enum Scope { EVERYTHING, DELEGATED, TEAM, MINE, MY_TERRITORY, MY_TEAM_TERRITORY }
     public enum SortOrder { ASCENDING, DESCENDING }
 
+    public class SoqlException extends Exception {}
+
     public class DateLiteral {
         private String fieldExpression;
         public DateLiteral(String fieldExpression) {
@@ -15,7 +17,6 @@ public class Soql {
         }
     }
 
-    // TODO this appears to only works if multi-currency is enabled in the org
     public class IsoCurrency { // TODO https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
         private String isoCode;
         private Decimal currencyAmount;
@@ -334,7 +335,7 @@ public class Soql {
         return 'toLabel(' + fieldApiName + ') ' + fieldApiName.replace('.', '_') + '__Label';
     }
 
-    private String getFieldFormat(String fieldApiName) {
+    private String getFieldFormattedValue(String fieldApiName) {
         return 'format(' + fieldApiName + ') ' + fieldApiName.replace('.', '_') + '__Format';
     }
 
@@ -420,7 +421,7 @@ public class Soql {
             Schema.DisplayType.INTEGER, Schema.DisplayType.PERCENT, Schema.DisplayType.TIME
         };
         if(this.includeFormattedValues && supportedTypesForFormat.contains(field.getDescribe().getType())) {
-            fieldsToReturn.add(this.getFieldFormat(field.getDescribe().getName()));
+            fieldsToReturn.add(this.getFieldFormattedValue(field.getDescribe().getName()));
         }
 
         // If the field is a lookup, then we need to get the name field from the parent object
@@ -484,7 +485,7 @@ public class Soql {
     }
 
     private String getLimitCountString() {
-        return this.limitCount == null ? '' : ' LIMIT ' + limitCount;
+        return this.limitCount == null ? '' : ' LIMIT ' + this.limitCount;
     }
 
     private String getOffetString() {
@@ -513,8 +514,6 @@ public class Soql {
         // Always return a deep clone so the original cached version is never modified
         return cachedQueryResultsByHashCode.get(hashCode).deepClone(true, true, true);
     }
-
-    private class SoqlException extends Exception {}
 
     private class AggregateField {
         private String fieldApiName, fieldAlias;
