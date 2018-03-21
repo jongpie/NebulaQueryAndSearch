@@ -18,8 +18,10 @@ A lightweight Apex library for easily building dynamic SOQL queries <br />
     * `new Soql('Contact').addFields(myContactFieldSet)` --> All fields in the field set are returned in the query
 * Automatically adds the parent name field for any lookup/master-detail fields
     * `new Soql('Contact').addField('AccountId')` --> AccountId and Account.Name are both returned in the query
-* Adds translations for picklist fields & record types by calling addLabels()
-    * `new Soql('Contact').addField('Type').addLabels()` --> Type and Type_Label are both returned in the query
+* Adds translations for picklist fields & record types by calling includeLabels()
+    * `new Soql('Contact').addField('Type').includeLabels()` --> Type and Type__Label are both returned in the query
+* Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
+    * `new Soql('Account').addField('AnnualRevenue').includeFormattedValues()` --> AnnualRevenue and AnnualRevenue__Formatted are both returned in the query
 * Leverage query scope to filter results
     * `new Soql('Contact').usingScope(Query.Scope.MINE)`
 
