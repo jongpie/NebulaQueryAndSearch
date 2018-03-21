@@ -1,6 +1,10 @@
 @isTest
 private class Soql_Tests {
-
+//.includeLabels()
+//.includeFormattedValues()
+// TYPEOF support - https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_typeof.htm
+// converting time zones? https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_convert_time_zone.htm
+// convert currency https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
     @isTest
     static void it_should_return_results_for_a_simple_query_using_tokens() {
         Soql simpleQuery = new Soql(Schema.Account.SObjectType);
@@ -63,13 +67,25 @@ private class Soql_Tests {
 
     @isTest
     static void it_should_cache_query_results_when_enabled() {
-        //.cacheResults()
-        //.includeLabels()
-        //.includeFormattedValues()
-        // TYPEOF support - https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_typeof.htm
-        // converting time zones? https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_convert_time_zone.htm
-        // convert currency https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
-        System.assert(false, 'need to finish writing test');
+        Integer loops = 4;
+        Soql userQuery = new Soql(Schema.User.SObjectType).limitCount(1);
+
+        // First, verify that caching is not enabled by default
+        System.assertEquals(0, Limits.getQueries());
+        for(Integer i=0; i < loops; i++) {
+            userQuery.getQueryResults();
+        }
+        System.assertEquals(loops, Limits.getQueries());
+
+        Test.startTest();
+
+        userQuery.cacheResults();
+        for(Integer i=0; i < loops; i++) {
+            userQuery.getQueryResults();
+        }
+        System.assertEquals(1, Limits.getQueries());
+
+        Test.stopTest();
     }
 
 }
