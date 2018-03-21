@@ -7,18 +7,35 @@ private class Soql_Tests {
 // convert currency https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
     @isTest
     static void it_should_return_results_for_a_simple_query_using_tokens() {
-        Soql simpleQuery = new Soql(Schema.Account.SObjectType);
-        List<Account> accounts = (List<Account>)simpleQuery.getQueryResults();
+        String expectedQueryString = 'SELECT Id, Name FROM Account';
+
+        Soql simpleAccountQuery = new Soql(Schema.Account.SObjectType);
+
+        System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
+        List<Account> accounts = (List<Account>)simpleAccountQuery.getQueryResults();
     }
 
     @isTest
     static void it_should_return_results_for_a_simple_query_using_strings() {
-        Soql simpleQuery = new Soql('Account');
-        List<Account> accounts = (List<Account>)simpleQuery.getQueryResults();
+        String expectedQueryString = 'SELECT Id, Name FROM Account';
+
+        Soql simpleAccountQuery = new Soql('Account');
+
+        System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
+        List<Account> accounts = (List<Account>)simpleAccountQuery.getQueryResults();
     }
 
     @isTest
     static void it_should_return_results_for_an_advanced_query() {
+        Datetime now = System.now();
+
+        // The fields are conditionally added to the query based on the current user's permissions
+        // To keep the test simpler for now, the rest of the query (excluding the 'SELECT <fields>') is validated
+        String expectedPartialQueryString = 'FROM User USING SCOPE MINE WHERE IsActive = true'
+            + ' AND Profile.Id != \'' + UserInfo.getProfileId() + '\' AND LastModifiedDate <= ' + now
+            + ' AND CreatedDate <= LAST_WEEK AND Email != null'
+            + ' ORDER BY Profile.Name ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST LIMIT 100 OFFSET 1 FOR VIEW';
+
         List<SobjectField> fieldsToQuery = new List<SobjectField>{Schema.User.IsActive, Schema.User.Alias};
 
         Soql userQuery = new Soql(Schema.User.SObjectType)
@@ -31,7 +48,7 @@ private class Soql_Tests {
             .usingScope(Soql.Scope.MINE)
             .filterWhere('IsActive', '=', true)
             .filterWhere('Profile.Id', '!=', UserInfo.getProfileId())
-            .filterWhere(Schema.User.LastModifiedDate, '<=', System.now())
+            .filterWhere(Schema.User.LastModifiedDate, '<=', now)
             .filterWhere(Schema.User.CreatedDate, '<=', new Soql.DateLiteral('LAST_WEEK'))
             .filterWhere('Email != null')
             .orderBy('Profile.Name')
@@ -40,6 +57,8 @@ private class Soql_Tests {
             .limitCount(100)
             .offset(1)
             .forView();
+
+        //System.assert(userQuery.getQuery().endsWith(expectedPartialQueryString), Json.serialize(userQuery.getQuery())); //TODO finish implementing this assert
         List<User> users = userQuery.getQueryResults();
     }
 
