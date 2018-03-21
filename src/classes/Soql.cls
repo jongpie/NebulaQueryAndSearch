@@ -39,7 +39,7 @@ public class Soql {
 
     private Schema.SobjectType sobjectType;
     private Schema.DescribeSobjectResult sobjectDescribe;
-    private String displayFieldApiName;
+    private String displayFieldApiName, query;
     private Map<String, FieldCategory> includedFieldApiNamesAndCategory;
     private List<AggregateField> aggregatedFields;
     private Set<String> excludedFieldApiNames;
@@ -47,7 +47,7 @@ public class Soql {
     private List<String> whereFilters, orderByFieldApiNames;
     private Integer limitCount;
     private Integer offset;
-    private Boolean forReference, forUpdate, forView, cacheResults, includeLabels, includeFormattedValues;
+    private Boolean soqlHasChanged, forReference, forUpdate, forView, cacheResults, includeLabels, includeFormattedValues;
 
     public Soql(String sobjectApiName) {
         this(Schema.getGlobalDescribe().get(sobjectApiName));
@@ -69,6 +69,7 @@ public class Soql {
         this.cacheResults                     = false;
         this.includeLabels                    = false;
         this.includeFormattedValues           = false;
+        this.soqlHasChanged                   = false;
     }
 
     public Soql addField(SobjectField field) {
@@ -121,7 +122,7 @@ public class Soql {
 
     public Soql addFields(List<String> fieldApiNames, Soql.FieldCategory fieldCategory) {
         for(String fieldApiName : fieldApiNames) this.includedFieldApiNamesAndCategory.put(fieldApiName, fieldCategory);
-        return this;
+        return this.setSoqlHasChanged();
     }
 
      public Soql aggregateField(Schema.SobjectField field, Soql.Aggregate aggregateFunction) {
@@ -130,7 +131,7 @@ public class Soql {
 
      public Soql aggregateField(String fieldApiName, Soql.Aggregate aggregateFunction) {
         this.aggregatedFields.add(new AggregateField(fieldApiName, aggregateFunction));
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql removeField(SobjectField field) {
@@ -159,18 +160,18 @@ public class Soql {
 
     public Soql removeFields(List<String> excludedFieldApiNames) {
         this.excludedFieldApiNames.addAll(excludedFieldApiNames);
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql usingScope(Scope scope) {
         this.scope = scope;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql filterWhere(SobjectField field, String operator, Object value) {
         String whereFilter = field + ' ' + operator + ' ' + this.objectToQueryString(value);
         this.filterWhere(whereFilter);
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql filterWhere(String fieldApiName, String operator, Object value) {
@@ -179,7 +180,7 @@ public class Soql {
 
     public Soql filterWhere(String filter) {
         this.whereFilters.add(filter);
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql orderBy(Schema.SobjectField field) {
@@ -206,55 +207,57 @@ public class Soql {
     public Soql orderBy(String fieldApiName, String sortOrder, Boolean sortNullsFirst) {
         String nullsSortOrder = sortNullsFirst ? 'FIRST' : 'LAST';
         this.orderByFieldApiNames.add(fieldApiName + ' ' + sortOrder + ' NULLS ' + nullsSortOrder);
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql limitCount(Integer limitCount) {
         this.limitCount = limitCount;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql offset(Integer offset) {
         this.offset = offset;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql forReference() {
         this.forReference = true;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql forUpdate() {
         this.forUpdate = true;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql forView() {
         this.forView = true;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql includeLabels() {
         this.includeLabels = true;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql includeFormattedValues() {
         this.includeFormattedValues = true;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public Soql cacheResults() {
         this.cacheResults = true;
-        return this;
+        return this.setSoqlHasChanged();
     }
 
     public String getQuery() {
+        if(this.query != null && !this.soqlHasChanged) return this.query;
+
         String queryFieldString = this.getQueryFieldString();
         String aggregateQueryFieldString = this.getAggregateQueryFieldString();
         String fieldDelimiter = !String.isEmpty(queryFieldString) && !String.isEmpty(aggregateQueryFieldString) ? ', ' : '';
 
-        String query = 'SELECT ' + queryFieldString + fieldDelimiter + aggregateQueryFieldString
+        this.query = 'SELECT ' + queryFieldString + fieldDelimiter + aggregateQueryFieldString
             + ' FROM ' + this.sobjectType
             + this.getUsingScopeString()
             + this.getWhereClauseString()
@@ -266,8 +269,12 @@ public class Soql {
             + this.getForUpdateString()
             + this.getForViewString();
 
-        System.debug(LoggingLevel.FINEST, query);
-        return query;
+        // Change soqlHasChanged to false so that subsequent calls to getQuery() use the cached query string
+        // If additional builder methods are later called, the builder methods will set soqlHasChanged = true
+        this.soqlHasChanged = false;
+
+        System.debug(LoggingLevel.FINEST, this.query);
+        return this.query;
     }
 
     public String getSearchQuery() {
@@ -291,6 +298,11 @@ public class Soql {
     public List<Sobject> getQueryResults() {
         if(this.cacheResults) return this.getCachedQuery();
         else return Database.query(this.getQuery());
+    }
+
+    private Soql setSoqlHasChanged() {
+        this.soqlHasChanged = true;
+        return this;
     }
 
     private String getDisplayFieldApiName(Schema.SObjectType sobjectType) {
