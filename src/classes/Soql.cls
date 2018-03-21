@@ -20,6 +20,8 @@ public class Soql {
         private String isoCode;
         private Decimal currencyAmount;
         public IsoCurrency(String isoCode, Decimal currencyAmount) {
+            if(!UserInfo.isMultiCurrencyOrganization()) throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
+
             this.isoCode        = isoCode;
             this.currencyAmount = currencyAmount;
         }
@@ -511,6 +513,8 @@ public class Soql {
         // Always return a deep clone so the original cached version is never modified
         return cachedQueryResultsByHashCode.get(hashCode).deepClone(true, true, true);
     }
+
+    private class SoqlException extends Exception {}
 
     private class AggregateField {
         private String fieldApiName, fieldAlias;
