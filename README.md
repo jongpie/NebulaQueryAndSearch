@@ -39,7 +39,7 @@ Query accountQuery = new Soql('Account')                                        
     .addField(Schema.Account.ParentId)                                               // Include the ParentId field, using SObjectField. The current user must have at least read access to the field
     .addField('Type', Soql.FieldCategory.UPDATEABLE)                                 // Include the Type field, using the field API name, if the user has access to update it
     .addFields(Soql.FieldCategory.CUSTOM)                                            // Include all custom fields - Soql.cls only includes fields that are accessible to the user
-    .addFields(myContactFieldSet)                                                    // Include all fields in a field set that are accessible to the user
+    .addFields(myAccountFieldSet)                                                    // Include all fields in a field set that are accessible to the user
     .removeField('my_custom_field__c')                                               // remove a custom field
     .usingScope(Soql.Scope.MINE)                                                     // Set the query scope
     .filterWhere(Schema.Account.CreatedDate, '=', new Soql.DateLiteral('LAST_WEEK')) // Filter on the created date, using a date literal
