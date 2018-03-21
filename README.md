@@ -49,6 +49,7 @@ Query accountQuery = new Soql('Account')                                        
     .orderBy(Account.AnnualRevenue, Soql.SortOrder.DESCENDING, false)                // Order by, using SObjectField, sort order and nulls sort order
     .limitCount(100)                                                                 // Limit the results to 100 records
     .includeLabels()                                                                 // Include labels/translations for any picklist fields or record types. These are aliased using the convention 'FieldName__c_Label'
+    .includeFormattedValues()                                                        // Include formatted values for any number, date, time, or currency fields
     .cacheResults()                                                                  // When enabled, the query results are internally cached - any subsequent calls for getQueryResults() will returned cached results instead of executing the query again
     .offset(25);                                                                     // Skip the first 25 results
 
