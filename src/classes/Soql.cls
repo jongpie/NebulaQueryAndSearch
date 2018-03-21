@@ -441,21 +441,26 @@ public class Soql {
         for(String excludedFieldApiName : this.excludedFieldApiNames) {
             this.includedFieldApiNamesAndCategory.remove(excludedFieldApiName);
         }
-        Set<String> fieldApiNamesToQuery = new Set<String>();
+        Set<String> distinctFieldApiNamesToQuery = new Set<String>();
         for(String fieldApiName : this.includedFieldApiNamesAndCategory.keySet()) {
             FieldCategory fieldCategory = this.includedFieldApiNamesAndCategory.get(fieldApiName);
 
             List<String> fieldsToQuery = this.getFieldsToQuery(fieldApiName, fieldCategory);
-            if(!fieldsToQuery.isEmpty()) fieldApiNamesToQuery.addAll(fieldsToQuery);
+            if(!fieldsToQuery.isEmpty()) distinctFieldApiNamesToQuery.addAll(fieldsToQuery);
         }
 
         // If the query is NOT an aggregate query, then add the Id & display name fields automatically
         if(this.aggregatedFields.isEmpty()) {
-            fieldApiNamesToQuery.add('Id');
-            fieldApiNamesToQuery.add(this.displayFieldApiName);
+            distinctFieldApiNamesToQuery.add('Id');
+            distinctFieldApiNamesToQuery.add(this.displayFieldApiName);
+
         }
 
-        return String.join(new List<String>(fieldApiNamesToQuery), ', ');
+        List<String> fieldApiNamesToQuery = new List<String>(distinctFieldApiNamesToQuery);
+
+        if(this.aggregatedFields.isEmpty()) fieldApiNamesToQuery.sort();
+
+        return String.join(fieldApiNamesToQuery, ', ');
     }
 
     private String getAggregateQueryFieldString() {
