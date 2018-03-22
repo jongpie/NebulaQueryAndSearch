@@ -22,7 +22,6 @@ public class Soql {
         private Decimal currencyAmount;
         public IsoCurrency(String isoCode, Decimal currencyAmount) {
             if(!UserInfo.isMultiCurrencyOrganization()) throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
-
             this.isoCode        = isoCode;
             this.currencyAmount = currencyAmount;
         }
@@ -158,8 +157,8 @@ public class Soql {
         return this.removeFields(fieldApiNames);
     }
 
-    public Soql removeFields(List<String> excludedFieldApiNames) {
-        this.excludedFieldApiNames.addAll(excludedFieldApiNames);
+    public Soql removeFields(List<String> fieldApiNames) {
+        this.excludedFieldApiNames.addAll(fieldApiNames);
         return this.setSoqlHasChanged();
     }
 
