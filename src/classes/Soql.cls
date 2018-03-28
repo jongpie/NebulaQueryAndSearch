@@ -1,4 +1,4 @@
-public class Soql {
+public class Soql implements Comparable {
 
     public enum Aggregate { AVG, COUNT, COUNT_DISTINCT, MAX, MIN, SUM }
     public enum FieldCategory { ACCESSIBLE, UPDATEABLE, STANDARD, CUSTOM }
@@ -355,6 +355,20 @@ public class Soql {
     public List<Sobject> getQueryResults() {
         if(this.cacheResults) return this.getCachedQuery();
         else return Database.query(this.getQuery());
+    }
+
+    public Schema.SobjectType getSobjectType() {
+        return this.sobjectType;
+    }
+
+    public Integer compareTo(Object compareTo) {
+        String currentSobjectApiName   = String.valueOf(this.getSobjectType());
+        Soql soqlToCompareTo           = (Soql)compareTo;
+        String compareToSobjectApiName = String.valueOf(soqlToCompareTo.getSobjectType());
+
+        if(currentSobjectApiName == compareToSobjectApiName) return 0;
+        if(currentSobjectApiName > compareToSobjectApiName) return 1;
+        else return -1;
     }
 
     private Soql setSoqlHasChanged() {
