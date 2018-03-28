@@ -35,6 +35,8 @@ private class Soql_Tests {
             .addFields(Soql.FieldCategory.STANDARD)
             .removeField(new Soql.FieldPath(Schema.User.Name))
             .removeField(Schema.User.UserRoleId)
+            .includeLabels()
+            .includeFormattedValues()
             .usingScope(Soql.Scope.MINE)
             .filterWhere(Schema.User.IsActive, '=', true)
             .filterWhere(new Soql.FieldPath(Schema.User.SobjectType, 'Profile.Id'), '!=', UserInfo.getProfileId())
