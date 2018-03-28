@@ -6,20 +6,10 @@ private class Soql_Tests {
 // converting time zones? https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_convert_time_zone.htm
 // convert currency https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
     @isTest
-    static void it_should_return_results_for_a_simple_query_using_tokens() {
+    static void it_should_return_results_for_a_simple_query() {
         String expectedQueryString = 'SELECT Id, Name FROM Account';
 
         Soql simpleAccountQuery = new Soql(Schema.Account.SObjectType);
-
-        System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
-        List<Account> accounts = (List<Account>)simpleAccountQuery.getQueryResults();
-    }
-
-    @isTest
-    static void it_should_return_results_for_a_simple_query_using_strings() {
-        String expectedQueryString = 'SELECT Id, Name FROM Account';
-
-        Soql simpleAccountQuery = new Soql('Account');
 
         System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
         List<Account> accounts = (List<Account>)simpleAccountQuery.getQueryResults();
@@ -41,17 +31,17 @@ private class Soql_Tests {
         Soql userQuery = new Soql(Schema.User.SObjectType)
             .addFields(fieldsToQuery)
             .addField(Schema.User.ProfileId)
-            .addField('Email', Soql.FieldCategory.UPDATEABLE)
+            .addField(Schema.User.Email, Soql.FieldCategory.UPDATEABLE)
             .addFields(Soql.FieldCategory.STANDARD)
-            .removeField('Name')
+            .removeField(new Soql.FieldPath(Schema.User.Name))
             .removeField(Schema.User.UserRoleId)
             .usingScope(Soql.Scope.MINE)
-            .filterWhere('IsActive', '=', true)
-            .filterWhere('Profile.Id', '!=', UserInfo.getProfileId())
+            .filterWhere(Schema.User.IsActive, '=', true)
+            .filterWhere(new Soql.FieldPath(Schema.User.SobjectType, 'Profile.Id'), '!=', UserInfo.getProfileId())
             .filterWhere(Schema.User.LastModifiedDate, '<=', now)
             .filterWhere(Schema.User.CreatedDate, '<=', new Soql.DateLiteral('LAST_WEEK'))
-            .filterWhere('Email != null')
-            .orderBy('Profile.Name')
+            .filterWhere(Schema.User.Email, '!=', null)
+            .orderBy(new Soql.FieldPath(Schema.User.SobjectType, 'Profile.CreatedBy.LastModifiedDate'))
             .orderBy(Schema.User.Name, Soql.SortOrder.ASCENDING)
             .orderBy(Schema.User.Email)
             .limitCount(100)
@@ -65,9 +55,9 @@ private class Soql_Tests {
     @isTest
     static void it_should_return_results_for_aggregate_query() {
         Soql aggregateAccountQuery = new Soql(Schema.User.SObjectType)
-            .addField('ProfileId')
-            .aggregateField('CreatedDate', Soql.Aggregate.MAX)
-            .aggregateField('CreatedDate', Soql.Aggregate.MIN)
+            .addField(Schema.User.ProfileId)
+            .aggregateField(Schema.User.CreatedDate, Soql.Aggregate.MAX)
+            .aggregateField(Schema.User.CreatedDate, Soql.Aggregate.MIN)
             .aggregateField(Schema.User.Email, Soql.Aggregate.COUNT);
         List<AggregateResult> results = aggregateAccountQuery.getQueryResults();
     }

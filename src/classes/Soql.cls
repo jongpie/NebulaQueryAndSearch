@@ -1,4 +1,4 @@
-public virtual class Soql {
+public class Soql {
 
     public enum Aggregate { AVG, COUNT, COUNT_DISTINCT, MAX, MIN, SUM }
     public enum FieldCategory { ACCESSIBLE, UPDATEABLE, STANDARD, CUSTOM }
@@ -249,7 +249,7 @@ public virtual class Soql {
     }
 
     public Soql orderBy(Schema.SobjectField field, SortOrder sortOrder, Boolean sortNullsFirst) {
-        return this.orderBy(field, sortOrder, sortNullsFirst);
+        return this.orderBy(new FieldPath(field), sortOrder, sortNullsFirst);
     }
 
     public Soql orderBy(Soql.FieldPath fieldPath) {
@@ -263,7 +263,7 @@ public virtual class Soql {
     public Soql orderBy(Soql.FieldPath fieldPath, SortOrder sortOrder, Boolean sortNullsFirst) {
         String sortOrderString = sortOrder == Soql.SortOrder.ASCENDING ? 'ASC' : 'DESC';
         String nullsSortOrder = sortNullsFirst ? 'FIRST' : 'LAST';
-        this.orderByFieldApiNames.add(fieldPath + ' ' + sortOrder + ' NULLS ' + nullsSortOrder);
+        this.orderByFieldApiNames.add(fieldPath + ' ' + sortOrderString + ' NULLS ' + nullsSortOrder);
         return this.setSoqlHasChanged();
     }
 
