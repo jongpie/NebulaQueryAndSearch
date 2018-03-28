@@ -91,7 +91,7 @@ public class Soql implements Comparable {
     private static final SortOrder DEFAULT_SORT_ORDER           = SortOrder.ASCENDING;
     private static final Boolean DEFAULT_NULLS_SORT_ORDER_FIRST = true;
 
-    private static Map<Integer, List<SObject>> cachedQueryResultsByHashCode = new Map<Integer, List<SObject>>();
+    private static Map<Integer, List<Sobject>> cachedQueryResultsByHashCode = new Map<Integer, List<Sobject>>();
 
     private Schema.SobjectType sobjectType;
     private Schema.DescribeSobjectResult sobjectDescribe;
@@ -376,7 +376,7 @@ public class Soql implements Comparable {
         return this;
     }
 
-    private String getDisplayFieldApiName(Schema.SObjectType sobjectType) {
+    private String getDisplayFieldApiName(Schema.SobjectType sobjectType) {
         // There are several commonly used names for the display field name - typically, Name
         // The order of the field names has been sorted based on number of objects in a new dev org with that field
         List<String> possibleDisplayFieldApiNames = new List<String>{
@@ -386,7 +386,7 @@ public class Soql implements Comparable {
         };
         Map<String, Schema.SobjectField> fieldMap = sobjectType.getDescribe().fields.getMap();
         for(String fieldApiName : possibleDisplayFieldApiNames) {
-            Schema.SObjectField field = fieldMap.get(fieldApiName);
+            Schema.SobjectField field = fieldMap.get(fieldApiName);
 
             if(field == null) continue;
 
@@ -425,9 +425,9 @@ public class Soql implements Comparable {
             Datetime datetimeValue = (Datetime)valueToFormat;
             return datetimeValue.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time');
         }
-        else if(valueToFormat instanceOf SObject) {
-            SObject record = (SObject)valueToFormat;
-            return this.wrapInSingleQuotes(((SObject)valueToFormat).Id);
+        else if(valueToFormat instanceOf Sobject) {
+            Sobject record = (Sobject)valueToFormat;
+            return this.wrapInSingleQuotes(((Sobject)valueToFormat).Id);
         }
         else if(valueToFormat instanceOf String) {
             // Escape single quotes to prevent SOQL/SOSL injection
@@ -578,8 +578,8 @@ public class Soql implements Comparable {
         return !this.forView ? '' : ' FOR VIEW';
     }
 
-    private List<SObject> getCachedQuery() {
-        String query = this.getQuery();
+    private List<Sobject> getCachedQuery() {
+        String query     = this.getQuery();
         Integer hashCode = query.hashCode();
 
         Boolean isCached = cachedQueryResultsByHashCode.containsKey(hashCode);
