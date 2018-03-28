@@ -2,11 +2,10 @@ public class Sosl {
 // currency conversion (when multi-currency enabled) https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_querying_currency_fields.htm
     public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
 
-    private String searchTerm;
+    private String searchQuery, searchTerm;
     private SearchGroup searchGroup;
     private List<Soql> queries;
-    private Boolean withHighlight;
-    private Boolean withSpellCorrection;
+    private Boolean soslHasChanged, withHighlight, withSpellCorrection;
 
     public Sosl(String searchTerm, Soql query) {
         this(searchTerm, new List<Soql>{query});
@@ -16,40 +15,61 @@ public class Sosl {
         this.searchTerm = searchTerm;
         this.queries    = queries;
 
-        this.searchGroup = Sosl.SearchGroup.ALL_FIELDS;
+        this.searchGroup         = Sosl.SearchGroup.ALL_FIELDS;
+        this.withHighlight       = false;
+        this.withSpellCorrection = false;
+        this.soslHasChanged      = false;
     }
 
     public Sosl inSearchGroup(SearchGroup searchGroup) {
         this.searchGroup = searchGroup;
-        return this;
+        return this.setSoslHasChanged();
     }
 
     public Sosl withHighlight(Boolean withHighlight) {
         this.withHighlight = withHighlight;
-        return this;
+        return this.setSoslHasChanged();
     }
 
     public Sosl withSpellCorrection(Boolean withSpellCorrection) {
         this.withSpellCorrection = withSpellCorrection;
-        return this;
+        return this.setSoslHasChanged();
     }
 
     public String getSearchQuery() {
-        List<String> searchQueries = new List<String>();
-        for(Soql query : this.queries) searchQueries.add(query.getSearchQuery());
+        if(this.searchQuery != null && !this.soslHasChanged) return this.searchQuery;
 
-        String query = 'FIND \'' + this.searchTerm + '\''
+        List<String> searchQueries = new List<String>();
+        for(Soql query : this.queries) {
+            searchQueries.add(query.getSearchQuery());
+        }
+
+        this.searchQuery = 'FIND \'' + this.searchTerm + '\''
             + ' IN ' + this.searchGroup.name().replace('_', ' ')
             + ' RETURNING ' + String.join(searchQueries, ', ');
 
-        if(this.withHighlight != null) query += ' WITH HIGHLIGHT';
-        if(this.withSpellCorrection != null) query += ' WITH SPELL_CORRECTION = ' + this.withSpellCorrection;
+        if(this.withHighlight) searchQuery += ' WITH HIGHLIGHT';
+        if(this.withSpellCorrection) searchQuery += ' WITH SPELL_CORRECTION = ' + this.withSpellCorrection;
 
-        return query;
+        // Change soslHasChanged to false so that subsequent calls to getSearchQuery() use the cached search query string
+        // If additional builder methods are later called, the builder methods will set soslHasChanged = true
+        this.soslHasChanged = false;
+
+        System.debug(LoggingLevel.FINEST, this.searchQuery);
+        return this.searchQuery;
+    }
+
+    public List<SObject> getFirstSearchResults() {
+        return this.getSearchResults()[0];
     }
 
     public List<List<SObject>> getSearchResults() {
         return Search.query(this.getSearchQuery());
+    }
+
+    private Sosl setSoslHasChanged() {
+        this.soslHasChanged = true;
+        return this;
     }
 
 }
