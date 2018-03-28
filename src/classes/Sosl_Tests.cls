@@ -26,4 +26,29 @@ private class Sosl_Tests {
         List<List<Sobject>> searchResults = search.getSearchResults();
     }
 
+
+    @isTest
+    static void it_should_cache_search_results_when_enabled() {
+        Integer loops = 4;
+        Soql userQuery  = new Soql(Schema.User.SobjectType);
+        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), userQuery);
+
+        // First, verify that caching is not enabled by default
+        System.assertEquals(0, Limits.getSoslQueries());
+        for(Integer i=0; i < loops; i++) {
+            userSearch.getSearchResults();
+        }
+        System.assertEquals(loops, Limits.getSoslQueries());
+
+        Test.startTest();
+
+        userSearch.cacheResults();
+        for(Integer i=0; i < loops; i++) {
+            userSearch.getSearchResults();
+        }
+        System.assertEquals(1, Limits.getSoslQueries());
+
+        Test.stopTest();
+    }
+
 }

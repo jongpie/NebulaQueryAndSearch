@@ -2,10 +2,12 @@ public class Sosl {
 // currency conversion (when multi-currency enabled) https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_querying_currency_fields.htm
     public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
 
+    private static Map<Integer, List<List<Sobject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<Sobject>>>();
+
     private String searchQuery, searchTerm;
     private SearchGroup searchGroup;
     private List<Soql> queries;
-    private Boolean soslHasChanged, withHighlight, withSpellCorrection;
+    private Boolean cacheResults, soslHasChanged, withHighlight, withSpellCorrection;
 
     public Sosl(String searchTerm, Soql query) {
         this(searchTerm, new List<Soql>{query});
@@ -15,6 +17,7 @@ public class Sosl {
         this.searchTerm = searchTerm;
         this.queries    = queries;
 
+        this.cacheResults = false;
         this.inSearchGroup(Sosl.SearchGroup.ALL_FIELDS);
         this.withHighlight(false);
         this.withSpellCorrection(false);
@@ -32,6 +35,11 @@ public class Sosl {
 
     public Sosl withSpellCorrection(Boolean withSpellCorrection) {
         this.withSpellCorrection = withSpellCorrection;
+        return this.setSoslHasChanged();
+    }
+
+    public Sosl cacheResults() {
+        this.cacheResults = true;
         return this.setSoslHasChanged();
     }
 
@@ -59,17 +67,35 @@ public class Sosl {
         return this.searchQuery;
     }
 
-    public List<SObject> getFirstSearchResults() {
+    public List<Sobject> getFirstSearchResults() {
         return this.getSearchResults()[0];
     }
 
-    public List<List<SObject>> getSearchResults() {
-        return Search.query(this.getSearchQuery());
+    public List<List<Sobject>> getSearchResults() {
+        if(this.cacheResults) return this.getCachedSearchQuery();
+        else return Search.query(this.getSearchQuery());
     }
 
     private Sosl setSoslHasChanged() {
         this.soslHasChanged = true;
         return this;
     }
+
+    private List<List<Sobject>> getCachedSearchQuery() {
+        String searchQuery = this.getSearchQuery();
+        Integer hashCode   = searchQuery.hashCode();
+
+        Boolean isCached = cachedSearchResultsByHashCode.containsKey(hashCode);
+        if(!isCached) cachedSearchResultsByHashCode.put(hashCode, Search.query(searchQuery));
+
+        // Always return a deep clone so the original cached version is never modified
+        List<List<SObject>> cachedResults = cachedSearchResultsByHashCode.get(hashCode);
+        List<List<SObject>> deepClonedResults = new List<List<SObject>>();
+        for(List<SObject> cachedListOfResults : cachedResults) {
+            deepClonedResults.add(cachedListOfResults.deepClone(true, true, true));
+        }
+        return deepClonedResults;
+    }
+
 
 }
