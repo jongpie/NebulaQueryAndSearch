@@ -15,10 +15,9 @@ public class Sosl {
         this.searchTerm = searchTerm;
         this.queries    = queries;
 
-        this.searchGroup         = Sosl.SearchGroup.ALL_FIELDS;
-        this.withHighlight       = false;
-        this.withSpellCorrection = false;
-        this.soslHasChanged      = false;
+        this.inSearchGroup(Sosl.SearchGroup.ALL_FIELDS);
+        this.withHighlight(false);
+        this.withSpellCorrection(false);
     }
 
     public Sosl inSearchGroup(SearchGroup searchGroup) {
@@ -40,6 +39,7 @@ public class Sosl {
         if(this.searchQuery != null && !this.soslHasChanged) return this.searchQuery;
 
         List<String> searchQueries = new List<String>();
+        this.queries.sort();
         for(Soql query : this.queries) {
             searchQueries.add(query.getSearchQuery());
         }

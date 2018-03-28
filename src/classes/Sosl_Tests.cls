@@ -16,10 +16,11 @@ private class Sosl_Tests {
     static void it_should_return_results_for_multiple_sobject_types() {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING Account(Id, Name), User(Id, Name)';
 
-        Soql accountQuery  = new Soql(Schema.Account.SobjectType);
-        Soql userQuery     = new Soql(Schema.User.SobjectType);
-        List<Soql> queries = new List<Soql>{accountQuery, userQuery};
-        Sosl search        = new Sosl(UserInfo.getUserEmail(), queries);
+        List<Soql> queries = new List<Soql>{
+            new Soql(Schema.User.SobjectType),
+            new Soql(Schema.Account.SobjectType)
+        };
+        Sosl search = new Sosl(UserInfo.getUserEmail(), queries);
 
         System.assertEquals(expectedSearchQueryString, search.getSearchQuery());
         List<List<Sobject>> searchResults = search.getSearchResults();
