@@ -378,8 +378,7 @@ public class Soql implements Comparable {
 
     private String getDisplayFieldApiName(Schema.SObjectType sobjectType) {
         // There are several commonly used names for the display field name - typically, Name
-        // Check the common names first before resorting to looping through all SObject fields
-        // The order of the field names has been sorted based on number of objects in a dev org with that field
+        // The order of the field names has been sorted based on number of objects in a new dev org with that field
         List<String> possibleDisplayFieldApiNames = new List<String>{
             'Name', 'DeveloperName', 'ApiName', 'Title', 'Subject', 'AssetRelationshipNumber',
             'CaseNumber', 'ContractNumber', 'Domain', 'FriendlyName', 'FunctionName', 'Label', 'LocalPart',
