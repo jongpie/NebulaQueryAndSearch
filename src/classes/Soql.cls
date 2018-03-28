@@ -1,4 +1,4 @@
-public class Soql {
+public virtual class Soql {
 
     public enum Aggregate { AVG, COUNT, COUNT_DISTINCT, MAX, MIN, SUM }
     public enum FieldCategory { ACCESSIBLE, UPDATEABLE, STANDARD, CUSTOM }
@@ -17,16 +17,73 @@ public class Soql {
         }
     }
 
-    public class IsoCurrency { // TODO https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
-        private String isoCode;
-        private Decimal currencyAmount;
-        public IsoCurrency(String isoCode, Decimal currencyAmount) {
-            if(!UserInfo.isMultiCurrencyOrganization()) throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
-            this.isoCode        = isoCode;
-            this.currencyAmount = currencyAmount;
+    public class FieldPath {
+        private final String fieldPath;
+        private final Schema.DescribeFieldResult fieldDescribe;
+        public FieldPath(Schema.SobjectType sobjectType, String fieldPath) {
+            this.fieldDescribe = this.getLastFieldDescribe(sobjectType, fieldPath);
+            this.fieldPath     = fieldPath;
+        }
+        public FieldPath(Schema.SobjectField field) {
+            this(new List<Schema.SobjectField>{field});
+        }
+        public FieldPath(List<Schema.SobjectField> fields) {
+            this.fieldDescribe = this.getLastFieldDescribe(fields);
+            this.fieldPath     = this.getFieldPath(fields);
         }
         public override String toString() {
-            return this.isoCode + this.currencyAmount;
+            return this.fieldPath;
+        }
+        public Schema.DescribeFieldResult getDescribe() {
+            return this.fieldDescribe;
+        }
+        private Schema.DescribeFieldResult getLastFieldDescribe(Schema.SobjectType sobjectType, String fieldPath) {
+            Schema.SobjectType currentSobjectType = sobjectType;
+            List<Schema.SobjectField> fields = new List<Schema.SobjectField>();
+            List<String> fieldPathPieces = fieldPath.split('\\.');
+            Integer lastFieldIndex = fieldPathPieces.size() - 1;
+            for(Integer i = 0; i < fieldPathPieces.size(); i++) {
+                String fieldPathPiece = fieldPathPieces[i];
+
+                String fieldApiName;
+                if(i == lastFieldIndex) fieldApiName = fieldPathPiece;
+                else if(fieldPathPiece.endsWith('__r')) fieldApiName = fieldPathPiece.replace('__r', '__c');
+                else fieldApiName = fieldPathPiece + 'Id';
+
+                Schema.SobjectField field = currentSobjectType.getDescribe().fields.getMap().get(fieldApiName);
+
+                if(i < lastFieldIndex) currentSobjectType = field.getDescribe().getReferenceTo()[0]; // TODO add support for polymorphic fields
+
+                fields.add(field);
+            }
+            return this.getLastFieldDescribe(fields);
+        }
+        private Schema.DescribeFieldResult getLastFieldDescribe(List<Schema.SobjectField> fields) {
+            Integer lastFieldIndex = fields.size() - 1;
+            return fields[lastFieldIndex].getDescribe();
+        }
+        private String getFieldPath(List<Schema.SobjectField> fields) {
+            Integer lastFieldIndex = fields.size() - 1;
+            List<String> fieldPathPieces = new List<String>();
+            for(Integer i = 0; i < fields.size(); i++) {
+                SobjectField field = fields[i];
+                // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
+                if(!field.getDescribe().isAccessible()) return null;
+                else if(i == lastFieldIndex) fieldPathPieces.add(field.getDescribe().getName());
+                else fieldPathPieces.add(field.getDescribe().getRelationshipName());
+            }
+            return String.join(fieldPathPieces, '.');
+        }
+    }
+
+    public class IsoCurrency {
+        private final String isoCurrency;
+        public IsoCurrency(String isoCode, Decimal currencyAmount) {
+            if(!UserInfo.isMultiCurrencyOrganization()) throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
+            this.isoCurrency = isoCode + currencyAmount;
+        }
+        public override String toString() {
+            return this.isoCurrency;
         }
     }
 
@@ -39,27 +96,23 @@ public class Soql {
     private Schema.SobjectType sobjectType;
     private Schema.DescribeSobjectResult sobjectDescribe;
     private String displayFieldApiName, query;
-    private Map<String, FieldCategory> includedFieldApiNamesAndCategory;
-    private List<AggregateField> aggregatedFields;
-    private Set<String> excludedFieldApiNames;
+    private Map<Soql.FieldPath, FieldCategory> includedFieldPathsAndCategory;
+    private List<Soql.AggregateField> aggregatedFields;
+    private Set<Soql.FieldPath> excludedFieldPaths;
     private Scope scope;
     private List<String> whereFilters, orderByFieldApiNames;
     private Integer limitCount;
     private Integer offset;
     private Boolean soqlHasChanged, forReference, forUpdate, forView, cacheResults, includeLabels, includeFormattedValues;
 
-    public Soql(String sobjectApiName) {
-        this(Schema.getGlobalDescribe().get(sobjectApiName));
-    }
-
     public Soql(Schema.SobjectType sobjectType) {
         this.sobjectType         = sobjectType;
         this.displayFieldApiName = this.getDisplayFieldApiName(this.sobjectType);
 
         this.sobjectDescribe                  = this.sobjectType.getDescribe();
-        this.includedFieldApiNamesAndCategory = new Map<String, FieldCategory>();
-        this.aggregatedFields                 = new List<AggregateField>();
-        this.excludedFieldApiNames            = new Set<String>();
+        this.includedFieldPathsAndCategory    = new Map<Soql.FieldPath, FieldCategory>();
+        this.aggregatedFields                 = new List<Soql.AggregateField>();
+        this.excludedFieldPaths               = new Set<Soql.FieldPath>();
         this.whereFilters                     = new List<String>();
         this.orderByFieldApiNames             = new List<String>();
         this.forReference                     = false;
@@ -71,20 +124,20 @@ public class Soql {
         this.soqlHasChanged                   = false;
     }
 
-    public Soql addField(SobjectField field) {
+    public Soql addField(Schema.SobjectField field) {
         return this.addField(field, DEFAULT_FIELD_CATEGORY);
     }
 
-    public Soql addField(SobjectField field, Soql.FieldCategory fieldCategory) {
-        return this.addFields(new List<SobjectField>{field}, fieldCategory);
+    public Soql addField(Schema.SobjectField field, Soql.FieldCategory fieldCategory) {
+        return this.addFields(new List<Schema.SobjectField>{field}, fieldCategory);
     }
 
-    public Soql addField(String fieldApiName) {
-        return this.addField(fieldApiName, DEFAULT_FIELD_CATEGORY);
+    public Soql addField(Soql.FieldPath fieldPath) {
+        return this.addField(fieldPath, DEFAULT_FIELD_CATEGORY);
     }
 
-    public Soql addField(String fieldApiName, FieldCategory fieldCategory) {
-        return this.addFields(new List<String>{fieldApiName}, fieldCategory);
+    public Soql addField(Soql.FieldPath fieldPath, Soql.FieldCategory fieldCategory) {
+        return this.addFields(new List<Soql.FieldPath>{fieldPath}, fieldCategory);
     }
 
     public Soql addFields(Schema.FieldSet fieldSet) {
@@ -92,73 +145,75 @@ public class Soql {
     }
 
     public Soql addFields(Schema.FieldSet fieldSet, FieldCategory fieldCategory) {
-        List<String> fieldApiNames = new List<String>();
+        List<Soql.FieldPath> fieldPaths = new List<Soql.FieldPath>();
         for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
-            fieldApiNames.add(fieldSetMember.getFieldPath());
+            fieldPaths.add(new Soql.FieldPath(this.sobjectType, fieldSetMember.getFieldPath()));
         }
-        return this.addFields(fieldApiNames, fieldCategory);
+        return this.addFields(fieldPaths, fieldCategory);
     }
 
-    public Soql addFields(List<SobjectField> fields) {
+    public Soql addFields(List<Schema.SobjectField> fields) {
         return this.addFields(fields, DEFAULT_FIELD_CATEGORY);
     }
 
-    public Soql addFields(List<SobjectField> fields, Soql.FieldCategory fieldCategory) {
-        List<String> fieldApiNames = new List<String>();
-        for(SobjectField field : fields) {
-            fieldApiNames.add(field.getDescribe().getName());
+    public Soql addFields(List<Schema.SobjectField> fields, Soql.FieldCategory fieldCategory) {
+        List<Soql.FieldPath> fieldPaths = new List<Soql.FieldPath>();
+        for(Schema.SobjectField field : fields) {
+            fieldPaths.add(new Soql.FieldPath(field));
         }
-        return this.addFields(fieldApiNames, fieldCategory);
+        return this.addFields(fieldPaths, fieldCategory);
     }
 
-    public Soql addFields(List<String> fieldApiNames) {
-        return this.addFields(fieldApiNames, DEFAULT_FIELD_CATEGORY);
+    public Soql addFields(List<Soql.FieldPath> fieldPaths) {
+        return this.addFields(fieldPaths, DEFAULT_FIELD_CATEGORY);
+    }
+
+    public Soql addFields(List<Soql.FieldPath> fieldPaths, Soql.FieldCategory fieldCategory) {
+        for(Soql.FieldPath fieldPath : fieldPaths) {
+            this.includedFieldPathsAndCategory.put(fieldPath, fieldCategory);
+        }
+        return this;
     }
 
     public Soql addFields(Soql.FieldCategory fieldCategory) {
-        return this.addFields(new List<String>(this.sobjectDescribe.fields.getMap().keySet()));
+        List<Soql.FieldPath> fieldPaths = new List<Soql.FieldPath>();
+        for(Schema.SobjectField field : this.sobjectDescribe.fields.getMap().values()) {
+            fieldPaths.add(new Soql.FieldPath(field));
+        }
+        return this.addFields(fieldPaths, DEFAULT_FIELD_CATEGORY);
     }
 
-    public Soql addFields(List<String> fieldApiNames, Soql.FieldCategory fieldCategory) {
-        for(String fieldApiName : fieldApiNames) this.includedFieldApiNamesAndCategory.put(fieldApiName, fieldCategory);
+    public Soql aggregateField(Schema.SobjectField field, Soql.Aggregate aggregateFunction) {
+        this.aggregatedFields.add(new Soql.AggregateField(field, aggregateFunction));
         return this.setSoqlHasChanged();
     }
 
-     public Soql aggregateField(Schema.SobjectField field, Soql.Aggregate aggregateFunction) {
-        return this.aggregateField(field.getDescribe().getName(), aggregateFunction);
-     }
-
-     public Soql aggregateField(String fieldApiName, Soql.Aggregate aggregateFunction) {
-        this.aggregatedFields.add(new AggregateField(fieldApiName, aggregateFunction));
-        return this.setSoqlHasChanged();
+    public Soql removeField(Schema.SobjectField field) {
+        return this.removeFields(new List<Schema.SobjectField>{field});
     }
 
-    public Soql removeField(SobjectField field) {
-        return this.removeFields(new List<SobjectField>{field});
-    }
-
-    public Soql removeField(String fieldApiName) {
-        return this.removeFields(new List<String>{fieldApiName});
+    public Soql removeField(Soql.FieldPath fieldPath) {
+        return this.removeFields(new List<Soql.FieldPath>{fieldPath});
     }
 
     public Soql removeFields(Schema.FieldSet fieldSet) {
-        List<String> fieldApiNames = new List<String>();
+        List<Soql.FieldPath> fieldPaths = new List<Soql.FieldPath>();
         for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
-            fieldApiNames.add(fieldSetMember.getFieldPath());
+            fieldPaths.add(new Soql.FieldPath(this.sobjectType, fieldSetMember.getFieldPath()));
         }
-        return this.removeFields(fieldApiNames);
+        return this.removeFields(fieldPaths);
     }
 
-    public Soql removeFields(List<SobjectField> fields) {
-        List<String> fieldApiNames = new List<String>();
-        for(SobjectField field : fields) {
-            fieldApiNames.add(field.getDescribe().getName());
+    public Soql removeFields(List<Schema.SobjectField> fields) {
+        List<Soql.FieldPath> fieldPaths = new List<Soql.FieldPath>();
+        for(Schema.SobjectField field : fields) {
+            fieldPaths.add(new Soql.FieldPath(field));
         }
-        return this.removeFields(fieldApiNames);
+        return this.removeFields(fieldPaths);
     }
 
-    public Soql removeFields(List<String> fieldApiNames) {
-        this.excludedFieldApiNames.addAll(fieldApiNames);
+    public Soql removeFields(List<Soql.FieldPath> fieldPaths) {
+        this.excludedFieldPaths.addAll(fieldPaths);
         return this.setSoqlHasChanged();
     }
 
@@ -167,20 +222,23 @@ public class Soql {
         return this.setSoqlHasChanged();
     }
 
-    public Soql filterWhere(SobjectField field, String operator, Object value) {
-        String whereFilter = field + ' ' + operator + ' ' + this.objectToQueryString(value);
-        this.filterWhere(whereFilter);
+    public Soql filterWhere(Schema.SobjectField field, String operator, Object value) {
+        Soql.FieldPath fieldPath = new FieldPath(new List<Schema.SobjectField>{field});
+        return this.filterWhere(fieldPath, operator, value);
+    }
+
+    public Soql filterWhere(Soql.FieldPath fieldPath, String operator, Object value) {
+        String whereFilter = fieldPath + ' ' + operator + ' ' + this.formatObjectForQueryString(value);
+        //return this.filterWhere(whereFilter);
+        this.whereFilters.add(whereFilter);
         return this.setSoqlHasChanged();
     }
 
-    public Soql filterWhere(String fieldApiName, String operator, Object value) {
-        return this.filterWhere(fieldApiName + ' ' + operator + ' ' + this.objectToQueryString(value));
-    }
-
-    public Soql filterWhere(String filter) {
-        this.whereFilters.add(filter);
+//TODO decide to keep or eliminate
+/*public Soql filterWhere(String filter) {
+        this.whereFilters.add(String.escapeSingleQuotes(filter));
         return this.setSoqlHasChanged();
-    }
+    }*/
 
     public Soql orderBy(Schema.SobjectField field) {
         return this.orderBy(field, DEFAULT_SORT_ORDER, DEFAULT_NULLS_SORT_ORDER_FIRST);
@@ -191,21 +249,21 @@ public class Soql {
     }
 
     public Soql orderBy(Schema.SobjectField field, SortOrder sortOrder, Boolean sortNullsFirst) {
+        return this.orderBy(field, sortOrder, sortNullsFirst);
+    }
+
+    public Soql orderBy(Soql.FieldPath fieldPath) {
+        return this.orderBy(fieldPath, DEFAULT_SORT_ORDER, DEFAULT_NULLS_SORT_ORDER_FIRST);
+    }
+
+    public Soql orderBy(Soql.FieldPath fieldPath, SortOrder sortOrder) {
+        return this.orderBy(fieldPath, sortOrder, DEFAULT_NULLS_SORT_ORDER_FIRST);
+    }
+
+    public Soql orderBy(Soql.FieldPath fieldPath, SortOrder sortOrder, Boolean sortNullsFirst) {
         String sortOrderString = sortOrder == Soql.SortOrder.ASCENDING ? 'ASC' : 'DESC';
-        return this.orderBy(field.getDescribe().getName(), sortOrderString, sortNullsFirst);
-    }
-
-    public Soql orderBy(String fieldApiName) {
-        return this.orderBy(fieldApiName, DEFAULT_SORT_ORDER == Soql.SortOrder.ASCENDING ? 'ASC' : 'DESC');
-    }
-
-    public Soql orderBy(String fieldApiName, String sortOrder) {
-        return this.orderBy(fieldApiName, sortOrder, DEFAULT_NULLS_SORT_ORDER_FIRST);
-    }
-
-    public Soql orderBy(String fieldApiName, String sortOrder, Boolean sortNullsFirst) {
         String nullsSortOrder = sortNullsFirst ? 'FIRST' : 'LAST';
-        this.orderByFieldApiNames.add(fieldApiName + ' ' + sortOrder + ' NULLS ' + nullsSortOrder);
+        this.orderByFieldApiNames.add(fieldPath + ' ' + sortOrder + ' NULLS ' + nullsSortOrder);
         return this.setSoqlHasChanged();
     }
 
@@ -308,13 +366,14 @@ public class Soql {
         // There are several commonly used names for the display field name - typically, Name
         // Check the common names first before resorting to looping through all SObject fields
         // The order of the field names has been sorted based on number of objects in a dev org with that field
-        List<String> educatedGuesses = new List<String>{
-            'Name', 'DeveloperName', 'ApiName', 'Title', 'Subject', 'AssetRelationshipNumber', 'CaseNumber',
-            'ContractNumber', 'Domain', 'FriendlyName', 'FunctionName', 'Label', 'LocalPart', 'OrderItemNumber',
-            'OrderNumber', 'SolutionName', 'TestSuiteName'
+        List<String> possibleDisplayFieldApiNames = new List<String>{
+            'Name', 'DeveloperName', 'ApiName', 'Title', 'Subject', 'AssetRelationshipNumber',
+            'CaseNumber', 'ContractNumber', 'Domain', 'FriendlyName', 'FunctionName', 'Label', 'LocalPart',
+            'OrderItemNumber', 'OrderNumber', 'SolutionName', 'TestSuiteName'
         };
-        for(String fieldApiName : educatedGuesses) {
-            Schema.SObjectField field = sobjectType.getDescribe().fields.getMap().get(fieldApiName);
+        Map<String, Schema.SobjectField> fieldMap = sobjectType.getDescribe().fields.getMap();
+        for(String fieldApiName : possibleDisplayFieldApiNames) {
+            Schema.SObjectField field = fieldMap.get(fieldApiName);
 
             if(field == null) continue;
 
@@ -322,19 +381,12 @@ public class Soql {
             if(fieldDescribe.isNameField()) return fieldDescribe.getName();
         }
 
-        // If we still don't have the displayFieldApiName, then loop through all fields to find it
-        for(Schema.SObjectField field : sobjectType.getDescribe().fields.getMap().values()) {
-            Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
-
-            if(fieldDescribe.isNameField()) return fieldDescribe.getName();
-        }
-
         return null;
     }
 
-    private String getParentObjectNameField(Schema.SobjectField field) {
-        String relationshipName = field.getDescribe().getRelationshipName();
-        Schema.SobjectType parentSobjectType = field.getDescribe().getReferenceTo()[0];
+    private String getParentObjectNameField(Schema.DescribeFieldResult fieldDescribe) {
+        String relationshipName = fieldDescribe.getRelationshipName();
+        Schema.SobjectType parentSobjectType = fieldDescribe.getReferenceTo()[0];
         String nameField = this.getDisplayFieldApiName(parentSobjectType);
 
         if(relationshipName == null) return null;
@@ -347,14 +399,14 @@ public class Soql {
     }
 
     private String getFieldFormattedValue(String fieldApiName) {
-        return 'format(' + fieldApiName + ') ' + fieldApiName.replace('.', '_') + '__Format';
+        return 'format(' + fieldApiName + ') ' + fieldApiName.replace('.', '_') + '__Formatted';
     }
 
-    private String objectToQueryString(Object valueToFormat) {
+    private String formatObjectForQueryString(Object valueToFormat) {
         if(valueToFormat == null) return null;
-        else if(valueToFormat instanceOf List<Object>) return this.listToQueryString((List<Object>)valueToFormat);
-        else if(valueToFormat instanceOf Set<Object>) return this.setToQueryString(valueToFormat);
-        else if(valueToFormat instanceOf Map<Object, Object>) return this.mapToQueryString(valueToFormat);
+        else if(valueToFormat instanceOf List<Object>) return this.convertListToQueryString((List<Object>)valueToFormat);
+        else if(valueToFormat instanceOf Set<Object>) return this.convertSetToQueryString(valueToFormat);
+        else if(valueToFormat instanceOf Map<Object, Object>) return this.convertMapToQueryString(valueToFormat);
         else if(valueToFormat instanceOf Date) return String.valueOf((Date)valueToFormat).left(10);
         else if(valueToFormat instanceOf Datetime) {
             Datetime datetimeValue = (Datetime)valueToFormat;
@@ -362,12 +414,12 @@ public class Soql {
         }
         else if(valueToFormat instanceOf SObject) {
             SObject record = (SObject)valueToFormat;
-            return wrapInSingleQuotes(((SObject)valueToFormat).Id);
+            return this.wrapInSingleQuotes(((SObject)valueToFormat).Id);
         }
         else if(valueToFormat instanceOf String) {
             // Escape single quotes to prevent SOQL/SOSL injection
             String stringArgument = String.escapeSingleQuotes((String)valueToFormat);
-            return wrapInSingleQuotes(stringArgument);
+            return this.wrapInSingleQuotes(stringArgument);
         }
         else return String.valueOf(valueToFormat);
     }
@@ -379,51 +431,43 @@ public class Soql {
         return input;
     }
 
-    private String listToQueryString(List<Object> valueList) {
+    private String convertListToQueryString(List<Object> valueList) {
         List<String> parsedValueList = new List<String>();
-        for(Object value : valueList) parsedValueList.add(this.objectToQueryString(value));
+        for(Object value : valueList) {
+            parsedValueList.add(this.formatObjectForQueryString(value));
+        }
         return '(' + String.join(parsedValueList, ', ') + ')';
     }
 
-    private String setToQueryString(Object valueSet) {
+    private String convertSetToQueryString(Object valueSet) {
         String unformattedString = String.valueOf(valueSet).replace('{', '').replace('}', '');
         List<String> parsedValueList = new List<String>();
         for(String collectionItem : unformattedString.split(',')) {
-            parsedValueList.add(this.objectToQueryString(collectionItem));
+            parsedValueList.add(this.formatObjectForQueryString(collectionItem));
         }
-
         return '(' + String.join(parsedValueList, ', ') + ')';
     }
 
-    private String mapToQueryString(Object valueMap) {
+    private String convertMapToQueryString(Object valueMap) {
         Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(valueMap));
-
-        return this.setToQueryString(m.keySet());
+        return this.convertSetToQueryString(m.keySet());
     }
 
-    private List<String> getFieldsToQuery(String fieldApiName, FieldCategory fieldCat) {
+    private List<String> getFieldsToQuery(FieldPath fieldPath, FieldCategory fieldCat) {
         List<String> fieldsToReturn = new List<String>();
-        Schema.SobjectField field = this.sobjectDescribe.fields.getMap().get(fieldApiName);
-
-        if(field == null) {
-            // TODO right now, this adds any field name that can't be parsed. This could be due to
-            //      1. An invalid field name
-            //      2. A parent field, using dot notation. Logic needs to be added to handle this scenario
-            fieldsToReturn.add(fieldApiName);
-            return fieldsToReturn;
-        }
+        //Schema.SobjectField field = this.sobjectDescribe.fields.getMap().get(fieldApiName);
 
         if(fieldCat == null) return fieldsToReturn;
-        else if(fieldCat == FieldCategory.ACCESSIBLE && !field.getDescribe().isAccessible()) return fieldsToReturn;
-        else if(fieldCat == FieldCategory.UPDATEABLE && !field.getDescribe().isUpdateable()) return fieldsToReturn;
-        else if(fieldCat == FieldCategory.STANDARD && field.getDescribe().isCustom()) return fieldsToReturn;
-        else if(fieldCat == FieldCategory.CUSTOM && !field.getDescribe().isCustom()) return fieldsToReturn;
+        else if(fieldCat == FieldCategory.ACCESSIBLE && !fieldPath.getDescribe().isAccessible()) return fieldsToReturn;
+        else if(fieldCat == FieldCategory.UPDATEABLE && !fieldPath.getDescribe().isUpdateable()) return fieldsToReturn;
+        else if(fieldCat == FieldCategory.STANDARD && fieldPath.getDescribe().isCustom()) return fieldsToReturn;
+        else if(fieldCat == FieldCategory.CUSTOM && !fieldPath.getDescribe().isCustom()) return fieldsToReturn;
 
-        fieldsToReturn.add(field.getDescribe().getName());
+        fieldsToReturn.add(fieldPath.toString());
 
         // If the field has picklist options, then it can be translated
-        if(this.includeLabels && !field.getDescribe().getPickListValues().isEmpty()) {
-            fieldsToReturn.add(this.getFieldToLabel(field.getDescribe().getName()));
+        if(this.includeLabels && !fieldPath.getDescribe().getPickListValues().isEmpty()) {
+            fieldsToReturn.add(this.getFieldToLabel(fieldPath.getDescribe().getName()));
         }
 
         // If the field is a number, date, time, or currency, it can be formatted
@@ -431,17 +475,17 @@ public class Soql {
             Schema.DisplayType.CURRENCY, Schema.DisplayType.DATE, Schema.DisplayType.DATETIME, Schema.DisplayType.DOUBLE,
             Schema.DisplayType.INTEGER, Schema.DisplayType.PERCENT, Schema.DisplayType.TIME
         };
-        if(this.includeFormattedValues && supportedTypesForFormat.contains(field.getDescribe().getType())) {
-            fieldsToReturn.add(this.getFieldFormattedValue(field.getDescribe().getName()));
+        if(this.includeFormattedValues && supportedTypesForFormat.contains(fieldPath.getDescribe().getType())) {
+            fieldsToReturn.add(this.getFieldFormattedValue(fieldPath.getDescribe().getName()));
         }
 
         // If the field is a lookup, then we need to get the name field from the parent object
-        if(field.getDescribe().getType().name() == 'Reference') {
-            String parentNameField = this.getParentObjectNameField(field);
+        if(fieldPath.getDescribe().getType().name() == 'Reference') {
+            String parentNameField = this.getParentObjectNameField(fieldPath.getDescribe());
             if(parentNameField != null) {
                 fieldsToReturn.add(parentNameField);
                 // Record type names can be translated, so include the translation
-                if(this.includeLabels && fieldApiName == 'RecordTypeId') fieldsToReturn.add(this.getFieldToLabel(parentNameField));
+                if(this.includeLabels && fieldPath.toString() == 'RecordTypeId') fieldsToReturn.add(this.getFieldToLabel(parentNameField));
             }
         }
 
@@ -449,14 +493,11 @@ public class Soql {
     }
 
     private String getQueryFieldString() {
-        for(String excludedFieldApiName : this.excludedFieldApiNames) {
-            this.includedFieldApiNamesAndCategory.remove(excludedFieldApiName);
-        }
         Set<String> distinctFieldApiNamesToQuery = new Set<String>();
-        for(String fieldApiName : this.includedFieldApiNamesAndCategory.keySet()) {
-            FieldCategory fieldCategory = this.includedFieldApiNamesAndCategory.get(fieldApiName);
+        for(FieldPath fieldPath : this.includedFieldPathsAndCategory.keySet()) {
+            FieldCategory fieldCategory = this.includedFieldPathsAndCategory.get(fieldPath);
 
-            List<String> fieldsToQuery = this.getFieldsToQuery(fieldApiName, fieldCategory);
+            List<String> fieldsToQuery = this.getFieldsToQuery(fieldPath, fieldCategory);
             if(!fieldsToQuery.isEmpty()) distinctFieldApiNamesToQuery.addAll(fieldsToQuery);
         }
 
@@ -464,13 +505,15 @@ public class Soql {
         if(this.aggregatedFields.isEmpty()) {
             distinctFieldApiNamesToQuery.add('Id');
             distinctFieldApiNamesToQuery.add(this.displayFieldApiName);
+        }
 
+        // Remove an excluded field paths
+        for(Soql.FieldPath excludedFieldPath : this.excludedFieldPaths) {
+            distinctFieldApiNamesToQuery.remove(excludedFieldPath.toString());
         }
 
         List<String> fieldApiNamesToQuery = new List<String>(distinctFieldApiNamesToQuery);
-
         if(this.aggregatedFields.isEmpty()) fieldApiNamesToQuery.sort();
-
         return String.join(fieldApiNamesToQuery, ', ');
     }
 
@@ -478,7 +521,9 @@ public class Soql {
         if(this.aggregatedFields.isEmpty()) return '';
 
         List<String> aggregatedFieldStrings = new List<String>();
-        for(AggregateField aggregatedField : this.aggregatedFields) aggregatedFieldStrings.add(aggregatedField.toString());
+        for(Soql.AggregateField aggregatedField : this.aggregatedFields) {
+            aggregatedFieldStrings.add(aggregatedField.toString());
+        }
         return String.join(aggregatedFieldStrings, ', ');
     }
 
@@ -532,16 +577,16 @@ public class Soql {
     }
 
     private class AggregateField {
-        private String fieldApiName, fieldAlias;
-        private Soql.Aggregate aggregateFunction;
-        public AggregateField(String fieldApiName, Soql.Aggregate aggregateFunction) {
-            this.aggregateFunction = aggregateFunction;
-            this.fieldAlias        = aggregateFunction.name() + '__' + fieldApiName;
-            this.fieldApiName      = fieldApiName;
+        private String aggregateField;
+        public AggregateField(Schema.SobjectField field, Soql.Aggregate aggregateFunction) {
+            String fieldApiName = field.getDescribe().getName();
+            String fieldAlias   = fieldApiName + '__' + aggregateFunction.name();
+
+            // Alias: MIN(Schema.Lead.MyField__c) is auto-aliased to MyField__c__MIN
+            this.aggregateField = aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
         }
         public override String toString() {
-            // Alias: MIN(Schema.Lead.MyField__c) is auto-aliased to MIN_MyField__c
-            return this.aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
+            return this.aggregateField;
         }
     }
 
