@@ -1,4 +1,4 @@
-public class Soql implements Comparable {
+public virtual class Soql implements Comparable {
 
     public enum Aggregate { AVG, COUNT, COUNT_DISTINCT, MAX, MIN, SUM }
     public enum FieldCategory { ACCESSIBLE, UPDATEABLE, STANDARD, CUSTOM }
