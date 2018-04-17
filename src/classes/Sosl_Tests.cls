@@ -26,6 +26,85 @@ private class Sosl_Tests {
         List<List<Sobject>> searchResults = search.getSearchResults();
     }
 
+    @isTest
+    static void it_should_return_results_with_highlight_enabled() {
+        String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name) WITH HIGHLIGHT';
+
+        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        userSearch.withHighlight();
+
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
+        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+    }
+
+    @isTest
+    static void it_should_return_results_with_snippet_enabled() {
+        Integer snippetTargetLength = 10;
+        String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
+            + ' WITH SNIPPET (target_length=' + snippetTargetLength + ')';
+
+        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        userSearch.withSnippet(snippetTargetLength);
+
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
+        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+    }
+
+    @isTest
+    static void it_should_return_results_in_email_search_group() {
+        Integer snippetTargetLength = 10;
+        String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN EMAIL FIELDS RETURNING User(Id, Name)';
+
+        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        userSearch.inSearchGroup(Sosl.SearchGroup.EMAIL_FIELDS);
+
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
+        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+    }
+
+    @isTest
+    static void it_should_return_results_with_spell_correction_enabled() {
+        String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
+            + ' WITH SPELL_CORRECTION = true';
+
+        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        userSearch.withSpellCorrection();
+
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
+        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+    }
+
+    @isTest
+    static void it_should_return_results_with_update_article_reporting_for_tracking_enabled() {
+        // If Knowledge isn't enabled, then we cannot use Knowledge-specific SOSL methods, so skip running this test
+        if(!Schema.getGlobalDescribe().containsKey('KnowledgeArticle')) return;
+
+        // If Knowledge is enabled, then execute the test
+        String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
+            + ' UPDATE TRACKING';
+
+        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        userSearch.updateArticleReporting(Sosl.ArticleReporting.TRACKING);
+
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
+        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+    }
+
+    @isTest
+    static void it_should_return_results_with_update_article_reporting_for_viewstat_enabled() {
+        // If Knowledge isn't enabled, then we cannot use Knowledge-specific SOSL methods, so skip running this test
+        if(!Schema.getGlobalDescribe().containsKey('KnowledgeArticle')) return;
+
+        // If Knowledge is enabled, then execute the test
+        String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
+            + ' UPDATE VIEWSTAT';
+
+        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        userSearch.updateArticleReporting(Sosl.ArticleReporting.VIEWSTAT);
+
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
+        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+    }
 
     @isTest
     static void it_should_cache_search_results_when_enabled() {

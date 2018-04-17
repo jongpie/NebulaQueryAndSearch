@@ -65,6 +65,22 @@ private class Soql_Tests {
     }
 
     @isTest
+    static void it_should_return_results_and_include_grandparent_query_field() {
+        String expectedQueryString = 'SELECT Id, Name, Parent.Owner.Name FROM Account';
+
+        List<Schema.SobjectField> fieldChain = new List<Schema.SobjectField>{
+            Schema.Account.ParentId, Schema.Account.OwnerId, Schema.User.Name
+        };
+        Soql.QueryField queryField = new Soql.QueryField(fieldChain);
+
+        Soql accountQuery = new Soql(Schema.Account.SObjectType);
+        accountQuery.addField(queryField);
+
+        System.assertEquals(expectedQueryString, accountQuery.getQuery());
+        List<Account> accounts = (List<Account>)accountQuery.getQueryResults();
+    }
+
+    @isTest
     static void it_should_return_results_when_filtering_with_iso_currency() {
         // If multi-currency isn't enabled, then we cannot use IsoCurrency, so skip running this test
         if(!UserInfo.isMultiCurrencyOrganization()) return;
