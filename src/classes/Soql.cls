@@ -333,7 +333,7 @@ public virtual class Soql implements Comparable {
         return this.query;
     }
 
-    /*public String getSearchQuery() {
+    public String getSearchQuery() {
         String sobjectTypeOptions = this.getQueryFieldString()
             + this.getWhereClauseString()
             + this.getOrderByString()
@@ -342,10 +342,10 @@ public virtual class Soql implements Comparable {
         // If we have any sobject-specific options, then wrap the options in parentheses
         sobjectTypeOptions = String.isEmpty(sobjectTypeOptions) ? '' : '(' + sobjectTypeOptions + ')';
 
-        String searchQuery = this.sobjectType + sobjectTypeOptions;
+        String searchQuery = this.getSobjectType() + sobjectTypeOptions;
         System.debug(LoggingLevel.FINEST, searchQuery);
         return searchQuery;
-    }*/
+    }
 
     public Sobject getFirstQueryResult() {
         return this.getQueryResults()[0];
@@ -370,7 +370,7 @@ public virtual class Soql implements Comparable {
         else return -1;
     }
 
-protected Soql setHasChanged() {
+    private Soql setHasChanged() {
         this.hasChanged = true;
         return this;
     }
@@ -504,7 +504,7 @@ protected Soql setHasChanged() {
         return fieldsToReturn;
     }
 
-protected String getQueryFieldString() {
+    private String getQueryFieldString() {
         Set<String> distinctFieldApiNamesToQuery = new Set<String>();
         for(QueryField queryField : this.includedQueryFieldsAndCategory.keySet()) {
             FieldCategory fieldCategory = this.includedQueryFieldsAndCategory.get(queryField);
@@ -543,7 +543,7 @@ protected String getQueryFieldString() {
         return this.scope == null ? '' : ' USING SCOPE ' + this.scope.name();
     }
 
-protected String getWhereClauseString() {
+    private String getWhereClauseString() {
         return this.whereFilters.isEmpty() ? '' : ' WHERE ' + String.join(this.whereFilters, ' AND ');
     }
 
@@ -553,11 +553,11 @@ protected String getWhereClauseString() {
         return String.isEmpty(queryFieldString) || this.aggregatedFields.isEmpty() ? '' : ' GROUP BY ' + queryFieldString;
     }
 
-protected String getOrderByString() {
+    private String getOrderByString() {
         return this.orderByFieldApiNames.isEmpty() ? '' : ' ORDER BY ' + String.join(this.orderByFieldApiNames, ', ');
     }
 
-protected String getLimitCountString() {
+    private String getLimitCountString() {
         return this.limitCount == null ? '' : ' LIMIT ' + this.limitCount;
     }
 

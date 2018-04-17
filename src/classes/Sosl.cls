@@ -1,66 +1,26 @@
 public class Sosl {
-// currency conversion (when multi-currency enabled) https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_querying_currency_fields.htm
+
+    public enum ArticleReporting { TRACKING, VIEWSTAT }
     public enum Clause { HIGHLIGHT, SPELL_CORRECTION }
     public enum DataCategoryLocation { AT, ABOVE, BELOW, ABOVE_OR_BELOW }
     public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
 
-
-
-
-public class SearchSoql extends Soql {
-
-    private String listViewDeveloperName;
-
-    public SearchSoql(Schema.SobjectType sobjectType) {
-        super(sobjectType);
-    }
-
-    public SearchSoql usingListview(String listViewDeveloperName) {
-        // TODO finish implementing
-        this.listViewDeveloperName = listViewDeveloperName;
-        this.setHasChanged();
-        return this;
-    }
-
-    public override String getQuery() {
-        String sobjectTypeOptions = this.getQueryFieldString()
-            + this.getUsingListviewString()
-            + this.getWhereClauseString()
-            + this.getOrderByString()
-            + this.getLimitCountString();
-
-        // If we have any sobject-specific options, then wrap the options in parentheses
-        sobjectTypeOptions = String.isEmpty(sobjectTypeOptions) ? '' : '(' + sobjectTypeOptions + ')';
-
-        String searchQuery = this.getSobjectType() + sobjectTypeOptions;
-        System.debug(LoggingLevel.FINEST, searchQuery);
-        return searchQuery;
-    }
-
-    private String getUsingListviewString() {
-        return this.listViewDeveloperName == null ? '' : ' USING ListView=' + this.listViewDeveloperName;
-    }
-
-}
-
-
-
-
     private static Map<Integer, List<List<Sobject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<Sobject>>>();
 
     private String searchQuery, searchTerm;
+    private ArticleReporting articleReporting;
     private List<String> withClauses, withDataCategoryClauses;
     private SearchGroup searchGroup;
-    private List<SearchSoql> searchQueries;
+    private List<Soql> searchQueries;
     private Boolean cacheResults, hasChanged;
 
-    public Sosl(String searchTerm, SearchSoql searchQuery) {
-        this(searchTerm, new List<SearchSoql>{searchQuery});
+    public Sosl(String searchTerm, Soql query) {
+        this(searchTerm, new List<Soql>{query});
     }
 
-    public Sosl(String searchTerm, List<SearchSoql> searchQueries) {
+    public Sosl(String searchTerm, List<Soql> queries) {
         this.searchTerm    = searchTerm;
-        this.searchQueries = searchQueries;
+        this.searchQueries = queries;
 
         this.cacheResults            = false;
         this.searchGroup             = Sosl.SearchGroup.ALL_FIELDS;
@@ -72,46 +32,6 @@ public class SearchSoql extends Soql {
         this.searchGroup = searchGroup;
         return this.setHasChanged();
     }
-
-    /*public Sosl convertCurrency() {
-        // TODO finish implementing
-        // https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_querying_currency_fields.htm
-        return this.setHasChanged();
-    }*/
-
-    public Sosl includeFormattedValues() {
-        // TODO finish implementing
-        // https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_format.htm
-        return this.setHasChanged();
-    }
-
-    public Sosl updateTracking() {
-        // TODO finish implementing
-        // https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_update_tracking.htm
-        return this.setHasChanged();
-    }
-
-    public Sosl updateViewstat() {
-        // TODO finish implementing
-        // https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_update_viewstat.htm
-        return this.setHasChanged();
-    }
-
-/*public Sosl usingListView() {
-    // TODO finish implementing
-    // https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_using_listview.htm
-    return this.setHasChanged();
-}*/
-
-/*
-   https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_with_data_category.htm
-   need to add support for multiple datacategories + 'AND'
-FIND {tourism} RETURNING FAQ__kav
-    (Id, Title WHERE PublishStatus='online')
-    WITH DATA CATEGORY Geography__c ABOVE France__c
-    AND Product__c AT mobile_phones__c
-    */
-
 
     public Sosl withDataCategory(Schema.DataCategory dataCategory, Sosl.DataCategoryLocation dataCategoryLocation, Schema.DataCategory childDataCategory) {
         return this.withDataCategory(dataCategory, dataCategoryLocation, new List<Schema.DataCategory>{childDataCategory});
@@ -141,16 +61,8 @@ FIND {tourism} RETURNING FAQ__kav
         return this.setHasChanged();
     }
 
-    public Sosl limitCount(Integer limitCount) {
-        // TODO finish implementing
-        //this.limitCount = limitCount;
-        return this.setHasChanged();
-    }
-
-    public Sosl offset(Integer offset) {
-        // TODO finish implementing - not 100% sure it's needed
-        //https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_offset.htm
-        //this.offset = offset;
+    public Sosl updateArticleReporting(Sosl.ArticleReporting articleReporting) {
+        this.articleReporting = articleReporting;
         return this.setHasChanged();
     }
 
@@ -159,15 +71,16 @@ FIND {tourism} RETURNING FAQ__kav
         return this.setHasChanged();
     }
 
-    public String getQuery() {
+    public String getSearchQuery() {
         if(this.searchQuery != null && !this.hasChanged) return this.searchQuery;
 
         this.searchQuery = 'FIND \'' + this.searchTerm + '\''
             + this.getSearchGroupString()
             + this.getReturningSobjectsString()
-            + this.getWithClauseString();
+            + this.getWithClauseString()
+            + this.getUpdateArticleReportingString();
 
-        // Change hasChanged to false so that subsequent calls to getQuery() use the cached search query string
+        // Change hasChanged to false so that subsequent calls to getSearchQuery() use the cached search query string
         // If additional builder methods are later called, the builder methods will set hasChanged = true
         this.hasChanged = false;
 
@@ -181,7 +94,7 @@ FIND {tourism} RETURNING FAQ__kav
 
     public List<List<Sobject>> getSearchResults() {
         if(this.cacheResults) return this.getCachedQuery();
-        else return Search.query(this.getQuery());
+        else return Search.query(this.getSearchQuery());
     }
 
     private Sosl setHasChanged() {
@@ -190,11 +103,11 @@ FIND {tourism} RETURNING FAQ__kav
     }
 
     private List<List<Sobject>> getCachedQuery() {
-        String searchQuery = this.getQuery();
-        Integer hashCode   = searchQuery.hashCode();
+        String query     = this.getSearchQuery();
+        Integer hashCode = query.hashCode();
 
         Boolean isCached = cachedSearchResultsByHashCode.containsKey(hashCode);
-        if(!isCached) cachedSearchResultsByHashCode.put(hashCode, Search.query(searchQuery));
+        if(!isCached) cachedSearchResultsByHashCode.put(hashCode, Search.query(query));
 
         // Always return a deep clone so the original cached version is never modified
         List<List<SObject>> cachedResults = cachedSearchResultsByHashCode.get(hashCode);
@@ -212,12 +125,12 @@ FIND {tourism} RETURNING FAQ__kav
     private String getReturningSobjectsString() {
         if(this.searchQueries.isEmpty()) return '';
 
-        List<String> searchQueryStrings = new List<String>();
+        List<String> queryStrings = new List<String>();
         this.searchQueries.sort();
-        for(SearchSoql searchQuery : this.searchQueries) {
-            searchQueryStrings.add(searchQuery.getQuery());
+        for(Soql query : this.searchQueries) {
+            queryStrings.add(query.getSearchQuery());
         }
-        return ' RETURNING ' + String.join(searchQueryStrings, ', ');
+        return ' RETURNING ' + String.join(queryStrings, ', ');
     }
 
     private String getWithClauseString() {
@@ -228,6 +141,10 @@ FIND {tourism} RETURNING FAQ__kav
         }
         this.withClauses.sort();
         return this.withClauses.isEmpty() ? '' : ' WITH ' + String.join(this.withClauses, ' WITH ');
+    }
+
+    private String getUpdateArticleReportingString() {
+        return this.articleReporting == null ? '' : ' UPDATE ' + this.articleReporting.name();
     }
 
 }
