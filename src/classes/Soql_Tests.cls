@@ -55,7 +55,7 @@ private class Soql_Tests {
     }
 
     @isTest
-    static void it_should_return_results_for_aggregate_query() {
+    static void it_should_return_results_for_an_aggregate_query() {
         Soql aggregateAccountQuery = new Soql(Schema.User.SObjectType)
             .addField(Schema.User.ProfileId)
             .aggregateField(Schema.User.CreatedDate, Soql.Aggregate.MAX)
