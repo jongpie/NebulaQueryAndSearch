@@ -5,88 +5,6 @@ public virtual class Soql implements Comparable {
     public enum Scope { EVERYTHING, DELEGATED, TEAM, MINE, MY_TERRITORY, MY_TEAM_TERRITORY }
     public enum SortOrder { ASCENDING, DESCENDING }
 
-    public class SoqlException extends Exception {}
-
-    public class DateLiteral {
-        private String dateLiteral;
-        public DateLiteral(String dateLiteral) {
-            this.dateLiteral = String.escapeSingleQuotes(dateLiteral);
-        }
-        public override String toString() {
-            return this.dateLiteral;
-        }
-    }
-
-    public class QueryField {
-        private final String queryField;
-        private final Schema.DescribeFieldResult fieldDescribe;
-        public QueryField(Schema.SobjectType sobjectType, String queryField) {
-            this.fieldDescribe = this.getLastFieldDescribe(sobjectType, queryField);
-            this.queryField    = queryField;
-        }
-        public QueryField(Schema.SobjectField field) {
-            this(new List<Schema.SobjectField>{field});
-        }
-        public QueryField(List<Schema.SobjectField> fields) {
-            this.fieldDescribe = this.getLastFieldDescribe(fields);
-            this.queryField    = this.getQueryField(fields);
-        }
-        public override String toString() {
-            return this.queryField;
-        }
-        public Schema.DescribeFieldResult getDescribe() {
-            return this.fieldDescribe;
-        }
-        private Schema.DescribeFieldResult getLastFieldDescribe(Schema.SobjectType sobjectType, String queryField) {
-            Schema.SobjectType currentSobjectType = sobjectType;
-            List<Schema.SobjectField> fields = new List<Schema.SobjectField>();
-            List<String> queryFieldPieces = queryField.split('\\.');
-            Integer lastFieldIndex = queryFieldPieces.size() - 1;
-            for(Integer i = 0; i < queryFieldPieces.size(); i++) {
-                String queryFieldPiece = queryFieldPieces[i];
-
-                String fieldApiName;
-                if(i == lastFieldIndex) fieldApiName = queryFieldPiece;
-                else if(queryFieldPiece.endsWith('__r')) fieldApiName = queryFieldPiece.replace('__r', '__c');
-                else fieldApiName = queryFieldPiece + 'Id';
-
-                Schema.SobjectField field = currentSobjectType.getDescribe().fields.getMap().get(fieldApiName);
-
-                if(i < lastFieldIndex) currentSobjectType = field.getDescribe().getReferenceTo()[0]; // TODO add support for polymorphic fields
-
-                fields.add(field);
-            }
-            return this.getLastFieldDescribe(fields);
-        }
-        private Schema.DescribeFieldResult getLastFieldDescribe(List<Schema.SobjectField> fields) {
-            Integer lastFieldIndex = fields.size() - 1;
-            return fields[lastFieldIndex].getDescribe();
-        }
-        private String getQueryField(List<Schema.SobjectField> fields) {
-            Integer lastFieldIndex = fields.size() - 1;
-            List<String> queryFieldPieces = new List<String>();
-            for(Integer i = 0; i < fields.size(); i++) {
-                SobjectField field = fields[i];
-                // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
-                if(!field.getDescribe().isAccessible()) return null;
-                else if(i == lastFieldIndex) queryFieldPieces.add(field.getDescribe().getName());
-                else queryFieldPieces.add(field.getDescribe().getRelationshipName());
-            }
-            return String.join(queryFieldPieces, '.');
-        }
-    }
-
-    public class IsoCurrency {
-        private final String isoCurrency;
-        public IsoCurrency(String isoCode, Decimal currencyAmount) {
-            if(!UserInfo.isMultiCurrencyOrganization()) throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
-            this.isoCurrency = isoCode + currencyAmount;
-        }
-        public override String toString() {
-            return this.isoCurrency;
-        }
-    }
-
     private static final FieldCategory DEFAULT_FIELD_CATEGORY   = FieldCategory.ACCESSIBLE;
     private static final SortOrder DEFAULT_SORT_ORDER           = SortOrder.ASCENDING;
     private static final Boolean DEFAULT_NULLS_SORT_ORDER_FIRST = true;
@@ -233,8 +151,8 @@ public virtual class Soql implements Comparable {
         return this.setHasChanged();
     }
 
-//TODO decide to keep or eliminate
-/*public Soql filterWhere(String filter) {
+    //TODO decide to keep or eliminate
+    /*public Soql filterWhere(String filter) {
         this.whereFilters.add(String.escapeSingleQuotes(filter));
         return this.setHasChanged();
     }*/
@@ -366,7 +284,7 @@ public virtual class Soql implements Comparable {
         String compareToSobjectApiName = String.valueOf(soqlToCompareTo.getSobjectType());
 
         if(currentSobjectApiName == compareToSobjectApiName) return 0;
-        if(currentSobjectApiName > compareToSobjectApiName) return 1;
+        else if(currentSobjectApiName > compareToSobjectApiName) return 1;
         else return -1;
     }
 
@@ -402,8 +320,8 @@ public virtual class Soql implements Comparable {
         String nameField = this.getDisplayFieldApiName(parentSobjectType);
 
         if(relationshipName == null) return null;
-        if(nameField == null) return null;
-        return relationshipName + '.' + nameField;
+        else if(nameField == null) return null;
+        else return relationshipName + '.' + nameField;
     }
 
     private String getFieldToLabel(String fieldApiName) {
@@ -599,6 +517,88 @@ public virtual class Soql implements Comparable {
         }
         public override String toString() {
             return this.aggregateField;
+        }
+    }
+
+    public class SoqlException extends Exception {}
+
+    public class DateLiteral {
+        private String dateLiteral;
+        public DateLiteral(String dateLiteral) {
+            this.dateLiteral = String.escapeSingleQuotes(dateLiteral);
+        }
+        public override String toString() {
+            return this.dateLiteral;
+        }
+    }
+
+    public class IsoCurrency {
+        private final String isoCurrency;
+        public IsoCurrency(String isoCode, Decimal currencyAmount) {
+            if(!UserInfo.isMultiCurrencyOrganization()) throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
+            this.isoCurrency = isoCode + currencyAmount;
+        }
+        public override String toString() {
+            return this.isoCurrency;
+        }
+    }
+
+    public class QueryField {
+        private final String queryField;
+        private final Schema.DescribeFieldResult fieldDescribe;
+        public QueryField(Schema.SobjectType sobjectType, String queryField) {
+            this.fieldDescribe = this.getLastFieldDescribe(sobjectType, queryField);
+            this.queryField    = queryField;
+        }
+        public QueryField(Schema.SobjectField field) {
+            this(new List<Schema.SobjectField>{field});
+        }
+        public QueryField(List<Schema.SobjectField> fields) {
+            this.fieldDescribe = this.getLastFieldDescribe(fields);
+            this.queryField    = this.getQueryField(fields);
+        }
+        public override String toString() {
+            return this.queryField;
+        }
+        public Schema.DescribeFieldResult getDescribe() {
+            return this.fieldDescribe;
+        }
+        private Schema.DescribeFieldResult getLastFieldDescribe(Schema.SobjectType sobjectType, String queryField) {
+            Schema.SobjectType currentSobjectType = sobjectType;
+            List<Schema.SobjectField> fields = new List<Schema.SobjectField>();
+            List<String> queryFieldPieces = queryField.split('\\.');
+            Integer lastFieldIndex = queryFieldPieces.size() - 1;
+            for(Integer i = 0; i < queryFieldPieces.size(); i++) {
+                String queryFieldPiece = queryFieldPieces[i];
+
+                String fieldApiName;
+                if(i == lastFieldIndex) fieldApiName = queryFieldPiece;
+                else if(queryFieldPiece.endsWith('__r')) fieldApiName = queryFieldPiece.replace('__r', '__c');
+                else fieldApiName = queryFieldPiece + 'Id';
+
+                Schema.SobjectField field = currentSobjectType.getDescribe().fields.getMap().get(fieldApiName);
+
+                if(i < lastFieldIndex) currentSobjectType = field.getDescribe().getReferenceTo()[0]; // TODO add support for polymorphic fields
+
+                fields.add(field);
+            }
+            return this.getLastFieldDescribe(fields);
+        }
+        private Schema.DescribeFieldResult getLastFieldDescribe(List<Schema.SobjectField> fields) {
+            Integer lastFieldIndex = fields.size() - 1;
+            return fields[lastFieldIndex].getDescribe();
+        }
+        private String getQueryField(List<Schema.SobjectField> fields) {
+            Integer lastFieldIndex = fields.size() - 1;
+            List<String> queryFieldPieces = new List<String>();
+            for(Integer i = 0; i < fields.size(); i++) {
+                SobjectField field = fields[i];
+                // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
+                if(!field.getDescribe().isAccessible()) return null;
+                else if(i == lastFieldIndex) queryFieldPieces.add(field.getDescribe().getName());
+                else queryFieldPieces.add(field.getDescribe().getRelationshipName());
+            }
+            return String.join(queryFieldPieces, '.');
         }
     }
 
