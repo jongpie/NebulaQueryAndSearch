@@ -151,12 +151,6 @@ public virtual class Soql implements Comparable {
         return this.setHasChanged();
     }
 
-    //TODO decide to keep or eliminate
-    /*public Soql filterWhere(String filter) {
-        this.whereFilters.add(String.escapeSingleQuotes(filter));
-        return this.setHasChanged();
-    }*/
-
     public Soql orderBy(Schema.SobjectField field) {
         return this.orderBy(field, DEFAULT_SORT_ORDER, DEFAULT_NULLS_SORT_ORDER_FIRST);
     }
