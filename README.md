@@ -1,5 +1,5 @@
 # Apex Dynamic SOQL & SOSL Library
-A lightweight Apex library for easily building dynamic SOQL queries & SOSL searches<br />
+A lightweight Apex library for easily building dynamic SOQL queries & SOSL searches<br /><br />
 <a href="https://githubsfdeploy.herokuapp.com" target="_blank">
     <img alt="Deploy to Salesforce" src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
 </a>
@@ -62,6 +62,6 @@ Soql contactQuery  = new Soql(Schema.Contact.SobjectType);                  // C
 Soql leadQuery     = new Soql(Schema.Lead.SobjectType);                     // Create an instance of Soql for the Lead object
 List<Soql> queries = new List<Soql>{accountQuery, contactQuery, leadQuery}; // Add the Soql queries to a list
 
-Sosl mySearch                    = new Sosl('my search term', queries);     // Create a new Sosl instance with a search term & the list of Soql queries
-List<List<Sobject> searchResults = mySearch.getSearchResults();             // Sosl returns a list of lists of sobjects - getFirstSearchResults() returns the first list
+Sosl mySearch                     = new Sosl('my search term', queries);     // Create a new Sosl instance with a search term & the list of Soql queries
+List<List<Sobject>> searchResults = mySearch.getSearchResults();             // Sosl returns a list of lists of sobjects - getFirstSearchResults() returns the first list
 ```
