@@ -1,15 +1,11 @@
 @isTest
 private class Soql_Tests {
-//.includeLabels()
-//.includeFormattedValues()
-// TYPEOF support - https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_typeof.htm
-// converting time zones? https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_convert_time_zone.htm
-// convert currency https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_querying_currency_fields.htm
+
     @isTest
     static void it_should_return_results_for_a_simple_query() {
         String expectedQueryString = 'SELECT Id, Name FROM Account';
 
-        Soql simpleAccountQuery = new Soql(Schema.Account.SObjectType);
+        Soql simpleAccountQuery = new Soql(Schema.Account.SobjectType);
 
         System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
         List<Account> accounts = (List<Account>)simpleAccountQuery.getQueryResults();
@@ -28,7 +24,7 @@ private class Soql_Tests {
 
         List<SobjectField> fieldsToQuery = new List<SobjectField>{Schema.User.IsActive, Schema.User.Alias};
 
-        Soql userQuery = new Soql(Schema.User.SObjectType)
+        Soql userQuery = new Soql(Schema.User.SobjectType)
             .addFields(fieldsToQuery)
             .addField(Schema.User.ProfileId)
             .addField(Schema.User.Email, Soql.FieldCategory.UPDATEABLE)
@@ -56,7 +52,7 @@ private class Soql_Tests {
 
     @isTest
     static void it_should_return_results_for_an_aggregate_query() {
-        Soql aggregateAccountQuery = new Soql(Schema.User.SObjectType)
+        Soql aggregateAccountQuery = new Soql(Schema.User.SobjectType)
             .addField(Schema.User.ProfileId)
             .aggregateField(Schema.User.CreatedDate, Soql.Aggregate.MAX)
             .aggregateField(Schema.User.CreatedDate, Soql.Aggregate.MIN)
@@ -73,7 +69,7 @@ private class Soql_Tests {
         };
         Soql.QueryField queryField = new Soql.QueryField(fieldChain);
 
-        Soql accountQuery = new Soql(Schema.Account.SObjectType);
+        Soql accountQuery = new Soql(Schema.Account.SobjectType);
         accountQuery.addField(queryField);
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());
@@ -86,7 +82,7 @@ private class Soql_Tests {
         if(!UserInfo.isMultiCurrencyOrganization()) return;
 
         // If multi-currency is enabled, then execute the test
-        Soql accountQuery = new Soql(Schema.Account.SObjectType)
+        Soql accountQuery = new Soql(Schema.Account.SobjectType)
             .addField(Schema.Account.AnnualRevenue)
             .filterWhere(Schema.Account.AnnualRevenue, '<', new Soql.IsoCurrency('USD', 100));
         List<Account> accounts = accountQuery.getQueryResults();
@@ -95,7 +91,7 @@ private class Soql_Tests {
     @isTest
     static void it_should_cache_query_results_when_enabled() {
         Integer loops = 4;
-        Soql userQuery = new Soql(Schema.User.SObjectType).limitCount(1);
+        Soql userQuery = new Soql(Schema.User.SobjectType).limitCount(1);
 
         // First, verify that caching is not enabled by default
         System.assertEquals(0, Limits.getQueries());
