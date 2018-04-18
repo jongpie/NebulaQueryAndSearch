@@ -8,7 +8,7 @@ private class Soql_Tests {
         Soql simpleAccountQuery = new Soql(Schema.Account.SobjectType);
 
         System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
-        List<Account> accounts = (List<Account>)simpleAccountQuery.getQueryResults();
+        List<Account> accounts = simpleAccountQuery.getQueryResults();
     }
 
     @isTest
@@ -73,7 +73,7 @@ private class Soql_Tests {
         accountQuery.addField(queryField);
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());
-        List<Account> accounts = (List<Account>)accountQuery.getQueryResults();
+        List<Account> accounts = accountQuery.getQueryResults();
     }
 
     @isTest

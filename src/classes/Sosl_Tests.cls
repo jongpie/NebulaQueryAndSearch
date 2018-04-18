@@ -9,7 +9,7 @@ private class Sosl_Tests {
         Sosl userSearch = new Sosl(UserInfo.getUserEmail(), userQuery);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+        List<User> userSearchResults = userSearch.getFirstSearchResults();
     }
 
     @isTest
@@ -34,7 +34,7 @@ private class Sosl_Tests {
         userSearch.withHighlight();
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+        List<User> userSearchResults = userSearch.getFirstSearchResults();
     }
 
     @isTest
@@ -47,7 +47,7 @@ private class Sosl_Tests {
         userSearch.withSnippet(snippetTargetLength);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+        List<User> userSearchResults = userSearch.getFirstSearchResults();
     }
 
     @isTest
@@ -71,7 +71,7 @@ private class Sosl_Tests {
         userSearch.withSpellCorrection();
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+        List<User> userSearchResults = userSearch.getFirstSearchResults();
     }
 
     @isTest
@@ -87,7 +87,7 @@ private class Sosl_Tests {
         userSearch.updateArticleReporting(Sosl.ArticleReporting.TRACKING);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+        List<User> userSearchResults = userSearch.getFirstSearchResults();
     }
 
     @isTest
@@ -103,7 +103,7 @@ private class Sosl_Tests {
         userSearch.updateArticleReporting(Sosl.ArticleReporting.VIEWSTAT);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+        List<User> userSearchResults = userSearch.getFirstSearchResults();
     }
 
     @isTest
