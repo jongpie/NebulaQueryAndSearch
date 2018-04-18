@@ -523,46 +523,61 @@ public virtual class Soql implements Comparable {
     public class SoqlException extends Exception {}
 
     public class DateLiteral {
+
         private String dateLiteral;
+
         public DateLiteral(String dateLiteral) {
             this.dateLiteral = String.escapeSingleQuotes(dateLiteral);
         }
+
         public override String toString() {
             return this.dateLiteral;
         }
+
     }
 
     public class IsoCurrency {
+
         private final String isoCurrency;
+
         public IsoCurrency(String isoCode, Decimal currencyAmount) {
             if(!UserInfo.isMultiCurrencyOrganization()) throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
             this.isoCurrency = isoCode + currencyAmount;
         }
+
         public override String toString() {
             return this.isoCurrency;
         }
+
     }
 
     public class QueryField {
+
         private final String queryField;
         private final Schema.DescribeFieldResult fieldDescribe;
+
         public QueryField(Schema.SobjectType sobjectType, String queryField) {
             this.fieldDescribe = this.getLastFieldDescribe(sobjectType, queryField);
             this.queryField    = queryField;
         }
+
         public QueryField(Schema.SobjectField field) {
             this(new List<Schema.SobjectField>{field});
         }
+
         public QueryField(List<Schema.SobjectField> fields) {
             this.fieldDescribe = this.getLastFieldDescribe(fields);
             this.queryField    = this.getQueryField(fields);
         }
+
         public override String toString() {
             return this.queryField;
         }
+
         public Schema.DescribeFieldResult getDescribe() {
             return this.fieldDescribe;
         }
+
         private Schema.DescribeFieldResult getLastFieldDescribe(Schema.SobjectType sobjectType, String queryField) {
             Schema.SobjectType currentSobjectType = sobjectType;
             List<Schema.SobjectField> fields = new List<Schema.SobjectField>();
@@ -584,10 +599,12 @@ public virtual class Soql implements Comparable {
             }
             return this.getLastFieldDescribe(fields);
         }
+
         private Schema.DescribeFieldResult getLastFieldDescribe(List<Schema.SobjectField> fields) {
             Integer lastFieldIndex = fields.size() - 1;
             return fields[lastFieldIndex].getDescribe();
         }
+
         private String getQueryField(List<Schema.SobjectField> fields) {
             Integer lastFieldIndex = fields.size() - 1;
             List<String> queryFieldPieces = new List<String>();
@@ -600,6 +617,7 @@ public virtual class Soql implements Comparable {
             }
             return String.join(queryFieldPieces, '.');
         }
+
     }
 
 }
