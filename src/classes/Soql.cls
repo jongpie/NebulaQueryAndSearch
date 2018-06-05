@@ -1,7 +1,7 @@
-public virtual class Soql implements Comparable {
+public class Soql implements Comparable {
 
     public enum Aggregate { AVG, COUNT, COUNT_DISTINCT, MAX, MIN, SUM }
-    public enum FieldCategory { ACCESSIBLE, UPDATEABLE, STANDARD, CUSTOM }
+    public enum FieldCategory { ACCESSIBLE, UPDATEABLE, STANDARD, CUSTOM, IGNORE_FLS }
     public enum Scope { EVERYTHING, DELEGATED, TEAM, MINE, MY_TERRITORY, MY_TEAM_TERRITORY }
     public enum SortOrder { ASCENDING, DESCENDING }
 
@@ -146,8 +146,15 @@ public virtual class Soql implements Comparable {
     }
 
     public Soql filterWhere(Soql.QueryField queryField, String operator, Object value) {
-        String whereFilter = queryField + ' ' + String.escapeSingleQuotes(operator) + ' ' + this.formatObjectForQueryString(value);
-        this.whereFilters.add(whereFilter);
+        return this.filterWhere(new QueryFilter(queryField, operator, value));
+    }
+
+    public Soql filterWhere(QueryFilter filter) {
+        return this.filterWhere(new List<QueryFilter>{filter});
+    }
+
+    public Soql filterWhere(List<QueryFilter> filters) {
+        for(QueryFilter filter : filters) this.whereFilters.add(filter.toString());
         return this.setHasChanged();
     }
 
@@ -326,60 +333,8 @@ public virtual class Soql implements Comparable {
         return 'format(' + fieldApiName + ') ' + fieldApiName.replace('.', '_') + '__Formatted';
     }
 
-    private String formatObjectForQueryString(Object valueToFormat) {
-        if(valueToFormat == null) return null;
-        else if(valueToFormat instanceOf List<Object>) return this.convertListToQueryString((List<Object>)valueToFormat);
-        else if(valueToFormat instanceOf Set<Object>) return this.convertSetToQueryString(valueToFormat);
-        else if(valueToFormat instanceOf Map<Object, Object>) return this.convertMapToQueryString(valueToFormat);
-        else if(valueToFormat instanceOf Date) return String.valueOf((Date)valueToFormat).left(10);
-        else if(valueToFormat instanceOf Datetime) {
-            Datetime datetimeValue = (Datetime)valueToFormat;
-            return datetimeValue.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time');
-        }
-        else if(valueToFormat instanceOf Sobject) {
-            Sobject record = (Sobject)valueToFormat;
-            return this.wrapInSingleQuotes(((Sobject)valueToFormat).Id);
-        }
-        else if(valueToFormat instanceOf String) {
-            // Escape single quotes to prevent SOQL/SOSL injection
-            String stringArgument = String.escapeSingleQuotes((String)valueToFormat);
-            return this.wrapInSingleQuotes(stringArgument);
-        }
-        else return String.valueOf(valueToFormat);
-    }
-
-    private String wrapInSingleQuotes(String input) {
-        input = input.trim();
-        if(input.left(1) != '\'') input = '\'' + input;
-        if(input.right(1) != '\'') input = input + '\'';
-        return input;
-    }
-
-    private String convertListToQueryString(List<Object> valueList) {
-        List<String> parsedValueList = new List<String>();
-        for(Object value : valueList) {
-            parsedValueList.add(this.formatObjectForQueryString(value));
-        }
-        return '(' + String.join(parsedValueList, ', ') + ')';
-    }
-
-    private String convertSetToQueryString(Object valueSet) {
-        String unformattedString = String.valueOf(valueSet).replace('{', '').replace('}', '');
-        List<String> parsedValueList = new List<String>();
-        for(String collectionItem : unformattedString.split(',')) {
-            parsedValueList.add(this.formatObjectForQueryString(collectionItem));
-        }
-        return '(' + String.join(parsedValueList, ', ') + ')';
-    }
-
-    private String convertMapToQueryString(Object valueMap) {
-        Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(valueMap));
-        return this.convertSetToQueryString(m.keySet());
-    }
-
     private List<String> getFieldsToQuery(QueryField queryField, FieldCategory fieldCat) {
         List<String> fieldsToReturn = new List<String>();
-        //Schema.SobjectField field = this.sobjectDescribe.fields.getMap().get(fieldApiName);
 
         if(fieldCat == null) return fieldsToReturn;
         else if(fieldCat == FieldCategory.ACCESSIBLE && !queryField.getDescribe().isAccessible()) return fieldsToReturn;
@@ -545,6 +500,71 @@ public virtual class Soql implements Comparable {
 
     }
 
+    public virtual class QueryArgument {
+
+        private String value;
+
+        public QueryArgument(Object valueToFormat) {
+            this.value = this.formatObjectForQueryString(valueToFormat);
+        }
+
+        public override String toString() {
+            return this.value;
+        }
+
+        private String formatObjectForQueryString(Object valueToFormat) {
+            if(valueToFormat == null) return null;
+            else if(valueToFormat instanceOf List<Object>) return this.convertListToQueryString((List<Object>)valueToFormat);
+            else if(valueToFormat instanceOf Set<Object>) return this.convertSetToQueryString(valueToFormat);
+            else if(valueToFormat instanceOf Map<Object, Object>) return this.convertMapToQueryString(valueToFormat);
+            else if(valueToFormat instanceOf Date) return String.valueOf((Date)valueToFormat).left(10);
+            else if(valueToFormat instanceOf Datetime) {
+                Datetime datetimeValue = (Datetime)valueToFormat;
+                return datetimeValue.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time');
+            }
+            else if(valueToFormat instanceOf Sobject) {
+                Sobject record = (Sobject)valueToFormat;
+                return this.wrapInSingleQuotes(((Sobject)valueToFormat).Id);
+            }
+            else if(valueToFormat instanceOf String) {
+                // Escape single quotes to prevent SOQL/SOSL injection
+                String stringArgument = String.escapeSingleQuotes((String)valueToFormat);
+                return this.wrapInSingleQuotes(stringArgument);
+            }
+            else return String.valueOf(valueToFormat);
+        }
+
+        private String wrapInSingleQuotes(String input) {
+            input = input.trim();
+            if(input.left(1) != '\'') input = '\'' + input;
+            if(input.right(1) != '\'') input = input + '\'';
+            return input;
+        }
+
+        private String convertListToQueryString(List<Object> valueList) {
+            List<String> parsedValueList = new List<String>();
+            for(Object value : valueList) {
+                parsedValueList.add(this.formatObjectForQueryString(value));
+            }
+            return '(' + String.join(parsedValueList, ', ') + ')';
+        }
+
+        private String convertSetToQueryString(Object valueSet) {
+            String unformattedString = String.valueOf(valueSet).replace('{', '').replace('}', '');
+            List<String> parsedValueList = new List<String>();
+            for(String collectionItem : unformattedString.split(',')) {
+                parsedValueList.add(this.formatObjectForQueryString(collectionItem));
+            }
+            return '(' + String.join(parsedValueList, ', ') + ')';
+        }
+
+        private String convertMapToQueryString(Object valueMap) {
+            Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(valueMap));
+            return this.convertSetToQueryString(m.keySet());
+        }
+
+    }
+
     public class QueryField {
 
         private final String queryField;
@@ -610,6 +630,31 @@ public virtual class Soql implements Comparable {
                 else queryFieldPieces.add(field.getDescribe().getRelationshipName());
             }
             return String.join(queryFieldPieces, '.');
+        }
+
+    }
+
+    public class QueryFilter implements Comparable {
+
+        private String value;
+
+        public QueryFilter(Schema.SobjectField field, String operator, Object value) {
+            this(new QueryField(field), operator, value);
+        }
+
+        public QueryFilter(QueryField queryField, String operator, Object value) {
+            this.value = queryField + ' ' + operator + ' ' + new QueryArgument(value);
+        }
+
+        public Integer compareTo(Object compareTo) {
+            QueryFilter compareToQueryFilter = (QueryFilter)compareTo;
+            if(this.toString() == compareToQueryFilter.toString()) return 0;
+            else if(this.toString() > compareToQueryFilter.toString()) return 1;
+            else return -1;
+        }
+
+        public override String toString() {
+            return this.value;
         }
 
     }
