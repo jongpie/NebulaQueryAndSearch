@@ -1,10 +1,11 @@
 # Nebula Query & Search
-A lightweight Apex library for easily building dynamic SOQL queries & SOSL searches<br /><br />
 [![Travis CI](https://img.shields.io/travis/jongpie/NebulaLogger/master.svg)](https://travis-ci.org/jongpie/NebulaLogger)
 
 <a href="https://githubsfdeploy.herokuapp.com" target="_blank">
     <img alt="Deploy to Salesforce" src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
 </a>
+
+A lightweight Apex library for easily building dynamic SOQL queries & SOSL searches<br /><br />
 
 ## Features
 * Easily add a field if the field meets the category specified, using the Soql.FieldCategory enum
