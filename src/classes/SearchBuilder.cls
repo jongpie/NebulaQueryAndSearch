@@ -2,18 +2,14 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
-public class SearchBuilder {
-
-    public enum ArticleReporting { TRACKING, VIEWSTAT }
-    public enum DataCategoryLocation { AT, ABOVE, BELOW, ABOVE_OR_BELOW }
-    public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
+public class SearchBuilder extends Sosl {
 
     private static Map<Integer, List<List<Sobject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<Sobject>>>();
 
     private String searchQuery, searchTerm;
-    private ArticleReporting articleReporting;
+    private Sosl.ArticleReporting articleReporting;
     private List<String> withClauses, withDataCategoryClauses;
-    private SearchGroup searchGroup;
+    private Sosl.SearchGroup searchGroup;
     private List<SobjectQueryBuilder> searchQueries;
     private Boolean cacheResults, hasChanged;
 
@@ -26,21 +22,21 @@ public class SearchBuilder {
         this.searchQueries = queries;
 
         this.cacheResults            = false;
-        this.searchGroup             = SearchBuilder.SearchGroup.ALL_FIELDS;
+        this.searchGroup             = Sosl.SearchGroup.ALL_FIELDS;
         this.withClauses             = new List<String>();
         this.withDataCategoryClauses = new List<String>();
     }
 
-    public SearchBuilder inSearchGroup(SearchGroup searchGroup) {
+    public SearchBuilder inSearchGroup(Sosl.SearchGroup searchGroup) {
         this.searchGroup = searchGroup;
         return this.setHasChanged();
     }
 
-    public SearchBuilder withDataCategory(Schema.DataCategory dataCategory, SearchBuilder.DataCategoryLocation dataCategoryLocation, Schema.DataCategory childDataCategory) {
+    public SearchBuilder withDataCategory(Schema.DataCategory dataCategory, Sosl.DataCategoryLocation dataCategoryLocation, Schema.DataCategory childDataCategory) {
         return this.withDataCategory(dataCategory, dataCategoryLocation, new List<Schema.DataCategory>{childDataCategory});
     }
 
-    public SearchBuilder withDataCategory(Schema.DataCategory dataCategory, SearchBuilder.DataCategoryLocation dataCategoryLocation, List<Schema.DataCategory> childDataCategories) {
+    public SearchBuilder withDataCategory(Schema.DataCategory dataCategory, Sosl.DataCategoryLocation dataCategoryLocation, List<Schema.DataCategory> childDataCategories) {
         List<String> childDataCategoryApiNames = new List<String>();
         for(Schema.DataCategory childDataCategory : childDataCategories) {
             childDataCategoryApiNames.add(childDataCategory.getName());
@@ -64,7 +60,7 @@ public class SearchBuilder {
         return this.setHasChanged();
     }
 
-    public SearchBuilder updateArticleReporting(SearchBuilder.ArticleReporting articleReporting) {
+    public SearchBuilder updateArticleReporting(Sosl.ArticleReporting articleReporting) {
         this.articleReporting = articleReporting;
         return this.setHasChanged();
     }
@@ -74,7 +70,7 @@ public class SearchBuilder {
         return this.setHasChanged();
     }
 
-    public String getSearch() {
+    public override String getSearch() {
         if(this.searchQuery != null && !this.hasChanged) return this.searchQuery;
 
         this.searchQuery = 'FIND \'' + this.searchTerm + '\''
