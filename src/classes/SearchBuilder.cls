@@ -9,7 +9,7 @@ public class SearchBuilder {
     public enum DataCategoryLocation { AT, ABOVE, BELOW, ABOVE_OR_BELOW }
     public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
 
-    private static Map<Integer, List<List<Sobject>>> cachedResultsByHashCode = new Map<Integer, List<List<Sobject>>>();
+    private static Map<Integer, List<List<Sobject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<Sobject>>>();
 
     private String searchQuery, searchTerm;
     private ArticleReporting articleReporting;
@@ -116,11 +116,11 @@ public class SearchBuilder {
         String searchQuery = this.getSearch();
         Integer hashCode   = searchQuery.hashCode();
 
-        Boolean isCached = cachedResultsByHashCode.containsKey(hashCode);
-        if(!isCached) cachedResultsByHashCode.put(hashCode, Search.query(searchQuery));
+        Boolean isCached = cachedSearchResultsByHashCode.containsKey(hashCode);
+        if(!isCached) cachedSearchResultsByHashCode.put(hashCode, Search.query(searchQuery));
 
         // Always return a deep clone so the original cached version is never modified
-        List<List<Sobject>> cachedResults = cachedResultsByHashCode.get(hashCode);
+        List<List<Sobject>> cachedResults = cachedSearchResultsByHashCode.get(hashCode);
         List<List<Sobject>> deepClonedResults = new List<List<Sobject>>();
         for(List<Sobject> cachedListOfResults : cachedResults) {
             deepClonedResults.add(cachedListOfResults.deepClone(true, true, true));
