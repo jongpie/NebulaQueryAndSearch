@@ -66,8 +66,8 @@ private class AggregateQueryBuilder_Tests {
                 Schema.Opportunity.AccountId, Schema.Account.Type
             }))
             .orderBy(Schema.Opportunity.StageName)
-            .orderByAggregate(Schema.Opportunity.Amount, AggregateQueryBuilder.Aggregate.SUM)
-            .orderByAggregate(Schema.Opportunity.CloseDate, AggregateQueryBuilder.Aggregate.MIN, Soql.SortOrder.DESCENDING)
+            .orderByAggregate(Schema.Opportunity.Amount, Soql.Aggregate.SUM)
+            .orderByAggregate(Schema.Opportunity.CloseDate, Soql.Aggregate.MIN, Soql.SortOrder.DESCENDING)
             .filterWhere(Schema.Opportunity.AccountId, '!=', null)
             .limitTo(100)
             .offsetBy(0);
