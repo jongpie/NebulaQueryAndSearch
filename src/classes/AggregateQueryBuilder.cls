@@ -3,7 +3,7 @@
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
 public class AggregateQueryBuilder extends Soql {
-//TODO decide if Aggregate should be public or private
+
     public enum Aggregate { AVG, COUNT, COUNT_DISTINCT, MAX, MIN, SUM }
 
     private List<AggregateField> aggregateFields;
@@ -161,20 +161,20 @@ public class AggregateQueryBuilder extends Soql {
         super.doOrderBy(queryField, sortOrder, sortNullsFirst);
         return this.setHasChanged();
     }
-/*
-    public AggregateQueryBuilder orderBy(Schema.SobjectField field, AggregateQueryBuilder.Aggregate aggregateFunction) {
-        return this.orderBy(field, aggregateFunction, null);
+
+    public AggregateQueryBuilder orderByAggregate(Schema.SobjectField field, AggregateQueryBuilder.Aggregate aggregateFunction) {
+        return this.orderByAggregate(field, aggregateFunction, null);
     }
 
-    public AggregateQueryBuilder orderBy(Schema.SobjectField field, AggregateQueryBuilder.Aggregate aggregateFunction, Soql.SortOrder sortOrder) {
-        return this.orderBy(field, aggregateFunction, sortOrder, null);
+    public AggregateQueryBuilder orderByAggregate(Schema.SobjectField field, AggregateQueryBuilder.Aggregate aggregateFunction, Soql.SortOrder sortOrder) {
+        return this.orderByAggregate(field, aggregateFunction, sortOrder, null);
     }
 
-    public AggregateQueryBuilder orderBy(Schema.SobjectField field, AggregateQueryBuilder.Aggregate aggregateFunction, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public AggregateQueryBuilder orderByAggregate(Schema.SobjectField field, AggregateQueryBuilder.Aggregate aggregateFunction, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         super.doOrderBy(aggregateFunction.name() + '(' + field + ')', sortOrder, sortNullsFirst);
         return this.setHasChanged();
     }
-*/
+
     public AggregateQueryBuilder limitTo(Integer numberOfRecords) {
         super.doLimitTo(numberOfRecords);
         return this.setHasChanged();

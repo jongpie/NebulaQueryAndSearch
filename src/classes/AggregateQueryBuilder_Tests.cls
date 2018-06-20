@@ -26,8 +26,8 @@ private class AggregateQueryBuilder_Tests {
         Test.startTest();
 
         System.assertEquals(0, Limits.getQueries());
-        for(Integer i = 0; i < 10; i++) {
-            System.debug(aggregateQueryBuilder.getResults());
+        for(Integer i = 0; i < 3; i++) {
+            aggregateQueryBuilder.getResults();
         }
 
         System.assertEquals(1, Limits.getQueries());
@@ -43,7 +43,7 @@ private class AggregateQueryBuilder_Tests {
             + ' FROM Opportunity'
             + ' WHERE AccountId != null'
             + ' GROUP BY Account.Type, StageName'
-            + ' ORDER BY Account.Type ASC NULLS FIRST, StageName ASC NULLS FIRST'
+            + ' ORDER BY Account.Type ASC NULLS FIRST, StageName ASC NULLS FIRST, SUM(Amount) ASC NULLS FIRST, MIN(CloseDate) DESC NULLS FIRST'
             + ' LIMIT 100'
             + ' OFFSET 0';
 
@@ -66,16 +66,22 @@ private class AggregateQueryBuilder_Tests {
                 Schema.Opportunity.AccountId, Schema.Account.Type
             }))
             .orderBy(Schema.Opportunity.StageName)
-            .orderBy(Schema.Opportunity.Amount, AggregateQueryBuilder.Aggregate.SUM)
+            .orderByAggregate(Schema.Opportunity.Amount, AggregateQueryBuilder.Aggregate.SUM)
+            .orderByAggregate(Schema.Opportunity.CloseDate, AggregateQueryBuilder.Aggregate.MIN, Soql.SortOrder.DESCENDING)
             .filterWhere(Schema.Opportunity.AccountId, '!=', null)
             .limitTo(100)
             .offsetBy(0);
+
+        Test.startTest();
+
         String returnedQueryString = aggregateQueryBuilder.getQuery();
+
+        Test.stopTest();
 
         System.assertEquals(expectedString, returnedQueryString);
 
         // Verify that the query can be executed
-        Database.query(returnedQueryString);
+        List<AggregateResult> results = Database.query(returnedQueryString);
     }
 
 
