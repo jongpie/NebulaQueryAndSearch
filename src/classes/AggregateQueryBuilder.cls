@@ -9,10 +9,9 @@ public class AggregateQueryBuilder extends Soql {
     private List<AggregateField> aggregateFields;
 
     public AggregateQueryBuilder(Schema.SobjectType sobjectType) {
-        super(sobjectType);
+        super(sobjectType, false);
 
         this.aggregateFields = new List<AggregateField>();
-        this.sortQueryFields = false;
     }
 
     public AggregateQueryBuilder cacheResults() {

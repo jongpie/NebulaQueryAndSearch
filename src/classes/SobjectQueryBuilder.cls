@@ -9,7 +9,7 @@ public class SobjectQueryBuilder extends Soql {
     private Boolean forReference, forUpdate, forView, includeLabels, includeFormattedValues;
 
     public SobjectQueryBuilder(Schema.SobjectType sobjectType) {
-        super(sobjectType);
+        super(sobjectType, true);
 
         this.displayFieldApiName      = this.getDisplayFieldApiName(this.sobjectType);
         this.childRelationshipQueries = new List<String>();
@@ -18,7 +18,6 @@ public class SobjectQueryBuilder extends Soql {
         this.forView                  = false;
         this.includeLabels            = false;
         this.includeFormattedValues   = false;
-        this.sortQueryFields          = true;
 
         this.addDefaultFields();
     }
