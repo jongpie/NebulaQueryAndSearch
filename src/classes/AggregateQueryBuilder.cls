@@ -58,7 +58,7 @@ public class AggregateQueryBuilder extends Soql {
     }
 
     public AggregateQueryBuilder avg(Soql.QueryField numericQueryField, String fieldAlias) {
-        return this.buildAggregateFunction(numericQueryField, Aggregate.AVG, fieldAlias);
+        return this.addAggregateField(numericQueryField, Aggregate.AVG, fieldAlias);
     }
 
     public AggregateQueryBuilder count(Schema.SobjectField field) {
@@ -70,7 +70,7 @@ public class AggregateQueryBuilder extends Soql {
     }
 
     public AggregateQueryBuilder count(Soql.QueryField queryField, String fieldAlias) {
-        return this.buildAggregateFunction(queryField, Aggregate.COUNT, fieldAlias);
+        return this.addAggregateField(queryField, Aggregate.COUNT, fieldAlias);
     }
 
     public AggregateQueryBuilder countDistinct(Schema.SobjectField field) {
@@ -82,7 +82,7 @@ public class AggregateQueryBuilder extends Soql {
     }
 
     public AggregateQueryBuilder countDistinct(Soql.QueryField queryField, String fieldAlias) {
-        return this.buildAggregateFunction(queryField, Aggregate.COUNT_DISTINCT, fieldAlias);
+        return this.addAggregateField(queryField, Aggregate.COUNT_DISTINCT, fieldAlias);
     }
 
     public AggregateQueryBuilder max(Schema.SobjectField field) {
@@ -94,7 +94,7 @@ public class AggregateQueryBuilder extends Soql {
     }
 
     public AggregateQueryBuilder max(Soql.QueryField queryField, String fieldAlias) {
-        return this.buildAggregateFunction(queryField, Aggregate.MAX, fieldAlias);
+        return this.addAggregateField(queryField, Aggregate.MAX, fieldAlias);
     }
 
     public AggregateQueryBuilder min(Schema.SobjectField field) {
@@ -106,7 +106,7 @@ public class AggregateQueryBuilder extends Soql {
     }
 
     public AggregateQueryBuilder min(Soql.QueryField queryField, String fieldAlias) {
-        return this.buildAggregateFunction(queryField, Aggregate.MIN, fieldAlias);
+        return this.addAggregateField(queryField, Aggregate.MIN, fieldAlias);
     }
 
     public AggregateQueryBuilder sum(Schema.SobjectField numericField) {
@@ -118,7 +118,7 @@ public class AggregateQueryBuilder extends Soql {
     }
 
     public AggregateQueryBuilder sum(Soql.QueryField numericQueryField, String fieldAlias) {
-        return this.buildAggregateFunction(numericQueryField, Aggregate.SUM, fieldAlias);
+        return this.addAggregateField(numericQueryField, Aggregate.SUM, fieldAlias);
 }
 
     public AggregateQueryBuilder filterWhere(Schema.SobjectField field, String operator, Object value) {
@@ -224,15 +224,7 @@ public class AggregateQueryBuilder extends Soql {
         return this;
     }
 
-    private AggregateQueryBuilder buildAggregateFunction(Schema.SobjectField field, AggregateQueryBuilder.Aggregate aggregateFunction) {
-        return this.buildAggregateFunction(new Soql.QueryField(field), aggregateFunction, null);
-    }
-
-    private AggregateQueryBuilder buildAggregateFunction(Soql.QueryField queryField, AggregateQueryBuilder.Aggregate aggregateFunction) {
-        return this.buildAggregateFunction(queryField, aggregateFunction, null);
-    }
-
-    private AggregateQueryBuilder buildAggregateFunction(Soql.QueryField queryField, AggregateQueryBuilder.Aggregate aggregateFunction, String fieldAlias) {
+    private AggregateQueryBuilder addAggregateField(Soql.QueryField queryField, AggregateQueryBuilder.Aggregate aggregateFunction, String fieldAlias) {
         this.aggregateFields.add(new AggregateField(this.getSobjectType(), queryField, aggregateFunction, fieldAlias));
         return this.setHasChanged();
     }
