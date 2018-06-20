@@ -281,8 +281,8 @@ public abstract class Soql implements Comparable {
         private final String queryFieldPath;
         private final Schema.DescribeFieldResult fieldDescribe;
 
-        public QueryField(Schema.SobjectType sobjectType, String queryField) {
-            this.fieldDescribe  = this.getLastFieldDescribe(sobjectType, queryField);
+        public QueryField(Schema.SobjectType sobjectType, String queryFieldPath) {
+            this.fieldDescribe  = this.getLastFieldDescribe(sobjectType, queryFieldPath);
             this.queryFieldPath = queryFieldPath;
         }
 

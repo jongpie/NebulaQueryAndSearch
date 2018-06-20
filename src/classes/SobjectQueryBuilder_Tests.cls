@@ -1,18 +1,18 @@
 /******************************************************************************************************
-* This file is part of the Nebula Framework project, released under the MIT License.                  *
+* This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
 @isTest
-private class Soql_Tests {
+private class SobjectQueryBuilder_Tests {
 
     @isTest
     static void it_should_return_results_for_a_simple_query() {
         String expectedQueryString = 'SELECT Id, Name FROM Account';
 
-        Soql simpleAccountQuery = new Soql(Schema.Account.SobjectType);
+        SobjectQueryBuilder simpleAccountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType);
 
         System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
-        List<Account> accounts = simpleAccountQuery.getQueryResults();
+        List<Account> accounts = simpleAccountQuery.getResults();
     }
 
     @isTest
@@ -28,7 +28,7 @@ private class Soql_Tests {
 
         List<SobjectField> fieldsToQuery = new List<SobjectField>{Schema.User.IsActive, Schema.User.Alias};
 
-        Soql userQuery = new Soql(Schema.User.SobjectType)
+        SobjectQueryBuilder userQuery = new SobjectQueryBuilder(Schema.User.SobjectType)
             .addFields(fieldsToQuery)
             .addField(Schema.User.ProfileId)
             .addField(Schema.User.Email, Soql.FieldCategory.UPDATEABLE)
@@ -46,22 +46,12 @@ private class Soql_Tests {
             .orderBy(new Soql.QueryField(Schema.User.SobjectType, 'Profile.CreatedBy.LastModifiedDate'))
             .orderBy(Schema.User.Name, Soql.SortOrder.ASCENDING)
             .orderBy(Schema.User.Email)
-            .limitCount(100)
-            .offset(1)
+            .limitTo(100)
+            .offsetBy(1)
             .forView();
 
         //System.assert(userQuery.getQuery().endsWith(expectedPartialQueryString), Json.serialize(userQuery.getQuery())); //TODO finish implementing this assert
-        List<User> users = userQuery.getQueryResults();
-    }
-
-    @isTest
-    static void it_should_return_results_for_an_aggregate_query() {
-        Soql aggregateAccountQuery = new Soql(Schema.User.SobjectType)
-            .addField(Schema.User.ProfileId)
-            .aggregateField(Schema.User.CreatedDate, Soql.Aggregate.MAX)
-            .aggregateField(Schema.User.CreatedDate, Soql.Aggregate.MIN)
-            .aggregateField(Schema.User.Email, Soql.Aggregate.COUNT);
-        List<AggregateResult> results = aggregateAccountQuery.getQueryResults();
+        List<User> users = userQuery.getResults();
     }
 
     @isTest
@@ -73,11 +63,11 @@ private class Soql_Tests {
         };
         Soql.QueryField queryField = new Soql.QueryField(fieldChain);
 
-        Soql accountQuery = new Soql(Schema.Account.SobjectType);
+        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType);
         accountQuery.addField(queryField);
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());
-        List<Account> accounts = accountQuery.getQueryResults();
+        List<Account> accounts = accountQuery.getResults();
     }
 
     @isTest
@@ -86,29 +76,29 @@ private class Soql_Tests {
         if(!UserInfo.isMultiCurrencyOrganization()) return;
 
         // If multi-currency is enabled, then execute the test
-        Soql accountQuery = new Soql(Schema.Account.SobjectType)
+        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
             .addField(Schema.Account.AnnualRevenue)
             .filterWhere(Schema.Account.AnnualRevenue, '<', new Soql.IsoCurrency('USD', 100));
-        List<Account> accounts = accountQuery.getQueryResults();
+        List<Account> accounts = accountQuery.getResults();
     }
 
     @isTest
     static void it_should_cache_query_results_when_enabled() {
         Integer loops = 4;
-        Soql userQuery = new Soql(Schema.User.SobjectType).limitCount(1);
+        SobjectQueryBuilder userQuery = new SobjectQueryBuilder(Schema.User.SobjectType).limitTo(1);
 
         // First, verify that caching is not enabled by default
         System.assertEquals(0, Limits.getQueries());
-        for(Integer i=0; i < loops; i++) {
-            userQuery.getQueryResults();
+        for(Integer i = 0; i < loops; i++) {
+            userQuery.getResults();
         }
         System.assertEquals(loops, Limits.getQueries());
 
         Test.startTest();
 
         userQuery.cacheResults();
-        for(Integer i=0; i < loops; i++) {
-            userQuery.getQueryResults();
+        for(Integer i = 0; i < loops; i++) {
+            userQuery.getResults();
         }
         System.assertEquals(1, Limits.getQueries());
 
