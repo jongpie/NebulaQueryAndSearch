@@ -169,7 +169,19 @@ public class AggregateQueryBuilder extends Soql {
     }
 
     public AggregateQueryBuilder orderByAggregate(Schema.SobjectField field, Soql.Aggregate aggregateFunction, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
-        super.doOrderBy(aggregateFunction.name() + '(' + field + ')', sortOrder, sortNullsFirst);
+        return this.orderByAggregate(new Soql.QueryField(field), aggregateFunction, sortOrder, sortNullsFirst);
+    }
+
+    public AggregateQueryBuilder orderByAggregate(Soql.QueryField queryField, Soql.Aggregate aggregateFunction) {
+        return this.orderByAggregate(queryField, aggregateFunction, null);
+    }
+
+    public AggregateQueryBuilder orderByAggregate(Soql.QueryField queryField, Soql.Aggregate aggregateFunction, Soql.SortOrder sortOrder) {
+        return this.orderByAggregate(queryField, aggregateFunction, sortOrder, null);
+    }
+
+    public AggregateQueryBuilder orderByAggregate(Soql.QueryField queryField, Soql.Aggregate aggregateFunction, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+        super.doOrderBy(aggregateFunction.name() + '(' + queryField + ')', sortOrder, sortNullsFirst);
         return this.setHasChanged();
     }
 

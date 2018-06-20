@@ -43,7 +43,8 @@ private class AggregateQueryBuilder_Tests {
             + ' FROM Opportunity'
             + ' WHERE AccountId != null'
             + ' GROUP BY Account.Type, StageName'
-            + ' ORDER BY Account.Type ASC NULLS FIRST, StageName ASC NULLS FIRST, SUM(Amount) ASC NULLS FIRST, MIN(CloseDate) DESC NULLS FIRST'
+            + ' ORDER BY Account.Type ASC NULLS FIRST, StageName ASC NULLS FIRST, SUM(Amount) ASC NULLS FIRST,'
+                + ' MIN(CloseDate) DESC NULLS FIRST, MAX(Account.LastActivityDate) ASC NULLS FIRST'
             + ' LIMIT 100'
             + ' OFFSET 0';
 
@@ -68,6 +69,10 @@ private class AggregateQueryBuilder_Tests {
             .orderBy(Schema.Opportunity.StageName)
             .orderByAggregate(Schema.Opportunity.Amount, Soql.Aggregate.SUM)
             .orderByAggregate(Schema.Opportunity.CloseDate, Soql.Aggregate.MIN, Soql.SortOrder.DESCENDING)
+            .orderByAggregate(
+                new Soql.QueryField(new List<Schema.SobjectField>{Schema.Opportunity.AccountId, Schema.Account.LastActivityDate}),
+                Soql.Aggregate.MAX
+            )
             .filterWhere(Schema.Opportunity.AccountId, '!=', null)
             .limitTo(100)
             .offsetBy(0);
