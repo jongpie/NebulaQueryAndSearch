@@ -93,14 +93,14 @@ private class SobjectQueryBuilder_Tests {
     }
 
     @isTest
-    static void it_should_return_results_and_include_children_records() {
+    static void it_should_return_results_and_include_related_records() {
         String expectedQueryString = 'SELECT Id, Name, Type, (SELECT Email, Id, Name FROM Contacts) FROM Account';
 
         SobjectQueryBuilder contactQuery = new SobjectQueryBuilder(Schema.Contact.SobjectType)
             .addField(Schema.Contact.Email);
 
         SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
-            .includeChildrenRecords(Schema.Contact.AccountId, contactQuery)
+            .includeRelatedRecords(Schema.Contact.AccountId, contactQuery)
             .addField(new Soql.QueryField(Schema.Account.Type));
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());

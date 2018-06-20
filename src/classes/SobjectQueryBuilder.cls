@@ -123,8 +123,8 @@ public class SobjectQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder includeChildrenRecords(Schema.SobjectField childToParentRelationshipField, SobjectQueryBuilder childSobjectQuery) {
-         this.childRelationshipQueries.add(childSobjectQuery.getChildrenRecordsQuery(childToParentRelationshipField));
+    public SobjectQueryBuilder includeRelatedRecords(Schema.SobjectField childToParentRelationshipField, SobjectQueryBuilder relatedSobjectQuery) {
+         this.childRelationshipQueries.add(relatedSobjectQuery.getRelatedRecordsQuery(childToParentRelationshipField));
          return this.setHasChanged();
     }
 
@@ -203,11 +203,6 @@ public class SobjectQueryBuilder extends Soql {
     public override String getQuery() {
         if(this.query != null && !this.hasChanged) return this.query;
 
-        if(this.includeLabels || this.includeFormattedValues) {
-            for(Soql.QueryField queryField : this.includedQueryFieldsAndCategory.keySet()) {
-//TODO reimplement includeLabels & includeFormattedValues
-            }
-        }
         String queryFieldString = this.getQueryFieldString();
         String childRelationshipsQueryFieldString = this.getChildRelationshipsQueryFieldString();
         String childRelationshipDelimiter = !String.isEmpty(queryFieldString) && !String.isEmpty(childRelationshipsQueryFieldString) ? ', ' : '';
@@ -227,11 +222,11 @@ public class SobjectQueryBuilder extends Soql {
         // Change hasChanged to false so that subsequent calls to getQuery() use the cached query string
         // If additional builder methods are later called, the builder methods will set hasChanged = true
         this.hasChanged = false;
-System.debug('ze query=' + this.query);
+
         return this.query;
     }
 
-    public String getChildrenRecordsQuery(Schema.SobjectField childToParentRelationshipField) {
+    public String getRelatedRecordsQuery(Schema.SobjectField childToParentRelationshipField) {
         Schema.SobjectType parentSobjectType = childToParentRelationshipField.getDescribe().getReferenceTo()[0];
 
         // Get the relationship name
@@ -355,11 +350,11 @@ System.debug('ze query=' + this.query);
         }
 
         // If the field is a number, date, time, or currency, it can be formatted
-        List<Schema.DisplayType> supportedTypesForFormat = new List<Schema.DisplayType>{
+        List<Schema.DisplayType> supportedTypesForFormatting = new List<Schema.DisplayType>{
             Schema.DisplayType.CURRENCY, Schema.DisplayType.DATE, Schema.DisplayType.DATETIME, Schema.DisplayType.DOUBLE,
             Schema.DisplayType.INTEGER, Schema.DisplayType.PERCENT, Schema.DisplayType.TIME
         };
-        if(this.includeFormattedValues && supportedTypesForFormat.contains(queryField.getDescribe().getType())) {
+        if(this.includeFormattedValues && supportedTypesForFormatting.contains(queryField.getDescribe().getType())) {
             fieldsToReturn.add(this.getFieldFormattedValue(queryField.getDescribe().getName()));
         }
 
