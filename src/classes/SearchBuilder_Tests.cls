@@ -60,7 +60,7 @@ private class SearchBuilder_Tests {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN EMAIL FIELDS RETURNING User(Id, Name)';
 
         SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
-        userSearch.inSearchGroup(SearchBuilder.SearchGroup.EMAIL_FIELDS);
+        userSearch.inSearchGroup(Sosl.SearchGroup.EMAIL_FIELDS);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
         List<User> userSearchResults = (List<User>)userSearch.getFirstResults();
@@ -88,7 +88,7 @@ private class SearchBuilder_Tests {
             + ' UPDATE TRACKING';
 
         SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
-        userSearch.updateArticleReporting(SearchBuilder.ArticleReporting.TRACKING);
+        userSearch.updateArticleReporting(Sosl.ArticleReporting.TRACKING);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
         List<User> userSearchResults = userSearch.getFirstResults();
@@ -104,7 +104,7 @@ private class SearchBuilder_Tests {
             + ' UPDATE VIEWSTAT';
 
         SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
-        userSearch.updateArticleReporting(SearchBuilder.ArticleReporting.VIEWSTAT);
+        userSearch.updateArticleReporting(Sosl.ArticleReporting.VIEWSTAT);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
         List<User> userSearchResults = userSearch.getFirstResults();
