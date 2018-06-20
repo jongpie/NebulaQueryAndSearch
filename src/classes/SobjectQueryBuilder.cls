@@ -76,7 +76,7 @@ public class SobjectQueryBuilder extends Soql {
         for(Schema.SobjectField field : this.sobjectDescribe.fields.getMap().values()) {
             queryFields.add(new Soql.QueryField(field));
         }
-        return this.addFields(queryFields, null);
+        return this.addFields(queryFields, fieldCategory);
     }
 
     public SobjectQueryBuilder addFields(List<Soql.QueryField> queryFields, Soql.FieldCategory fieldCategory) {
