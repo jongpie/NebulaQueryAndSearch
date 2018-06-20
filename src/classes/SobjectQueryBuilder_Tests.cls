@@ -71,6 +71,43 @@ private class SobjectQueryBuilder_Tests {
     }
 
     @isTest
+    static void it_should_return_results_and_not_include_sobject_type_for_monomorphic_field() {
+        String expectedQueryString = 'SELECT Id, Name, Owner.Name, OwnerId FROM Account';
+
+        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
+            .addField(new Soql.QueryField(Schema.Account.OwnerId));
+
+        System.assertEquals(expectedQueryString, accountQuery.getQuery());
+        List<Account> accounts = accountQuery.getResults();
+    }
+
+    @isTest
+    static void it_should_return_results_and_include_sobject_type_for_polymorphic_field() {
+        String expectedQueryString = 'SELECT Id, Name, Owner.Name, Owner.Type, OwnerId FROM Lead';
+
+        SobjectQueryBuilder leadQuery = new SobjectQueryBuilder(Schema.Lead.SobjectType)
+            .addField(new Soql.QueryField(Schema.Lead.OwnerId));
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> leads = leadQuery.getResults();
+    }
+
+    @isTest
+    static void it_should_return_results_and_include_children_records() {
+        String expectedQueryString = 'SELECT Id, Name, Type, (SELECT Email, Id, Name FROM Contacts) FROM Account';
+
+        SobjectQueryBuilder contactQuery = new SobjectQueryBuilder(Schema.Contact.SobjectType)
+            .addField(Schema.Contact.Email);
+
+        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
+            .includeChildrenRecords(Schema.Contact.AccountId, contactQuery)
+            .addField(new Soql.QueryField(Schema.Account.Type));
+
+        System.assertEquals(expectedQueryString, accountQuery.getQuery());
+        List<Account> accounts = accountQuery.getResults();
+    }
+
+    @isTest
     static void it_should_return_results_when_filtering_with_iso_currency() {
         // If multi-currency isn't enabled, then we cannot use IsoCurrency, so skip running this test
         if(!UserInfo.isMultiCurrencyOrganization()) return;

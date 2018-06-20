@@ -365,6 +365,13 @@ System.debug('ze query=' + this.query);
 
         // If the field is a lookup, then we need to get the name field from the parent object
         if(queryField.getDescribe().getType().name() == 'Reference') {
+            if(queryField.getDescribe().isNamePointing()) {
+                String fieldPath = queryField.getFieldPath();
+                Integer indx = fieldPath.lastIndexOf(queryField.getDescribe().getName());
+                String parentTypeFieldPath = fieldPath.substring(0, indx) + queryField.getDescribe().getRelationshipName() + '.Type';
+                fieldsToReturn.add(parentTypeFieldPath);
+            }
+
             String parentNameField = this.getParentObjectNameField(queryField.getDescribe());
             if(parentNameField != null) {
                 fieldsToReturn.add(parentNameField);
