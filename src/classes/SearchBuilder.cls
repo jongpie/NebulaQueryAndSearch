@@ -23,7 +23,7 @@ public class SearchBuilder {
     }
 
     public SearchBuilder(String searchTerm, List<SobjectQueryBuilder> queries) {
-        this.searchTerm    = searchTerm;
+        this.searchTerm    = String.escapeSingleQuotes(searchTerm);
         this.searchQueries = queries;
 
         this.cacheResults            = false;
