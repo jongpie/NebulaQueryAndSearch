@@ -243,24 +243,26 @@ public class AggregateQueryBuilder extends Soql {
         return String.isEmpty(queryFieldString) ? '' : ' GROUP BY ' + queryFieldString;
     }
 
-public class AggregateField {
+    private class AggregateField {
 
         private Schema.SobjectType sobjectType;
         private String aggregateFieldPath;
 
         public AggregateField(Schema.SobjectType sobjectType, Soql.QueryField queryField, Soql.Aggregate aggregateFunction, String fieldAlias) {
-            this.sobjectType = sobjectType;
-
-//TODO cleanup the code below, it's a hot mess
-            String fieldApiName = queryField.getDescribe().getName();
-            fieldAlias = !String.isEmpty(fieldAlias) ? fieldAlias : fieldApiName + '__' + aggregateFunction.name();
-
-            // Alias: MIN(Schema.Lead.MyField__c) is auto-aliased to MyField__c__MIN
-            this.aggregateFieldPath = aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
+            this.sobjectType        = sobjectType;
+            this.aggregateFieldPath = this.getAggregateFieldPath(queryField, aggregateFunction, fieldAlias);
         }
 
         public override String toString() {
             return this.aggregateFieldPath;
+        }
+
+        private String getAggregateFieldPath(Soql.QueryField queryField, Soql.Aggregate aggregateFunction, String fieldAlias) {
+            String fieldApiName = queryField.getDescribe().getName();
+            fieldAlias = !String.isEmpty(fieldAlias) ? fieldAlias : fieldApiName + '__' + aggregateFunction.name();
+
+            // Example: MIN(Schema.Lead.MyField__c) is auto-aliased to MyField__c__MIN
+            return aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
         }
 
     }
