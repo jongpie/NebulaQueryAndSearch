@@ -5,7 +5,6 @@
 public class SearchBuilder {
 
     public enum ArticleReporting { TRACKING, VIEWSTAT }
-    public enum Clause { HIGHLIGHT, SPELL_CORRECTION }
     public enum DataCategoryLocation { AT, ABOVE, BELOW, ABOVE_OR_BELOW }
     public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
 
