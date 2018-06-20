@@ -239,7 +239,8 @@ public abstract class Soql implements Comparable {
             }
             else if(valueToFormat instanceOf String) {
                 // Escape single quotes to prevent SOQL/SOSL injection
-                String stringArgument = String.escapeSingleQuotes((String)valueToFormat);
+                String unformattedString = (String)valueToFormat;
+                String stringArgument = String.escapeSingleQuotes(unformattedString.trim());
                 return this.wrapInSingleQuotes(stringArgument);
             }
             else return String.valueOf(valueToFormat);
@@ -309,9 +310,11 @@ public abstract class Soql implements Comparable {
 
         private Schema.DescribeFieldResult getLastFieldDescribe(Schema.SobjectType sobjectType, String queryField) {
             Schema.SobjectType currentSobjectType = sobjectType;
+
             List<Schema.SobjectField> fields = new List<Schema.SobjectField>();
             List<String> queryFieldPieces = queryField.split('\\.');
-            Integer lastFieldIndex = queryFieldPieces.size() - 1;
+            Integer lastFieldIndex = queryFieldPieces.size() <= 1 ? 0 : queryFieldPieces.size() - 1;
+
             for(Integer i = 0; i < queryFieldPieces.size(); i++) {
                 String queryFieldPiece = queryFieldPieces[i];
 

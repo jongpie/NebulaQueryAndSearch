@@ -152,11 +152,11 @@ public class SobjectQueryBuilder extends Soql {
     }
 
     public SobjectQueryBuilder orderBy(Schema.SobjectField field) {
-        return this.orderBy(new Soql.QueryField(field), null, null);
+        return this.orderBy(new Soql.QueryField(field));
     }
 
     public SobjectQueryBuilder orderBy(Soql.QueryField queryField) {
-        return this.orderBy(queryField, null, null);
+        return this.orderBy(queryField, null);
     }
 
     public SobjectQueryBuilder orderBy(Schema.SobjectField field, Soql.SortOrder sortOrder) {
