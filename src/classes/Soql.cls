@@ -374,8 +374,8 @@ public abstract class Soql implements Comparable {
         }
 
         private String convertMapToQueryString(Object valueMap) {
-            Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(valueMap));
-            return this.convertSetToQueryString(m.keySet());
+            Map<String, Object> untypedMap = (Map<String, Object>)Json.deserializeUntyped(Json.serialize(valueMap));
+            return this.convertSetToQueryString(untypedMap.keySet());
         }
 
     }
