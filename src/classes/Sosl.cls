@@ -8,6 +8,7 @@ public abstract class Sosl {
     public enum DataCategoryLocation { AT, ABOVE, BELOW, ABOVE_OR_BELOW }
     public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
 
+    public abstract Set<Schema.SobjectType> getSobjectTypes();
     public abstract String getSearch();
 
 }

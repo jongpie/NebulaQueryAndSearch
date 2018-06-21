@@ -7,6 +7,7 @@ public class SearchBuilder extends Sosl {
     private static Map<Integer, List<List<Sobject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<Sobject>>>();
 
     private String searchQuery, searchTerm;
+    private Set<Schema.SobjectType> sobjectTypes;
     private Sosl.ArticleReporting articleReporting;
     private List<String> withClauses, withDataCategoryClauses;
     private Sosl.SearchGroup searchGroup;
@@ -85,6 +86,16 @@ public class SearchBuilder extends Sosl {
 
         System.debug(LoggingLevel.FINEST, this.searchQuery);
         return this.searchQuery;
+    }
+
+    public override Set<Schema.SobjectType> getSobjectTypes() {
+        if(this.sobjectTypes != null) return this.sobjectTypes;
+
+        this.sobjectTypes = new Set<Schema.SobjectType>();
+        for(SobjectQueryBuilder query : this.searchQueries) {
+            this.sobjectTypes.add(query.getSobjectType());
+        }
+        return this.sobjectTypes;
     }
 
     public Sobject getFirstResult() {
