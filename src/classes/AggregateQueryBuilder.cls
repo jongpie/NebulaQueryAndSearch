@@ -163,6 +163,7 @@ public class AggregateQueryBuilder extends Soql {
             + super.doGetLimitCountString()
             + super.doGetOffetString();
 
+        System.debug(LoggingLevel.FINEST, this.query);
         return this.query;
     }
 

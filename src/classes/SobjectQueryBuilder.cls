@@ -246,6 +246,7 @@ public class SobjectQueryBuilder extends Soql {
             + super.doGetLimitCountString()
             + ')';
 
+        System.debug(LoggingLevel.FINEST, childQuery);
         return childQuery;
     }
 
@@ -259,6 +260,7 @@ public class SobjectQueryBuilder extends Soql {
         sobjectTypeOptions = String.isEmpty(sobjectTypeOptions) ? '' : '(' + sobjectTypeOptions + ')';
 
         String searchQuery = this.getSobjectType() + sobjectTypeOptions;
+
         System.debug(LoggingLevel.FINEST, searchQuery);
         return searchQuery;
     }
