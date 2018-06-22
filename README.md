@@ -41,7 +41,7 @@ SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.Sobjec
     .addField(Schema.Account.ParentId)                                                 // Include the ParentId field, using SObjectField. The current user must have at least read access to the field
     .addField(Schema.Account.Type, Soql.FieldCategory.UPDATEABLE)                      // Include the Type field if the current user has access to update it
     .addFields(Soql.FieldCategory.CUSTOM)                                              // Include all custom fields - only fields that are accessible to the user are included
-    .addFields(Schema.Account.MyFieldSet)                                              // Include all fields in a field set that are accessible to the user
+    .addFieldSet(Schema.Account.MyFieldSet)                                            // Include all fields in a field set that are accessible to the user
     .removeField(Schema.Account.My_Custom_Field__c)                                    // remove a custom field
     .usingScope(Soql.Scope.MINE)                                                       // Set the query scope
     .filterWhere(Schema.Account.CreatedDate, '=', new Soql.DateLiteral('LAST_WEEK'))   // Filter on the created date, using a date literal

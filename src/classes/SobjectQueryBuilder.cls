@@ -38,18 +38,6 @@ public class SobjectQueryBuilder extends Soql {
         return this.addFields(new List<Soql.QueryField>{queryField}, fieldCategory);
     }
 
-    public SobjectQueryBuilder addFields(Schema.FieldSet fieldSet) {
-        return this.addFields(fieldSet, null);
-    }
-
-    public SobjectQueryBuilder addFields(Schema.FieldSet fieldSet, Soql.FieldCategory fieldCategory) {
-        List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-        for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
-            queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
-        }
-        return this.addFields(queryFields, fieldCategory);
-    }
-
     public SobjectQueryBuilder addFields(List<Schema.SobjectField> fields) {
         return this.addFields(fields, null);
     }
@@ -77,6 +65,18 @@ public class SobjectQueryBuilder extends Soql {
     public SobjectQueryBuilder addFields(List<Soql.QueryField> queryFields, Soql.FieldCategory fieldCategory) {
         super.doAddFields(queryFields, fieldCategory);
         return this.setHasChanged();
+    }
+
+    public SobjectQueryBuilder addFieldSet(Schema.FieldSet fieldSet) {
+        return this.addFieldSet(fieldSet, null);
+    }
+
+    public SobjectQueryBuilder addFieldSet(Schema.FieldSet fieldSet, Soql.FieldCategory fieldCategory) {
+        List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
+        for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
+            queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
+        }
+        return this.addFields(queryFields, fieldCategory);
     }
 
     public SobjectQueryBuilder includeLabels() {
@@ -223,6 +223,7 @@ public class SobjectQueryBuilder extends Soql {
         // If additional builder methods are later called, the builder methods will set hasChanged = true
         this.hasChanged = false;
 
+        System.debug(LoggingLevel.FINEST, this.query);
         return this.query;
     }
 
