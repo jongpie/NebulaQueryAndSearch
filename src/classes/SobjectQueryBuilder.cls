@@ -22,11 +22,6 @@ public class SobjectQueryBuilder extends Soql {
         this.addDefaultFields();
     }
 
-    public SobjectQueryBuilder cacheResults() {
-        super.doCacheResults();
-        return this;
-    }
-
     public SobjectQueryBuilder addField(Schema.SobjectField field) {
         return this.addField(field, null);
     }
@@ -198,6 +193,11 @@ public class SobjectQueryBuilder extends Soql {
     public SobjectQueryBuilder forView() {
         this.forView = true;
         return this.setHasChanged();
+    }
+
+    public SobjectQueryBuilder cacheResults() {
+        super.doCacheResults();
+        return this;
     }
 
     public override String getQuery() {

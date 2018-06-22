@@ -12,11 +12,6 @@ public class AggregateQueryBuilder extends Soql {
         this.aggregateFields = new List<AggregateField>();
     }
 
-    public AggregateQueryBuilder cacheResults() {
-        super.doCacheResults();
-        return this;
-    }
-
     public AggregateQueryBuilder groupBy(Schema.SobjectField field) {
        return this.groupBy(new List<Schema.SobjectField>{field});
     }
@@ -139,6 +134,11 @@ public class AggregateQueryBuilder extends Soql {
     public AggregateQueryBuilder offsetBy(Integer offset) {
         super.doOffsetBy(offset);
         return this.setHasChanged();
+    }
+
+    public AggregateQueryBuilder cacheResults() {
+        super.doCacheResults();
+        return this;
     }
 
     public override String getQuery() {
