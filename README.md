@@ -1,20 +1,31 @@
-# Nebula Query & Search
+# Nebula Query & Search for Salesforce Apex
 [![Travis CI](https://img.shields.io/travis/jongpie/NebulaLogger/master.svg)](https://travis-ci.org/jongpie/NebulaLogger)
 
 <a href="https://githubsfdeploy.herokuapp.com" target="_blank">
     <img alt="Deploy to Salesforce" src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
 </a>
 
-A lightweight Apex library for easily building dynamic SOQL queries & SOSL searches<br /><br />
+A dynamic SOQL query & SOSL search library for for Salesforce Apex<br /><br />
 
 ## Features
-* Easily add any fields that are accessible, updateable, standard or custom, using the Soql.FieldCategory enum
+* Provides chainable builder methods for dyanmically building queries & searches in APex
+* Easily add fields to a query based on field level security
 * Easily add fields from a field set
 * Automatically adds the parent name field for any lookup/master-detail fields
 * Adds translations for picklist fields & record types by calling includeLabels()
 * Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
 * Leverage query scope to filter results
+* Enable query & search caching by simple calling cacheResults()
 * Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
+
+## Overview
+There are 3 main builder classes
+
+ &nbsp; | SobjectQueryBuilder | AggregateQueryBuilder | SearchBuilder
+------- | --------------------|-----------------------|--------------
+Super Class | Soql.cls (Queries) | Soql.cls (Queries) | Sosl.cls (Searches) | -
+Action | Queries an Sobject | Queries an Sobject | Searches 1 or more Sobjects
+Returns | `Sobject` or `List<Sobject>` | `AggregateResult` or `List<AggregateResult>` | `Sobject`, `List<Sobject>` or `List<List<Sobject>>`
 
 ## SOQL Sobject Query Examples
 **Basic Usage:** Query an object & return the object's ID and display name field (typically the 'Name' field, but some objects use other fields, like Task.Subject and Case.CaseNumber). Since no filters have been added, this query would also return all accounts.
