@@ -4,28 +4,12 @@
 ******************************************************************************************************/
 public class SearchBuilder extends Sosl {
 
-    private static Map<Integer, List<List<Sobject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<Sobject>>>();
-
-    private String searchQuery, searchTerm;
-    private Set<Schema.SobjectType> sobjectTypes;
-    private Sosl.ArticleReporting articleReporting;
-    private List<String> withClauses, withDataCategoryClauses;
-    private Sosl.SearchGroup searchGroup;
-    private List<SobjectQueryBuilder> searchQueries;
-    private Boolean cacheResults, hasChanged;
-
-    public SearchBuilder(String searchTerm, SobjectQueryBuilder query) {
-        this(searchTerm, new List<SobjectQueryBuilder>{query});
+    public SearchBuilder(String searchTerm, SobjectQueryBuilder sobjectQuery) {
+        super(searchTerm, sobjectQuery);
     }
 
-    public SearchBuilder(String searchTerm, List<SobjectQueryBuilder> queries) {
-        this.searchTerm    = String.escapeSingleQuotes(searchTerm);
-        this.searchQueries = queries;
-
-        this.cacheResults            = false;
-        this.searchGroup             = Sosl.SearchGroup.ALL_FIELDS;
-        this.withClauses             = new List<String>();
-        this.withDataCategoryClauses = new List<String>();
+    public SearchBuilder(String searchTerm, List<SobjectQueryBuilder> sobjectQueries) {
+        super(searchTerm, sobjectQueries);
     }
 
     public SearchBuilder inSearchGroup(Sosl.SearchGroup searchGroup) {
@@ -75,10 +59,10 @@ public class SearchBuilder extends Sosl {
         if(this.searchQuery != null && !this.hasChanged) return this.searchQuery;
 
         this.searchQuery = 'FIND \'' + this.searchTerm + '\''
-            + this.getSearchGroupString()
-            + this.getReturningSobjectsString()
-            + this.getWithClauseString()
-            + this.getUpdateArticleReportingString();
+            + super.doGetSearchGroupString()
+            + super.doGetReturningSobjectsString()
+            + super.doGetWithClauseString()
+            + super.doGetUpdateArticleReportingString();
 
         // Change hasChanged to false so that subsequent calls to getSearchQuery() use the cached search query string
         // If additional builder methods are later called, the builder methods will set hasChanged = true
@@ -88,79 +72,21 @@ public class SearchBuilder extends Sosl {
         return this.searchQuery;
     }
 
-    public override Set<Schema.SobjectType> getSobjectTypes() {
-        if(this.sobjectTypes != null) return this.sobjectTypes;
-
-        this.sobjectTypes = new Set<Schema.SobjectType>();
-        for(SobjectQueryBuilder query : this.searchQueries) {
-            this.sobjectTypes.add(query.getSobjectType());
-        }
-        return this.sobjectTypes;
-    }
-
     public Sobject getFirstResult() {
-        List<List<Sobject>> results = this.getResults();
-        return results.isEmpty() || results[0].isEmpty() ? null : results[0][0];
+        return super.doGetFirstResult();
     }
 
     public List<Sobject> getFirstResults() {
-        List<List<Sobject>> results = this.getResults();
-        return results.isEmpty() ? null : results[0];
+        return super.doGetFirstResults();
     }
 
     public List<List<Sobject>> getResults() {
-        if(this.cacheResults) return this.getCachedResults();
-        else return Search.query(this.getSearch());
+        return super.doGetResults();
     }
 
     private SearchBuilder setHasChanged() {
         this.hasChanged = true;
         return this;
-    }
-
-    private List<List<Sobject>> getCachedResults() {
-        String searchQuery = this.getSearch();
-        Integer hashCode   = searchQuery.hashCode();
-
-        Boolean isCached = cachedSearchResultsByHashCode.containsKey(hashCode);
-        if(!isCached) cachedSearchResultsByHashCode.put(hashCode, Search.query(searchQuery));
-
-        // Always return a deep clone so the original cached version is never modified
-        List<List<Sobject>> cachedResults = cachedSearchResultsByHashCode.get(hashCode);
-        List<List<Sobject>> deepClonedResults = new List<List<Sobject>>();
-        for(List<Sobject> cachedListOfResults : cachedResults) {
-            deepClonedResults.add(cachedListOfResults.deepClone(true, true, true));
-        }
-        return deepClonedResults;
-    }
-
-    private String getSearchGroupString() {
-        return ' IN ' + this.searchGroup.name().replace('_', ' ');
-    }
-
-    private String getReturningSobjectsString() {
-        if(this.searchQueries.isEmpty()) return '';
-
-        List<String> queryStrings = new List<String>();
-        this.searchQueries.sort();
-        for(SobjectQueryBuilder query : this.searchQueries) {
-            queryStrings.add(query.getSearchQuery());
-        }
-        return ' RETURNING ' + String.join(queryStrings, ', ');
-    }
-
-    private String getWithClauseString() {
-        List<String> combinedWithClauses = new List<String>(this.withClauses);
-        if(!this.withDataCategoryClauses.isEmpty()) {
-            String withDataCategoryClausesString = 'DATA CATEGORY ' + String.join(withDataCategoryClauses, ' AND ');
-            combinedWithClauses.add(withDataCategoryClausesString);
-        }
-        this.withClauses.sort();
-        return this.withClauses.isEmpty() ? '' : ' WITH ' + String.join(this.withClauses, ' WITH ');
-    }
-
-    private String getUpdateArticleReportingString() {
-        return this.articleReporting == null ? '' : ' UPDATE ' + this.articleReporting.name();
     }
 
 }
