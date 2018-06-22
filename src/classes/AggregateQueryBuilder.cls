@@ -4,6 +4,7 @@
 ******************************************************************************************************/
 public class AggregateQueryBuilder extends Soql {
 
+    private Soql.GroupingDimension groupingDimension;
     private List<AggregateField> aggregateFields;
 
     public AggregateQueryBuilder(Schema.SobjectType sobjectType) {
@@ -38,6 +39,11 @@ public class AggregateQueryBuilder extends Soql {
 
     public AggregateQueryBuilder groupBy(List<Soql.QueryField> queryFields) {
         super.doAddFields(queryFields, null);
+        return this.setHasChanged();
+    }
+
+    public AggregateQueryBuilder useGroupingDimension(Soql.GroupingDimension groupingDimension) {
+        this.groupingDimension = groupingDimension;
         return this.setHasChanged();
     }
 
@@ -193,8 +199,15 @@ public class AggregateQueryBuilder extends Soql {
 
     private String getGroupByString() {
         String queryFieldString = super.doGetQueryFieldString();
-        //return String.isEmpty(queryFieldString) || this.aggregateFields.isEmpty() ? '' : ' GROUP BY ' + queryFieldString;
-        return String.isEmpty(queryFieldString) ? '' : ' GROUP BY ' + queryFieldString;
+
+        String groupByTextString              = ' GROUP BY ';
+        String groupingDimensionClosingString = '';
+        if(this.groupingDimension != null) {
+            groupByTextString              += this.groupingDimension.name() + '(';
+            groupingDimensionClosingString = ')';
+        }
+
+        return String.isEmpty(queryFieldString) ? '' : groupByTextString + queryFieldString + groupingDimensionClosingString;
     }
 
     private class AggregateField {

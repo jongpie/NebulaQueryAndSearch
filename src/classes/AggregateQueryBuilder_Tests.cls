@@ -5,7 +5,6 @@
 @isTest
 private class AggregateQueryBuilder_Tests {
 
-
     @isTest
     static void it_should_be_usable_after_construction() {
         // Query builders should be usable as soon as it's constructed - it should be able to execute a query with some default values
@@ -13,7 +12,7 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
-        List<AggregateResult> results = (List<AggregateResult>)aggregateQueryBuilder.getResults();
+        AggregateResult result = (AggregateResult)aggregateQueryBuilder.getFirstResult();
 
         Test.stopTest();
     }
@@ -36,7 +35,43 @@ private class AggregateQueryBuilder_Tests {
     }
 
     @isTest
-    static void it_should_build_a_ridiculous_query_string() {
+    static void it_should_group_by_cube() {
+        String expectedString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY CUBE(Type, StageName)';
+
+        // Query builders should be usable as soon as it's constructed - it should be able to execute a query with some default values
+        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
+            .groupBy(Schema.Opportunity.Type)
+            .groupBy(Schema.Opportunity.StageName)
+            .addAggregateField(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
+            .useGroupingDimension(Soql.GroupingDimension.CUBE);
+
+        Test.startTest();
+
+        List<AggregateResult> results = (List<AggregateResult>)aggregateQueryBuilder.getResults();
+
+        Test.stopTest();
+    }
+
+    @isTest
+    static void it_should_group_by_rollup() {
+        String expectedString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY ROLLUP(Type, StageName)';
+
+        // Query builders should be usable as soon as it's constructed - it should be able to execute a query with some default values
+        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
+            .groupBy(Schema.Opportunity.Type)
+            .groupBy(Schema.Opportunity.StageName)
+            .addAggregateField(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
+            .useGroupingDimension(Soql.GroupingDimension.ROLLUP);
+
+        Test.startTest();
+
+        List<AggregateResult> results = (List<AggregateResult>)aggregateQueryBuilder.getResults();
+
+        Test.stopTest();
+    }
+
+    @isTest
+    static void it_should_build_an_ridiculous_query_string() {
         String expectedString = 'SELECT Account.Type, StageName, AVG(Amount) Amount__AVG, COUNT(AccountId) AccountId__COUNT,'
             + ' COUNT_DISTINCT(AccountId) AccountId__COUNT_DISTINCT, COUNT_DISTINCT(OwnerId) OwnerId__COUNT_DISTINCT, COUNT_DISTINCT(Type) Type__COUNT_DISTINCT,'
             + ' MAX(CreatedDate) CreatedDate__MAX, MIN(CreatedDate) CreatedDate__MIN, SUM(Amount) Amount__SUM'
