@@ -49,29 +49,29 @@ private class AggregateQueryBuilder_Tests {
             + ' OFFSET 0';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
-            .max(Schema.Opportunity.CreatedDate)
-            .avg(Schema.Opportunity.Amount)
-            .countDistinct(Schema.Opportunity.OwnerId)
-            .min(Schema.Opportunity.CreatedDate)
+            .addAggregateField(Soql.Aggregate.MAX, Schema.Opportunity.CreatedDate)
+            .addAggregateField(Soql.Aggregate.AVG, Schema.Opportunity.Amount)
+            .addAggregateField(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.OwnerId)
+            .addAggregateField(Soql.Aggregate.MIN, Schema.Opportunity.CreatedDate)
             .groupBy(new Soql.QueryField(new List<Schema.SobjectField>{
                 Schema.Opportunity.AccountId, Schema.Account.Type
             }))
-            .sum(Schema.Opportunity.Amount)
+            .addAggregateField(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
             .groupBy(Schema.Opportunity.StageName)
-            .count(Schema.Opportunity.AccountId)
-            .countDistinct(Schema.Opportunity.AccountId)
-            .countDistinct(new Soql.QueryField(new List<Schema.SobjectField>{
+            .addAggregateField(Soql.Aggregate.COUNT, Schema.Opportunity.AccountId)
+            .addAggregateField(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.AccountId)
+            .addAggregateField(Soql.Aggregate.COUNT_DISTINCT, new Soql.QueryField(new List<Schema.SobjectField>{
                 Schema.Opportunity.AccountId, Schema.Account.Type
             }))
             .orderBy(new Soql.QueryField(new List<Schema.SobjectField>{
                 Schema.Opportunity.AccountId, Schema.Account.Type
             }))
             .orderBy(Schema.Opportunity.StageName)
-            .orderByAggregate(Schema.Opportunity.Amount, Soql.Aggregate.SUM)
-            .orderByAggregate(Schema.Opportunity.CloseDate, Soql.Aggregate.MIN, Soql.SortOrder.DESCENDING)
+            .orderByAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
+            .orderByAggregate(Soql.Aggregate.MIN, Schema.Opportunity.CloseDate, Soql.SortOrder.DESCENDING)
             .orderByAggregate(
-                new Soql.QueryField(new List<Schema.SobjectField>{Schema.Opportunity.AccountId, Schema.Account.LastActivityDate}),
-                Soql.Aggregate.MAX
+                Soql.Aggregate.MAX,
+                new Soql.QueryField(new List<Schema.SobjectField>{Schema.Opportunity.AccountId, Schema.Account.LastActivityDate})
             )
             .filterWhere(Schema.Opportunity.AccountId, '!=', null)
             .limitTo(100)
