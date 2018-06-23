@@ -38,7 +38,6 @@ private class AggregateQueryBuilder_Tests {
     static void it_should_group_by_cube() {
         String expectedString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY CUBE(Type, StageName)';
 
-        // Query builders should be usable as soon as it's constructed - it should be able to execute a query with some default values
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
             .groupBy(Schema.Opportunity.Type)
             .groupBy(Schema.Opportunity.StageName)
@@ -47,7 +46,7 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
-        List<AggregateResult> results = (List<AggregateResult>)aggregateQueryBuilder.getResults();
+        List<AggregateResult> results = aggregateQueryBuilder.getResults();
 
         Test.stopTest();
     }
@@ -56,7 +55,6 @@ private class AggregateQueryBuilder_Tests {
     static void it_should_group_by_rollup() {
         String expectedString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY ROLLUP(Type, StageName)';
 
-        // Query builders should be usable as soon as it's constructed - it should be able to execute a query with some default values
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
             .groupBy(Schema.Opportunity.Type)
             .groupBy(Schema.Opportunity.StageName)
@@ -65,7 +63,23 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
-        List<AggregateResult> results = (List<AggregateResult>)aggregateQueryBuilder.getResults();
+        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+
+        Test.stopTest();
+    }
+
+    @isTest
+    static void it_should_group_by_having_aggregate() {
+        String expectedString = 'SELECT Name, COUNT(Id) Id__COUNT FROM Account GROUP BY Name HAVING COUNT(Id) > 2';
+
+        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SobjectType)
+          .groupBy(Account.Name)
+          .addAggregateField(Soql.Aggregate.COUNT, Account.Id)
+          .havingAggregate(Soql.Aggregate.COUNT, Account.Id, '>', 2);
+
+        Test.startTest();
+
+        List<AggregateResult> results = aggregateQueryBuilder.getResults();
 
         Test.stopTest();
     }

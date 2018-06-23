@@ -6,11 +6,13 @@ public class AggregateQueryBuilder extends Soql {
 
     private Soql.GroupingDimension groupingDimension;
     private List<AggregateField> aggregateFields;
+    private List<String> havingConditions;
 
     public AggregateQueryBuilder(Schema.SobjectType sobjectType) {
         super(sobjectType, false);
 
-        this.aggregateFields = new List<AggregateField>();
+        this.aggregateFields  = new List<AggregateField>();
+        this.havingConditions = new List<String>();
     }
 
     public AggregateQueryBuilder groupBy(Schema.SobjectField field) {
@@ -62,6 +64,15 @@ public class AggregateQueryBuilder extends Soql {
     public AggregateQueryBuilder addAggregateField(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
         //return this.addAggregateField(aggregateFunction, queryField, fieldAlias);
         this.aggregateFields.add(new AggregateField(this.getSobjectType(), aggregateFunction, queryField, fieldAlias));
+        return this.setHasChanged();
+    }
+
+    public AggregateQueryBuilder havingAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field, String operator, Object value) {
+        return this.havingAggregate(aggregateFunction, new Soql.QueryField(field), operator, value);
+    }
+
+    public AggregateQueryBuilder havingAggregate(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String operator, Object value) {
+        this.havingConditions.add(aggregateFunction.name() + '(' + queryField + ') ' + operator + ' ' + value);
         return this.setHasChanged();
     }
 
@@ -165,6 +176,7 @@ public class AggregateQueryBuilder extends Soql {
             + super.doGetUsingScopeString()
             + super.doGetWhereClauseString()
             + this.getGroupByString()
+            + this.getHavingString()
             + super.doGetOrderByString()
             + super.doGetLimitCountString()
             + super.doGetOffetString();
@@ -208,6 +220,10 @@ public class AggregateQueryBuilder extends Soql {
         }
 
         return String.isEmpty(queryFieldString) ? '' : groupByTextString + queryFieldString + groupingDimensionClosingString;
+    }
+
+    private String getHavingString() {
+        return this.havingConditions.isEmpty() ? '' : ' HAVING ' + String.join(this.havingConditions, ', ');
     }
 
     private class AggregateField {
