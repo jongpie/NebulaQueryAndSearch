@@ -105,7 +105,7 @@ public abstract class Soql implements Comparable {
     }
 
     protected void doFilterWhere(List<Soql.QueryFilter> filters) {
-        if(filters == null) return;
+        if(filters == null || filters.isEmpty()) return;
 
         for(Soql.QueryFilter filter : filters) this.whereFilters.add(filter.toString());
         this.doSetHasChanged();
