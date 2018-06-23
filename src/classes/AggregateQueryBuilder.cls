@@ -42,7 +42,7 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder useGroupingDimension(Soql.GroupingDimension groupingDimension) {
+    public AggregateQueryBuilder usingGroupingDimension(Soql.GroupingDimension groupingDimension) {
         this.groupingDimension = groupingDimension;
         return this.setHasChanged();
     }

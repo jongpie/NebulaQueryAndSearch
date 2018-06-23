@@ -43,7 +43,7 @@ private class AggregateQueryBuilder_Tests {
             .groupBy(Schema.Opportunity.Type)
             .groupBy(Schema.Opportunity.StageName)
             .addAggregateField(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
-            .useGroupingDimension(Soql.GroupingDimension.CUBE);
+            .usingGroupingDimension(Soql.GroupingDimension.CUBE);
 
         Test.startTest();
 
@@ -61,7 +61,7 @@ private class AggregateQueryBuilder_Tests {
             .groupBy(Schema.Opportunity.Type)
             .groupBy(Schema.Opportunity.StageName)
             .addAggregateField(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
-            .useGroupingDimension(Soql.GroupingDimension.ROLLUP);
+            .usingGroupingDimension(Soql.GroupingDimension.ROLLUP);
 
         Test.startTest();
 
