@@ -7,6 +7,14 @@ public abstract class Soql implements Comparable {
     public enum Aggregate { AVG, COUNT, COUNT_DISTINCT, MAX, MIN, SUM }
     public enum GroupingDimension { CUBE, ROLLUP }
     public enum FieldCategory { ACCESSIBLE, UPDATEABLE, STANDARD, CUSTOM, IGNORE_FLS }
+    public enum Operator {
+        EQUALS, NOT_EQUAL_TO,
+        GREATER_THAN, GREATER_THAN_OR_EQUAL_TO,
+        LESS_THAN, LESS_THAN_OR_EQUAL_TO,
+        IS_IN, IS_NOT_IN,
+        INCLUDES, EXCLUDES,
+        IS_LIKE, IS_NOT_LIKE
+    }
     public enum Scope { EVERYTHING, DELEGATED, TEAM, MINE, MY_TERRITORY, MY_TEAM_TERRITORY }
     public enum SortOrder { ASCENDING, DESCENDING }
 
@@ -15,6 +23,24 @@ public abstract class Soql implements Comparable {
     private static final Boolean DEFAULT_NULLS_SORT_ORDER_FIRST    = true;
 
     private static Map<Integer, List<Sobject>> cachedResultsByHashCode = new Map<Integer, List<Sobject>>();
+
+    public static String getOperatorValue(Soql.Operator operator) {
+        switch on operator {
+            when EQUALS                   { return '='; }
+            when NOT_EQUAL_TO             { return '!='; }
+            when GREATER_THAN             { return '>'; }
+            when GREATER_THAN_OR_EQUAL_TO { return '>='; }
+            when LESS_THAN                { return '<'; }
+            when LESS_THAN_OR_EQUAL_TO    { return '<='; }
+            when IS_IN                    { return 'IN'; }
+            when IS_NOT_IN                { return 'NOT IN'; }
+            when INCLUDES                 { return 'INCLUDES'; }
+            when EXCLUDES                 { return 'EXCLUDES'; }
+            when IS_LIKE                  { return 'LIKE'; }
+            when IS_NOT_LIKE              { return 'NOT LIKE'; }
+            when else                     { return null; }
+        }
+    }
 
     protected String query;
     protected Schema.SobjectType sobjectType;
@@ -293,16 +319,17 @@ public abstract class Soql implements Comparable {
 
         private String value;
 
-        public QueryFilter(Schema.SobjectField field, String operator, Object value) {
+        public QueryFilter(Schema.SobjectField field, Soql.Operator operator, Object value) {
             this(new QueryField(field), operator, value);
         }
 
-        public QueryFilter(QueryField queryField, String operator, Object value) {
-            this.value = queryField + ' ' + operator + ' ' + new QueryArgument(value);
+        public QueryFilter(QueryField queryField, Soql.Operator operator, Object value) {
+            this.value = queryField + ' ' + Soql.getOperatorValue(operator) + ' ' + new QueryArgument(value);
         }
 
         public Integer compareTo(Object compareTo) {
             QueryFilter compareToQueryFilter = (QueryFilter)compareTo;
+
             if(this.toString() == compareToQueryFilter.toString()) return 0;
             else if(this.toString() > compareToQueryFilter.toString()) return 1;
             else return -1;

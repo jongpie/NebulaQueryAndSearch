@@ -66,20 +66,20 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder havingAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field, String operator, Object value) {
+    public AggregateQueryBuilder havingAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field, Soql.Operator operator, Object value) {
         return this.havingAggregate(aggregateFunction, new Soql.QueryField(field), operator, value);
     }
 
-    public AggregateQueryBuilder havingAggregate(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String operator, Object value) {
-        this.havingConditions.add(aggregateFunction.name() + '(' + queryField + ') ' + operator + ' ' + value);
+    public AggregateQueryBuilder havingAggregate(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, Soql.Operator operator, Object value) {
+        this.havingConditions.add(aggregateFunction.name() + '(' + queryField + ') ' + Soql.getOperatorValue(operator) + ' ' + value);
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder filterWhere(Schema.SobjectField field, String operator, Object value) {
+    public AggregateQueryBuilder filterWhere(Schema.SobjectField field, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryField(field), operator, value);
     }
 
-    public AggregateQueryBuilder filterWhere(Soql.QueryField queryField, String operator, Object value) {
+    public AggregateQueryBuilder filterWhere(Soql.QueryField queryField, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryFilter(queryField, operator, value));
     }
 

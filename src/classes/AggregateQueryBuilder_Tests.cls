@@ -75,7 +75,7 @@ private class AggregateQueryBuilder_Tests {
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SobjectType)
           .groupByField(Account.Name)
           .addAggregate(Soql.Aggregate.COUNT, Account.Id)
-          .havingAggregate(Soql.Aggregate.COUNT, Account.Id, '>', 2);
+          .havingAggregate(Soql.Aggregate.COUNT, Account.Id, Soql.Operator.GREATER_THAN, 2);
 
         Test.startTest();
 
@@ -122,7 +122,7 @@ private class AggregateQueryBuilder_Tests {
                 Soql.Aggregate.MAX,
                 new Soql.QueryField(new List<Schema.SobjectField>{Schema.Opportunity.AccountId, Schema.Account.LastActivityDate})
             )
-            .filterWhere(Schema.Opportunity.AccountId, '!=', null)
+            .filterWhere(Schema.Opportunity.AccountId, Soql.Operator.NOT_EQUAL_TO, null)
             .limitTo(100)
             .offsetBy(0);
 

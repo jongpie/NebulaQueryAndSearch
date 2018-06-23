@@ -38,11 +38,11 @@ private class SobjectQueryBuilder_Tests {
             .includeLabels()
             .includeFormattedValues()
             .usingScope(Soql.Scope.MINE)
-            .filterWhere(Schema.User.IsActive, '=', true)
-            .filterWhere(new Soql.QueryField(Schema.User.SobjectType, 'Profile.Id'), '!=', UserInfo.getProfileId())
-            .filterWhere(Schema.User.LastModifiedDate, '<=', now)
-            .filterWhere(Schema.User.CreatedDate, '<=', new Soql.DateLiteral('LAST_WEEK'))
-            .filterWhere(Schema.User.Email, '!=', null)
+            .filterWhere(Schema.User.IsActive, Soql.Operator.EQUALS, true)
+            .filterWhere(new Soql.QueryField(Schema.User.SobjectType, 'Profile.Id'), Soql.Operator.NOT_EQUAL_TO, UserInfo.getProfileId())
+            .filterWhere(Schema.User.LastModifiedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, now)
+            .filterWhere(Schema.User.CreatedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, new Soql.DateLiteral('LAST_WEEK'))
+            .filterWhere(Schema.User.Email, Soql.Operator.NOT_EQUAL_TO, null)
             .orderByField(new Soql.QueryField(Schema.User.SobjectType, 'Profile.CreatedBy.LastModifiedDate'))
             .orderByField(Schema.User.Name, Soql.SortOrder.ASCENDING)
             .orderByField(Schema.User.Email)
@@ -115,7 +115,7 @@ private class SobjectQueryBuilder_Tests {
         // If multi-currency is enabled, then execute the test
         SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
             .addField(Schema.Account.AnnualRevenue)
-            .filterWhere(Schema.Account.AnnualRevenue, '<', new Soql.IsoCurrency('USD', 100));
+            .filterWhere(Schema.Account.AnnualRevenue, Soql.Operator.LESS_THAN, new Soql.IsoCurrency('USD', 100));
         List<Account> accounts = accountQuery.getResults();
     }
 

@@ -128,11 +128,11 @@ public class SobjectQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder filterWhere(Schema.SobjectField field, String operator, Object value) {
+    public SobjectQueryBuilder filterWhere(Schema.SobjectField field, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryField(field), operator, value);
     }
 
-    public SobjectQueryBuilder filterWhere(Soql.QueryField queryField, String operator, Object value) {
+    public SobjectQueryBuilder filterWhere(Soql.QueryField queryField, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryFilter(queryField, operator, value));
     }
 
