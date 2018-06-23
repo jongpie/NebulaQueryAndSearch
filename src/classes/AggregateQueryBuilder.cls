@@ -232,7 +232,7 @@ public class AggregateQueryBuilder extends Soql {
 
         public AggregateField(Schema.SobjectType sobjectType, Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
             this.sobjectType        = sobjectType;
-            this.aggregateFieldPath = this.getAggregateFieldPath(aggregateFunction, queryField, fieldAlias);
+            this.aggregateFieldPath = this.getAggregateFieldPath(aggregateFunction, queryField, String.escapeSingleQuotes(fieldAlias));
         }
 
         public override String toString() {
