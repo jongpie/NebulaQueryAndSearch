@@ -111,6 +111,17 @@ public abstract class Soql implements Comparable {
         this.doSetHasChanged();
     }
 
+    protected void doOrFilterWhere(List<Soql.QueryFilter> filters) {
+        if(filters == null || filters.isEmpty()) return;
+
+        filters.sort();
+
+        List<String> orFilterPieces = new List<String>();
+        for(Soql.QueryFilter filter : filters) orFilterPieces.add(filter.toString());
+        this.whereFilters.add('(' + String.join(orFilterPieces, ' OR ') + ')');
+        this.doSetHasChanged();
+    }
+
     protected void doOrderBy(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         this.doOrderBy(queryField.toString(), sortOrder, sortNullsFirst);
     }
@@ -181,6 +192,7 @@ public abstract class Soql implements Comparable {
     }
 
     protected String doGetWhereClauseString() {
+        this.whereFilters.sort();
         return this.whereFilters.isEmpty() ? '' : ' WHERE ' + String.join(this.whereFilters, ' AND ');
     }
 

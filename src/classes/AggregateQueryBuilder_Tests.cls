@@ -18,6 +18,35 @@ private class AggregateQueryBuilder_Tests {
     }
 
     @isTest
+    static void it_should_return_results_when_filtering() {
+        String expectedString = 'SELECT Type FROM Opportunity WHERE ParentId !+ null GROUP BY Type';
+
+        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
+            .groupByField(Schema.Opportunity.Type)
+            .filterWhere(new Soql.QueryFilter(Schema.Opportunity.AccountId, Soql.Operator.NOT_EQUAL_TO, null));
+
+        Test.startTest();
+
+        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+
+        Test.stopTest();
+    }
+
+    @isTest
+    static void it_should_return_results_when_filtering_with_an_or_statement() {
+        String expectedQueryString = 'SELECT Id, Name FROM Account WHERE ParentId != null AND (AccountNumber = null OR Type = null)';
+
+        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
+            .addField(Schema.Account.AnnualRevenue)
+            .orFilterWhere(new List<Soql.QueryFilter>{
+                new Soql.QueryFilter(Schema.Account.Type, Soql.Operator.EQUALS, null),
+                new Soql.QueryFilter(Schema.Account.AccountNumber, Soql.Operator.EQUALS, null)
+            })
+            .filterWhere(new Soql.QueryFilter(Schema.Account.ParentId, Soql.Operator.NOT_EQUAL_TO, null));
+        List<Account> accounts = accountQuery.getResults();
+    }
+
+    @isTest
     static void it_should_cache_results() {
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType);
         aggregateQueryBuilder.cacheResults();

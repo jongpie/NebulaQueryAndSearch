@@ -145,6 +145,11 @@ public class SobjectQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
+    public SobjectQueryBuilder orFilterWhere(List<Soql.QueryFilter> filters) {
+        super.doOrFilterWhere(filters);
+        return this.setHasChanged();
+    }
+
     public SobjectQueryBuilder orderByField(Schema.SobjectField field) {
         return this.orderByField(new Soql.QueryField(field));
     }

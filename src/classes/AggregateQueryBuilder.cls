@@ -92,6 +92,11 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
+    public AggregateQueryBuilder orFilterWhere(List<Soql.QueryFilter> filters) {
+        super.doOrFilterWhere(filters);
+        return this.setHasChanged();
+    }
+
     public AggregateQueryBuilder orderByField(Schema.SobjectField field) {
         return this.orderByField(field, null);
     }
@@ -232,7 +237,7 @@ public class AggregateQueryBuilder extends Soql {
 
         public AggregateField(Schema.SobjectType sobjectType, Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
             this.sobjectType        = sobjectType;
-            this.aggregateFieldPath = this.getAggregateFieldPath(aggregateFunction, queryField, String.escapeSingleQuotes(fieldAlias));
+            this.aggregateFieldPath = this.getAggregateFieldPath(aggregateFunction, queryField, fieldAlias);
         }
 
         public override String toString() {
@@ -241,7 +246,7 @@ public class AggregateQueryBuilder extends Soql {
 
         private String getAggregateFieldPath(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
             String fieldApiName = queryField.getDescribe().getName();
-            fieldAlias = !String.isEmpty(fieldAlias) ? fieldAlias : fieldApiName + '__' + aggregateFunction.name();
+            fieldAlias = !String.isEmpty(fieldAlias) ? String.escapeSingleQuotes(fieldAlias) : fieldApiName + '__' + aggregateFunction.name();
 
             // Example: MIN(Schema.Lead.MyField__c) is auto-aliased to MyField__c__MIN
             return aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
