@@ -39,9 +39,9 @@ private class AggregateQueryBuilder_Tests {
         String expectedString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY CUBE(Type, StageName)';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
-            .groupBy(Schema.Opportunity.Type)
-            .groupBy(Schema.Opportunity.StageName)
-            .addAggregateField(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
+            .groupByField(Schema.Opportunity.Type)
+            .groupByField(Schema.Opportunity.StageName)
+            .addAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
             .usingGroupingDimension(Soql.GroupingDimension.CUBE);
 
         Test.startTest();
@@ -56,9 +56,9 @@ private class AggregateQueryBuilder_Tests {
         String expectedString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY ROLLUP(Type, StageName)';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
-            .groupBy(Schema.Opportunity.Type)
-            .groupBy(Schema.Opportunity.StageName)
-            .addAggregateField(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
+            .groupByField(Schema.Opportunity.Type)
+            .groupByField(Schema.Opportunity.StageName)
+            .addAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
             .usingGroupingDimension(Soql.GroupingDimension.ROLLUP);
 
         Test.startTest();
@@ -73,8 +73,8 @@ private class AggregateQueryBuilder_Tests {
         String expectedString = 'SELECT Name, COUNT(Id) Id__COUNT FROM Account GROUP BY Name HAVING COUNT(Id) > 2';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SobjectType)
-          .groupBy(Account.Name)
-          .addAggregateField(Soql.Aggregate.COUNT, Account.Id)
+          .groupByField(Account.Name)
+          .addAggregate(Soql.Aggregate.COUNT, Account.Id)
           .havingAggregate(Soql.Aggregate.COUNT, Account.Id, '>', 2);
 
         Test.startTest();
@@ -98,24 +98,24 @@ private class AggregateQueryBuilder_Tests {
             + ' OFFSET 0';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
-            .addAggregateField(Soql.Aggregate.MAX, Schema.Opportunity.CreatedDate)
-            .addAggregateField(Soql.Aggregate.AVG, Schema.Opportunity.Amount)
-            .addAggregateField(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.OwnerId)
-            .addAggregateField(Soql.Aggregate.MIN, Schema.Opportunity.CreatedDate)
-            .groupBy(new Soql.QueryField(new List<Schema.SobjectField>{
+            .addAggregate(Soql.Aggregate.MAX, Schema.Opportunity.CreatedDate)
+            .addAggregate(Soql.Aggregate.AVG, Schema.Opportunity.Amount)
+            .addAggregate(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.OwnerId)
+            .addAggregate(Soql.Aggregate.MIN, Schema.Opportunity.CreatedDate)
+            .groupByField(new Soql.QueryField(new List<Schema.SobjectField>{
                 Schema.Opportunity.AccountId, Schema.Account.Type
             }))
-            .addAggregateField(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
-            .groupBy(Schema.Opportunity.StageName)
-            .addAggregateField(Soql.Aggregate.COUNT, Schema.Opportunity.AccountId)
-            .addAggregateField(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.AccountId)
-            .addAggregateField(Soql.Aggregate.COUNT_DISTINCT, new Soql.QueryField(new List<Schema.SobjectField>{
+            .addAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
+            .groupByField(Schema.Opportunity.StageName)
+            .addAggregate(Soql.Aggregate.COUNT, Schema.Opportunity.AccountId)
+            .addAggregate(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.AccountId)
+            .addAggregate(Soql.Aggregate.COUNT_DISTINCT, new Soql.QueryField(new List<Schema.SobjectField>{
                 Schema.Opportunity.AccountId, Schema.Account.Type
             }))
-            .orderBy(new Soql.QueryField(new List<Schema.SobjectField>{
+            .orderByField(new Soql.QueryField(new List<Schema.SobjectField>{
                 Schema.Opportunity.AccountId, Schema.Account.Type
             }))
-            .orderBy(Schema.Opportunity.StageName)
+            .orderByField(Schema.Opportunity.StageName)
             .orderByAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
             .orderByAggregate(Soql.Aggregate.MIN, Schema.Opportunity.CloseDate, Soql.SortOrder.DESCENDING)
             .orderByAggregate(

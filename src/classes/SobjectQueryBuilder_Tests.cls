@@ -43,9 +43,9 @@ private class SobjectQueryBuilder_Tests {
             .filterWhere(Schema.User.LastModifiedDate, '<=', now)
             .filterWhere(Schema.User.CreatedDate, '<=', new Soql.DateLiteral('LAST_WEEK'))
             .filterWhere(Schema.User.Email, '!=', null)
-            .orderBy(new Soql.QueryField(Schema.User.SobjectType, 'Profile.CreatedBy.LastModifiedDate'))
-            .orderBy(Schema.User.Name, Soql.SortOrder.ASCENDING)
-            .orderBy(Schema.User.Email)
+            .orderByField(new Soql.QueryField(Schema.User.SobjectType, 'Profile.CreatedBy.LastModifiedDate'))
+            .orderByField(Schema.User.Name, Soql.SortOrder.ASCENDING)
+            .orderByField(Schema.User.Email)
             .limitTo(100)
             .offsetBy(1)
             .forView();

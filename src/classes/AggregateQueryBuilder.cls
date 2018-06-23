@@ -15,33 +15,33 @@ public class AggregateQueryBuilder extends Soql {
         this.havingConditions = new List<String>();
     }
 
-    public AggregateQueryBuilder groupBy(Schema.SobjectField field) {
-       return this.groupBy(new List<Schema.SobjectField>{field});
+    public AggregateQueryBuilder groupByField(Schema.SobjectField field) {
+       return this.groupByFields(new List<Schema.SobjectField>{field});
     }
 
-    public AggregateQueryBuilder groupBy(Soql.QueryField queryField) {
-        return this.groupBy(new List<Soql.QueryField>{queryField});
+    public AggregateQueryBuilder groupByField(Soql.QueryField queryField) {
+        return this.groupByFields(new List<Soql.QueryField>{queryField});
     }
 
-    public AggregateQueryBuilder groupBy(Schema.FieldSet fieldSet) {
-        List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-        for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
-            queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
-        }
-        return this.groupBy(queryFields);
-    }
-
-    public AggregateQueryBuilder groupBy(List<Schema.SobjectField> fields) {
+    public AggregateQueryBuilder groupByFields(List<Schema.SobjectField> fields) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
         for(Schema.SobjectField field : fields) {
             queryFields.add(new Soql.QueryField(field));
         }
-        return this.groupBy(queryFields);
+        return this.groupByFields(queryFields);
     }
 
-    public AggregateQueryBuilder groupBy(List<Soql.QueryField> queryFields) {
+    public AggregateQueryBuilder groupByFields(List<Soql.QueryField> queryFields) {
         super.doAddFields(queryFields, null);
         return this.setHasChanged();
+    }
+
+    public AggregateQueryBuilder groupByFieldSet(Schema.FieldSet fieldSet) {
+        List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
+        for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
+            queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
+        }
+        return this.groupByFields(queryFields);
     }
 
     public AggregateQueryBuilder usingGroupingDimension(Soql.GroupingDimension groupingDimension) {
@@ -49,20 +49,19 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder addAggregateField(Soql.Aggregate aggregateFunction, Schema.SobjectField field) {
-        return this.addAggregateField(aggregateFunction, field, null);
+    public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field) {
+        return this.addAggregate(aggregateFunction, field, null);
     }
 
-    public AggregateQueryBuilder addAggregateField(Soql.Aggregate aggregateFunction, Schema.SobjectField field, String fieldAlias) {
-        return this.addAggregateField(aggregateFunction, new Soql.QueryField(field), fieldAlias);
+    public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field, String fieldAlias) {
+        return this.addAggregate(aggregateFunction, new Soql.QueryField(field), fieldAlias);
     }
 
-    public AggregateQueryBuilder addAggregateField(Soql.Aggregate aggregateFunction, Soql.QueryField queryField) {
-        return this.addAggregateField(aggregateFunction, queryField, null);
+    public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Soql.QueryField queryField) {
+        return this.addAggregate(aggregateFunction, queryField, null);
     }
 
-    public AggregateQueryBuilder addAggregateField(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
-        //return this.addAggregateField(aggregateFunction, queryField, fieldAlias);
+    public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
         this.aggregateFields.add(new AggregateField(this.getSobjectType(), aggregateFunction, queryField, fieldAlias));
         return this.setHasChanged();
     }
@@ -93,27 +92,27 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder orderBy(Schema.SobjectField field) {
-        return this.orderBy(field, null);
+    public AggregateQueryBuilder orderByField(Schema.SobjectField field) {
+        return this.orderByField(field, null);
     }
 
-    public AggregateQueryBuilder orderBy(Soql.QueryField queryField) {
-        return this.orderBy(queryField, null);
+    public AggregateQueryBuilder orderByField(Soql.QueryField queryField) {
+        return this.orderByField(queryField, null);
     }
 
-    public AggregateQueryBuilder orderBy(Schema.SobjectField field, Soql.SortOrder sortOrder) {
-        return this.orderBy(field, sortOrder, null);
+    public AggregateQueryBuilder orderByField(Schema.SobjectField field, Soql.SortOrder sortOrder) {
+        return this.orderByField(field, sortOrder, null);
     }
 
-    public AggregateQueryBuilder orderBy(Soql.QueryField queryField, Soql.SortOrder sortOrder) {
-        return this.orderBy(queryField, sortOrder, null);
+    public AggregateQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder) {
+        return this.orderByField(queryField, sortOrder, null);
     }
 
-    public AggregateQueryBuilder orderBy(Schema.SobjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
-        return this.orderBy(new Soql.QueryField(field), sortOrder, sortNullsFirst);
+    public AggregateQueryBuilder orderByField(Schema.SobjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+        return this.orderByField(new Soql.QueryField(field), sortOrder, sortNullsFirst);
     }
 
-    public AggregateQueryBuilder orderBy(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public AggregateQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         super.doOrderBy(queryField, sortOrder, sortNullsFirst);
         return this.setHasChanged();
     }

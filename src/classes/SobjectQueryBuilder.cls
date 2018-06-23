@@ -145,27 +145,27 @@ public class SobjectQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder orderBy(Schema.SobjectField field) {
-        return this.orderBy(new Soql.QueryField(field));
+    public SobjectQueryBuilder orderByField(Schema.SobjectField field) {
+        return this.orderByField(new Soql.QueryField(field));
     }
 
-    public SobjectQueryBuilder orderBy(Soql.QueryField queryField) {
-        return this.orderBy(queryField, null);
+    public SobjectQueryBuilder orderByField(Soql.QueryField queryField) {
+        return this.orderByField(queryField, null);
     }
 
-    public SobjectQueryBuilder orderBy(Schema.SobjectField field, Soql.SortOrder sortOrder) {
-        return this.orderBy(field, sortOrder, null);
+    public SobjectQueryBuilder orderByField(Schema.SobjectField field, Soql.SortOrder sortOrder) {
+        return this.orderByField(field, sortOrder, null);
     }
 
-    public SobjectQueryBuilder orderBy(Soql.QueryField queryField, Soql.SortOrder sortOrder) {
-        return this.orderBy(queryField, sortOrder, null);
+    public SobjectQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder) {
+        return this.orderByField(queryField, sortOrder, null);
     }
 
-    public SobjectQueryBuilder orderBy(Schema.SobjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
-        return this.orderBy(new Soql.QueryField(field), sortOrder, sortNullsFirst);
+    public SobjectQueryBuilder orderByField(Schema.SobjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+        return this.orderByField(new Soql.QueryField(field), sortOrder, sortNullsFirst);
     }
 
-    public SobjectQueryBuilder orderBy(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public SobjectQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         super.doOrderBy(queryField, sortOrder, sortNullsFirst);
         return this.setHasChanged();
     }
