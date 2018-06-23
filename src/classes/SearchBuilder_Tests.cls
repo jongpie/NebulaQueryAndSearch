@@ -6,6 +6,17 @@
 private class SearchBuilder_Tests {
 
     @isTest
+    static void it_should_return_first_result_for_a_single_sobject_type() {
+        String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)';
+
+        SobjectQueryBuilder userQuery  = new SobjectQueryBuilder(Schema.User.SobjectType);
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), userQuery);
+
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        User userSearchResult = (User)userSearch.getFirstResult();
+    }
+
+    @isTest
     static void it_should_return_results_for_a_single_sobject_type() {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)';
 
