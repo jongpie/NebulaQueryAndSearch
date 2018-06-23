@@ -108,7 +108,7 @@ public abstract class Soql implements Comparable {
 
     protected Sobject doGetFirstResult() {
         List<Sobject> results = this.doGetResults();
-        return results == null ? null : results[0];
+        return results == null || results.isEmpty() ? null : results[0];
     }
 
     protected List<Sobject> doGetResults() {
