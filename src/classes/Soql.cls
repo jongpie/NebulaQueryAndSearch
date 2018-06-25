@@ -302,12 +302,20 @@ public abstract class Soql implements Comparable {
         }
 
         public QueryField(Soql.DateFunction dateFunction, Schema.SobjectField field) {
-            this(dateFunction, new List<Schema.SobjectField>{field});
+            this(dateFunction, field, false);
+        }
+
+        public QueryField(Soql.DateFunction dateFunction, Schema.SobjectField field, Boolean convertTimeZone) {
+            this(dateFunction, new List<Schema.SobjectField>{field}, convertTimeZone);
         }
 
         public QueryField(Soql.DateFunction dateFunction, List<Schema.SobjectField> fieldChain) {
+            this(dateFunction, fieldChain, false);
+        }
+
+        public QueryField(Soql.DateFunction dateFunction, List<Schema.SobjectField> fieldChain, Boolean convertTimeZone) {
             this.fieldDescribe  = this.getLastFieldDescribe(fieldChain);
-            this.queryFieldPath = dateFunction.name() + '(' + this.getQueryField(fieldChain) + ')';
+            this.queryFieldPath = this.getDateFunctionFieldPath(dateFunction, fieldChain, convertTimeZone);
         }
 
         public override String toString() {
@@ -320,6 +328,12 @@ public abstract class Soql implements Comparable {
 
         public String getFieldPath() {
             return this.queryFieldPath;
+        }
+
+        private String getDateFunctionFieldPath(Soql.DateFunction dateFunction, List<Schema.SobjectField> fieldChain, Boolean convertTimeZone) {
+            String fieldPath = !convertTimeZone ? this.getQueryField(fieldChain) : 'convertTimeZone(' + this.getQueryField(fieldChain) + ')';
+
+            return dateFunction.name() + '(' + fieldPath + ')';
         }
 
         private Schema.DescribeFieldResult getLastFieldDescribe(Schema.SobjectType sobjectType, String queryField) {
