@@ -355,6 +355,7 @@ public abstract class Soql implements Comparable {
         private Soql.QueryField queryField;
         private Soql.Operator operator;
         private Object value;
+        private String formattedValue;
         private String filterString;
 
         public QueryFilter(Schema.SobjectField field, Soql.Operator operator, Object value) {
@@ -362,11 +363,12 @@ public abstract class Soql implements Comparable {
         }
 
         public QueryFilter(QueryField queryField, Soql.Operator operator, Object value) {
-            this.queryField = queryField;
-            this.operator   = operator;
-            this.value      = value;
+            this.queryField     = queryField;
+            this.operator       = operator;
+            this.value          = value;
+            this.formattedValue = new QueryArgument(value).toString();
 
-            this.filterString = queryField + ' ' + Soql.getOperatorValue(operator) + ' ' + new QueryArgument(value);
+            this.filterString = queryField + ' ' + Soql.getOperatorValue(operator) + ' ' + formattedValue;
         }
 
         public Integer compareTo(Object compareTo) {
@@ -387,6 +389,10 @@ public abstract class Soql implements Comparable {
 
         public Object getValue() {
             return this.value;
+        }
+
+        public Object getFormattedValue() {
+            return this.formattedValue;
         }
 
         public override String toString() {
