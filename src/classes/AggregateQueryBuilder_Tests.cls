@@ -35,7 +35,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_return_results_when_filtering_with_an_or_statement() {
-        String expectedQueryString = 'SELECT Type, COUNT(Id) Id__COUNT FROM Account WHERE (AccountNumber = null OR Type = null) AND ParentId != null GROUP BY Type';
+        String expectedQueryString = 'SELECT Type, COUNT(Id) COUNT__Id FROM Account WHERE (AccountNumber = null OR Type = null) AND ParentId != null GROUP BY Type';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SobjectType)
             .groupByField(Schema.Account.Type)
@@ -69,7 +69,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_group_by_cube() {
-        String expectedQueryString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY CUBE(Type, StageName)';
+        String expectedQueryString = 'SELECT Type, StageName, SUM(Amount) SUM__Amount FROM Opportunity GROUP BY CUBE(Type, StageName)';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
             .groupByField(Schema.Opportunity.Type)
@@ -87,7 +87,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_group_by_rollup() {
-        String expectedQueryString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY ROLLUP(Type, StageName)';
+        String expectedQueryString = 'SELECT Type, StageName, SUM(Amount) SUM__Amount FROM Opportunity GROUP BY ROLLUP(Type, StageName)';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
             .groupByField(Schema.Opportunity.Type)
@@ -105,7 +105,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_group_by_having_aggregate() {
-        String expectedQueryString = 'SELECT Name, COUNT(Id) Id__COUNT FROM Account GROUP BY Name HAVING COUNT(Id) > 2';
+        String expectedQueryString = 'SELECT Name, COUNT(Id) COUNT__Id FROM Account GROUP BY Name HAVING COUNT(Id) > 2';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SobjectType)
           .groupByField(Account.Name)
@@ -122,7 +122,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_group_by_a_date_function() {
-        String expectedQueryString = 'SELECT CALENDAR_MONTH(CloseDate), COUNT(Id) Id__COUNT FROM Opportunity GROUP BY CALENDAR_MONTH(CloseDate)';
+        String expectedQueryString = 'SELECT CALENDAR_MONTH(CloseDate), COUNT(Id) COUNT__Id FROM Opportunity GROUP BY CALENDAR_MONTH(CloseDate)';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
           .groupByField(new Soql.QueryField(Soql.DateFunction.CALENDAR_MONTH, Schema.Opportunity.CloseDate))
@@ -138,9 +138,9 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_build_an_ridiculous_query_string() {
-        String expectedQueryString = 'SELECT Account.Type, StageName, AVG(Amount) Amount__AVG, COUNT(AccountId) AccountId__COUNT,'
-            + ' COUNT_DISTINCT(AccountId) AccountId__COUNT_DISTINCT, COUNT_DISTINCT(OwnerId) OwnerId__COUNT_DISTINCT, COUNT_DISTINCT(Type) Type__COUNT_DISTINCT,'
-            + ' MAX(CreatedDate) CreatedDate__MAX, MIN(CreatedDate) CreatedDate__MIN, SUM(Amount) Amount__SUM'
+        String expectedQueryString = 'SELECT Account.Type, StageName, AVG(Amount) AVG__Amount, COUNT(AccountId) COUNT__AccountId,'
+            + ' COUNT_DISTINCT(AccountId) COUNT_DISTINCT__AccountId, COUNT_DISTINCT(OwnerId) COUNT_DISTINCT__OwnerId, COUNT_DISTINCT(Type) COUNT_DISTINCT__Type,'
+            + ' MAX(CreatedDate) MAX__CreatedDate, MIN(CreatedDate) MIN__CreatedDate, SUM(Amount) SUM__Amount'
             + ' FROM Opportunity'
             + ' WHERE AccountId != null'
             + ' GROUP BY Account.Type, StageName'

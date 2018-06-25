@@ -246,7 +246,7 @@ public class AggregateQueryBuilder extends Soql {
 
         private String getAggregateFieldPath(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
             String fieldApiName = queryField.getDescribe().getName();
-            fieldAlias = !String.isEmpty(fieldAlias) ? String.escapeSingleQuotes(fieldAlias) : fieldApiName + '__' + aggregateFunction.name();
+            fieldAlias = !String.isEmpty(fieldAlias) ? String.escapeSingleQuotes(fieldAlias) : aggregateFunction.name() + '__' + fieldApiName;
 
             // Example: MIN(Schema.Lead.MyField__c) is auto-aliased to MyField__c__MIN
             return aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
