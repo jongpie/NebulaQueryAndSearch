@@ -23,6 +23,7 @@ private class SobjectQueryBuilder_Tests {
         // To keep the test simpler for now, the rest of the query (excluding the 'SELECT <fields>') is validated
         String expectedPartialQueryString = 'FROM User USING SCOPE MINE WHERE IsActive = true'
             + ' AND Profile.Id != \'' + UserInfo.getProfileId() + '\' AND LastModifiedDate <= ' + now
+            + ' AND LastLoginDate >= LAST_N_DAYS:3'
             + ' AND CreatedDate <= LAST_WEEK AND Email != null'
             + ' ORDER BY Profile.Name ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST LIMIT 100 OFFSET 1 FOR VIEW';
 
@@ -41,7 +42,8 @@ private class SobjectQueryBuilder_Tests {
             .filterWhere(Schema.User.IsActive, Soql.Operator.EQUALS, true)
             .filterWhere(new Soql.QueryField(Schema.User.SobjectType, 'Profile.Id'), Soql.Operator.NOT_EQUAL_TO, UserInfo.getProfileId())
             .filterWhere(Schema.User.LastModifiedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, now)
-            .filterWhere(Schema.User.CreatedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, new Soql.DateLiteral('LAST_WEEK'))
+            .filterWhere(Schema.User.LastLoginDate, Soql.Operator.GREATER_THAN_OR_EQUAL_TO, new Soql.DateLiteral(Soql.RelativeDateLiteral.LAST_N_DAYS, 3))
+            .filterWhere(Schema.User.CreatedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, new Soql.DateLiteral(Soql.FixedDateLiteral.LAST_WEEK))
             .filterWhere(Schema.User.Email, Soql.Operator.NOT_EQUAL_TO, null)
             .orderByField(new Soql.QueryField(Schema.User.SobjectType, 'Profile.CreatedBy.LastModifiedDate'))
             .orderByField(Schema.User.Name, Soql.SortOrder.ASCENDING)

@@ -17,6 +17,25 @@ public abstract class Soql implements Comparable {
     }
     public enum Scope { EVERYTHING, DELEGATED, TEAM, MINE, MY_TERRITORY, MY_TEAM_TERRITORY }
     public enum SortOrder { ASCENDING, DESCENDING }
+    public enum FixedDateLiteral {
+        YESTERDAY, TODAY, TOMORROW,
+        LAST_WEEK, THIS_WEEK, NEXT_WEEK,
+        LAST_MONTH, THIS_MONTH, NEXT_MONTH,
+        LAST_90_DAYS, NEXT_90_DAYS,
+        LAST_QUARTER, THIS_QUARTER, NEXT_QUARTER,
+        LAST_FISCAL_QUARTER, THIS_FISCAL_QUARTER, NEXT_FISCAL_QUARTER,
+        LAST_YEAR, THIS_YEAR, NEXT_YEAR,
+        LAST_FISCAL_YEAR, THIS_FISCAL_YEAR, NEXT_FISCAL_YEAR
+    }
+    public enum RelativeDateLiteral {
+        N_DAYS_AGO, LAST_N_DAYS, NEXT_N_DAYS,
+        LAST_N_WEEKS, NEXT_N_WEEKS,
+        LAST_N_MONTHS, NEXT_N_MONTHS,
+        LAST_N_QUARTERS, NEXT_N_QUARTERS,
+        LAST_N_FISCAL_QUARTERS, NEXT_N_FISCAL_QUARTERS,
+        LAST_N_YEARS, NEXT_N_YEARS,
+        LAST_N_FISCAL_YEARS, NEXT_N_FISCAL_YEARS
+    }
 
     private static final Soql.FieldCategory DEFAULT_FIELD_CATEGORY = Soql.FieldCategory.ACCESSIBLE;
     private static final Soql.SortOrder DEFAULT_SORT_ORDER         = Soql.SortOrder.ASCENDING;
@@ -227,8 +246,12 @@ public abstract class Soql implements Comparable {
 
         private String dateLiteral;
 
-        public DateLiteral(String dateLiteral) {
-            this.dateLiteral = String.escapeSingleQuotes(dateLiteral);
+        public DateLiteral(FixedDateLiteral fixedDateLiteral) {
+            this.dateLiteral = fixedDateLiteral.name();
+        }
+
+        public DateLiteral(RelativeDateLiteral relativeDateLiteral, Integer n) {
+            this.dateLiteral = relativeDateLiteral.name() + ':' + n;
         }
 
         public override String toString() {
