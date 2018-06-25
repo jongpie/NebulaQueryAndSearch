@@ -189,6 +189,19 @@ public class AggregateQueryBuilder extends Soql {
         return this.query;
     }
 
+    public Integer getResultCount() {
+        String countQuery = 'SELECT COUNT()'
+            + ' FROM ' + this.sobjectType
+            + super.doGetUsingScopeString()
+            + super.doGetWhereClauseString()
+            + this.getGroupByString()
+            + this.getHavingString()
+            + super.doGetOrderByString()
+            + super.doGetLimitCountString()
+            + super.doGetOffetString();
+        return Database.countQuery(countQuery);
+    }
+
     public AggregateResult getFirstResult() {
         return (AggregateResult)super.doGetFirstResult();
     }
