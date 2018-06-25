@@ -19,7 +19,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_return_results_when_filtering() {
-        String expectedString = 'SELECT Type FROM Opportunity WHERE ParentId !+ null GROUP BY Type';
+        String expectedQueryString = 'SELECT Type FROM Opportunity WHERE AccountId != null GROUP BY Type';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
             .groupByField(Schema.Opportunity.Type)
@@ -27,6 +27,7 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
+        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
         List<AggregateResult> results = aggregateQueryBuilder.getResults();
 
         Test.stopTest();
@@ -34,16 +35,19 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_return_results_when_filtering_with_an_or_statement() {
-        String expectedQueryString = 'SELECT Id, Name FROM Account WHERE ParentId != null AND (AccountNumber = null OR Type = null)';
+        String expectedQueryString = 'SELECT Type, COUNT(Id) Id__COUNT FROM Account WHERE (AccountNumber = null OR Type = null) AND ParentId != null GROUP BY Type';
 
-        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
-            .addField(Schema.Account.AnnualRevenue)
+        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SobjectType)
+            .groupByField(Schema.Account.Type)
+            .filterWhere(new Soql.QueryFilter(Schema.Account.ParentId, Soql.Operator.NOT_EQUAL_TO, null))
             .orFilterWhere(new List<Soql.QueryFilter>{
                 new Soql.QueryFilter(Schema.Account.Type, Soql.Operator.EQUALS, null),
                 new Soql.QueryFilter(Schema.Account.AccountNumber, Soql.Operator.EQUALS, null)
             })
-            .filterWhere(new Soql.QueryFilter(Schema.Account.ParentId, Soql.Operator.NOT_EQUAL_TO, null));
-        List<Account> accounts = accountQuery.getResults();
+            .addAggregate(Soql.Aggregate.COUNT, Schema.Account.Id);
+
+        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
+        List<AggregateResult> results = aggregateQueryBuilder.getResults();
     }
 
     @isTest
@@ -65,7 +69,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_group_by_cube() {
-        String expectedString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY CUBE(Type, StageName)';
+        String expectedQueryString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY CUBE(Type, StageName)';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
             .groupByField(Schema.Opportunity.Type)
@@ -75,6 +79,7 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
+        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
         List<AggregateResult> results = aggregateQueryBuilder.getResults();
 
         Test.stopTest();
@@ -82,7 +87,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_group_by_rollup() {
-        String expectedString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY ROLLUP(Type, StageName)';
+        String expectedQueryString = 'SELECT Type, StageName, SUM(Amount) Amount__SUM FROM Opportunity GROUP BY ROLLUP(Type, StageName)';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
             .groupByField(Schema.Opportunity.Type)
@@ -92,6 +97,7 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
+        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
         List<AggregateResult> results = aggregateQueryBuilder.getResults();
 
         Test.stopTest();
@@ -99,7 +105,7 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_group_by_having_aggregate() {
-        String expectedString = 'SELECT Name, COUNT(Id) Id__COUNT FROM Account GROUP BY Name HAVING COUNT(Id) > 2';
+        String expectedQueryString = 'SELECT Name, COUNT(Id) Id__COUNT FROM Account GROUP BY Name HAVING COUNT(Id) > 2';
 
         AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SobjectType)
           .groupByField(Account.Name)
@@ -108,6 +114,23 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
+        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
+        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+
+        Test.stopTest();
+    }
+
+    @isTest
+    static void it_should_group_by_a_date_function() {
+        String expectedQueryString = 'SELECT CALENDAR_MONTH(CloseDate), COUNT(Id) Id__COUNT FROM Opportunity GROUP BY CALENDAR_MONTH(CloseDate)';
+
+        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SobjectType)
+          .groupByField(new Soql.QueryField(Soql.DateFunction.CALENDAR_MONTH, Schema.Opportunity.CloseDate))
+          .addAggregate(Soql.Aggregate.COUNT, Opportunity.Id);
+
+        Test.startTest();
+
+        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
         List<AggregateResult> results = aggregateQueryBuilder.getResults();
 
         Test.stopTest();
@@ -115,14 +138,14 @@ private class AggregateQueryBuilder_Tests {
 
     @isTest
     static void it_should_build_an_ridiculous_query_string() {
-        String expectedString = 'SELECT Account.Type, StageName, AVG(Amount) Amount__AVG, COUNT(AccountId) AccountId__COUNT,'
+        String expectedQueryString = 'SELECT Account.Type, StageName, AVG(Amount) Amount__AVG, COUNT(AccountId) AccountId__COUNT,'
             + ' COUNT_DISTINCT(AccountId) AccountId__COUNT_DISTINCT, COUNT_DISTINCT(OwnerId) OwnerId__COUNT_DISTINCT, COUNT_DISTINCT(Type) Type__COUNT_DISTINCT,'
             + ' MAX(CreatedDate) CreatedDate__MAX, MIN(CreatedDate) CreatedDate__MIN, SUM(Amount) Amount__SUM'
             + ' FROM Opportunity'
             + ' WHERE AccountId != null'
             + ' GROUP BY Account.Type, StageName'
             + ' ORDER BY Account.Type ASC NULLS FIRST, StageName ASC NULLS FIRST, SUM(Amount) ASC NULLS FIRST,'
-                + ' MIN(CloseDate) DESC NULLS FIRST, MAX(Account.LastActivityDate) ASC NULLS FIRST'
+            + ' MIN(CloseDate) DESC NULLS FIRST, MAX(Account.LastActivityDate) ASC NULLS FIRST'
             + ' LIMIT 100'
             + ' OFFSET 0';
 
@@ -161,7 +184,7 @@ private class AggregateQueryBuilder_Tests {
 
         Test.stopTest();
 
-        System.assertEquals(expectedString, returnedQueryString);
+        System.assertEquals(expectedQueryString, returnedQueryString);
 
         // Verify that the query can be executed
         List<AggregateResult> results = Database.query(returnedQueryString);

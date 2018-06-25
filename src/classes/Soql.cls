@@ -17,6 +17,13 @@ public abstract class Soql implements Comparable {
     }
     public enum Scope { EVERYTHING, DELEGATED, TEAM, MINE, MY_TERRITORY, MY_TEAM_TERRITORY }
     public enum SortOrder { ASCENDING, DESCENDING }
+    public enum DateFunction {
+        HOUR_IN_DAY,
+        DAY_ONLY, DAY_IN_MONTH, DAY_IN_WEEK, DAY_IN_YEAR,
+        WEEK_IN_MONTH, WEEK_IN_YEAR,
+        FISCAL_MONTH, FISCAL_QUARTER, FISCAL_YEAR,
+        CALENDAR_MONTH, CALENDAR_QUARTER, CALENDAR_YEAR
+    }
     public enum FixedDateLiteral {
         YESTERDAY, TODAY, TOMORROW,
         LAST_WEEK, THIS_WEEK, NEXT_WEEK,
@@ -292,6 +299,15 @@ public abstract class Soql implements Comparable {
         public QueryField(List<Schema.SobjectField> fieldChain) {
             this.fieldDescribe  = this.getLastFieldDescribe(fieldChain);
             this.queryFieldPath = this.getQueryField(fieldChain);
+        }
+
+        public QueryField(Soql.DateFunction dateFunction, Schema.SobjectField field) {
+            this(dateFunction, new List<Schema.SobjectField>{field});
+        }
+
+        public QueryField(Soql.DateFunction dateFunction, List<Schema.SobjectField> fieldChain) {
+            this.fieldDescribe  = this.getLastFieldDescribe(fieldChain);
+            this.queryFieldPath = dateFunction.name() + '(' + this.getQueryField(fieldChain) + ')';
         }
 
         public override String toString() {
