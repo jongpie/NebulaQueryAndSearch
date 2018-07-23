@@ -401,6 +401,16 @@ public abstract class Soql implements Comparable {
             this.filterString = queryField + ' ' + Soql.getOperatorValue(operator) + ' ' + formattedValue;
         }
 
+        public QueryFilter(Schema.SobjectType childSobjectType, Boolean inOrNotIn, Schema.SobjectField lookupFieldOnChildSobject) {
+            this.operator     = inOrNotIn ? Soql.Operator.IS_IN : Soql.Operator.IS_NOT_IN;
+            this.filterString = 'Id ' + Soql.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSobject + ' FROM ' + childSobjectType + ')';
+        }
+
+        public QueryFilter(SobjectQueryBuilder childSobjectQueryBuilder, Boolean inOrNotIn, Schema.SobjectField lookupFieldOnChildSobject) {
+            this.operator     = inOrNotIn ? Soql.Operator.IS_IN : Soql.Operator.IS_NOT_IN;
+            this.filterString = 'Id ' + Soql.getOperatorValue(this.operator) + ' ' + childSobjectQueryBuilder.getSubquery(lookupFieldOnChildSobject);
+        }
+
         public Integer compareTo(Object compareTo) {
             QueryFilter compareToQueryFilter = (QueryFilter)compareTo;
 
