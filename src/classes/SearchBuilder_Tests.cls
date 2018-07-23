@@ -1,44 +1,55 @@
 /******************************************************************************************************
-* This file is part of the Nebula Framework project, released under the MIT License.                  *
+* This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
 @isTest
-private class Sosl_Tests {
+private class SearchBuilder_Tests {
+
+    @isTest
+    static void it_should_return_first_result_for_a_single_sobject_type() {
+        String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)';
+
+        SobjectQueryBuilder userQuery  = new SobjectQueryBuilder(Schema.User.SobjectType);
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), userQuery);
+
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        User userSearchResult = (User)userSearch.getFirstResult();
+    }
 
     @isTest
     static void it_should_return_results_for_a_single_sobject_type() {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)';
 
-        Soql userQuery  = new Soql(Schema.User.SobjectType);
-        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), userQuery);
+        SobjectQueryBuilder userQuery  = new SobjectQueryBuilder(Schema.User.SobjectType);
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), userQuery);
 
-        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = userSearch.getFirstSearchResults();
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        List<User> userSearchResults = userSearch.getFirstResults();
     }
 
     @isTest
     static void it_should_return_results_for_multiple_sobject_types() {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING Account(Id, Name), User(Id, Name)';
 
-        List<Soql> queries = new List<Soql>{
-            new Soql(Schema.User.SobjectType),
-            new Soql(Schema.Account.SobjectType)
+        List<SobjectQueryBuilder> queries = new List<SobjectQueryBuilder>{
+            new SobjectQueryBuilder(Schema.User.SobjectType),
+            new SobjectQueryBuilder(Schema.Account.SobjectType)
         };
-        Sosl search = new Sosl(UserInfo.getUserEmail(), queries);
+        SearchBuilder search = new SearchBuilder(UserInfo.getUserEmail(), queries);
 
-        System.assertEquals(expectedSearchQueryString, search.getSearchQuery());
-        List<List<Sobject>> searchResults = search.getSearchResults();
+        System.assertEquals(expectedSearchQueryString, search.getSearch());
+        List<List<Sobject>> searchResults = search.getResults();
     }
 
     @isTest
     static void it_should_return_results_with_highlight_enabled() {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name) WITH HIGHLIGHT';
 
-        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
         userSearch.withHighlight();
 
-        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = userSearch.getFirstSearchResults();
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        List<User> userSearchResults = userSearch.getFirstResults();
     }
 
     @isTest
@@ -47,11 +58,11 @@ private class Sosl_Tests {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
             + ' WITH SNIPPET (target_length=' + snippetTargetLength + ')';
 
-        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
         userSearch.withSnippet(snippetTargetLength);
 
-        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = userSearch.getFirstSearchResults();
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        List<User> userSearchResults = userSearch.getFirstResults();
     }
 
     @isTest
@@ -59,11 +70,11 @@ private class Sosl_Tests {
         Integer snippetTargetLength = 10;
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN EMAIL FIELDS RETURNING User(Id, Name)';
 
-        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
         userSearch.inSearchGroup(Sosl.SearchGroup.EMAIL_FIELDS);
 
-        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = (List<User>)userSearch.getFirstSearchResults();
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        List<User> userSearchResults = (List<User>)userSearch.getFirstResults();
     }
 
     @isTest
@@ -71,11 +82,11 @@ private class Sosl_Tests {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
             + ' WITH SPELL_CORRECTION = true';
 
-        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
         userSearch.withSpellCorrection();
 
-        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = userSearch.getFirstSearchResults();
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        List<User> userSearchResults = userSearch.getFirstResults();
     }
 
     @isTest
@@ -87,11 +98,11 @@ private class Sosl_Tests {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
             + ' UPDATE TRACKING';
 
-        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
         userSearch.updateArticleReporting(Sosl.ArticleReporting.TRACKING);
 
-        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = userSearch.getFirstSearchResults();
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        List<User> userSearchResults = userSearch.getFirstResults();
     }
 
     @isTest
@@ -103,23 +114,23 @@ private class Sosl_Tests {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
             + ' UPDATE VIEWSTAT';
 
-        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), new Soql(Schema.User.SobjectType));
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), new SobjectQueryBuilder(Schema.User.SobjectType));
         userSearch.updateArticleReporting(Sosl.ArticleReporting.VIEWSTAT);
 
-        System.assertEquals(expectedSearchQueryString, userSearch.getSearchQuery());
-        List<User> userSearchResults = userSearch.getFirstSearchResults();
+        System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
+        List<User> userSearchResults = userSearch.getFirstResults();
     }
 
     @isTest
     static void it_should_cache_search_results_when_enabled() {
         Integer loops = 4;
-        Soql userQuery  = new Soql(Schema.User.SobjectType);
-        Sosl userSearch = new Sosl(UserInfo.getUserEmail(), userQuery);
+        SobjectQueryBuilder userQuery  = new SobjectQueryBuilder(Schema.User.SobjectType);
+        SearchBuilder userSearch = new SearchBuilder(UserInfo.getUserEmail(), userQuery);
 
         // First, verify that caching is not enabled by default
         System.assertEquals(0, Limits.getSoslQueries());
         for(Integer i=0; i < loops; i++) {
-            userSearch.getSearchResults();
+            userSearch.getResults();
         }
         System.assertEquals(loops, Limits.getSoslQueries());
 
@@ -127,7 +138,7 @@ private class Sosl_Tests {
 
         userSearch.cacheResults();
         for(Integer i=0; i < loops; i++) {
-            userSearch.getSearchResults();
+            userSearch.getResults();
         }
         System.assertEquals(1, Limits.getSoslQueries());
 
