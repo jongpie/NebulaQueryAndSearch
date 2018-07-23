@@ -5,19 +5,21 @@
 public class SobjectQueryBuilder extends Soql {
 
     private String displayFieldApiName;
+    private List<String> polymorphicFieldStatements;
     private List<String> childRelationshipQueries;
     private Boolean forReference, forUpdate, forView, includeLabels, includeFormattedValues;
 
     public SobjectQueryBuilder(Schema.SobjectType sobjectType) {
         super(sobjectType, true);
 
-        this.displayFieldApiName      = this.getDisplayFieldApiName(this.sobjectType);
-        this.childRelationshipQueries = new List<String>();
-        this.forReference             = false;
-        this.forUpdate                = false;
-        this.forView                  = false;
-        this.includeLabels            = false;
-        this.includeFormattedValues   = false;
+        this.displayFieldApiName        = this.getDisplayFieldApiName(this.sobjectType);
+        this.polymorphicFieldStatements = new List<String>();
+        this.childRelationshipQueries   = new List<String>();
+        this.forReference               = false;
+        this.forUpdate                  = false;
+        this.forView                    = false;
+        this.includeLabels              = false;
+        this.includeFormattedValues     = false;
 
         this.addDefaultFields();
     }
@@ -77,6 +79,21 @@ public class SobjectQueryBuilder extends Soql {
             queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
         }
         return this.addFields(queryFields, fieldCategory);
+    }
+
+    public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField relationshipField, Map<Schema.SobjectType, List<Schema.SobjectField>> fieldsBySobjectType) {
+        String polymorphicFieldStatement = 'TYPEOF ' + relationshipField.getDescribe().getRelationshipName();
+        for(Schema.SobjectType sobjectType : fieldsBySobjectType.keySet()) {
+            List<String> fieldNames = new List<String>();
+            for(Schema.SobjectField field : fieldsBySobjectType.get(sobjectType)) {
+                if(field.getDescribe().isAccessible()) fieldNames.add(String.valueOf(field));
+            }
+            fieldNames.sort();
+            polymorphicFieldStatement += ' WHEN ' + sobjectType + ' THEN ' + String.join(fieldNames, ', ');
+        }
+        polymorphicFieldStatement += ' END';
+        this.polymorphicFieldStatements.add(polymorphicFieldStatement);
+        return this.setHasChanged();
     }
 
     public SobjectQueryBuilder includeLabels() {
@@ -209,10 +226,15 @@ public class SobjectQueryBuilder extends Soql {
         if(this.query != null && !this.hasChanged) return this.query;
 
         String queryFieldString = this.getQueryFieldString();
+
+        String polymorphicFieldsString    = String.join(this.polymorphicFieldStatements, ', ');
+        String polymorphicFieldsDelimiter = !String.isEmpty(queryFieldString) && !String.isEmpty(polymorphicFieldsString) ? ', ' : '';
+
         String childRelationshipsQueryFieldString = this.getChildRelationshipsQueryFieldString();
-        String childRelationshipDelimiter = !String.isEmpty(queryFieldString) && !String.isEmpty(childRelationshipsQueryFieldString) ? ', ' : '';
+        String childRelationshipDelimiter         = !String.isEmpty(queryFieldString) && !String.isEmpty(childRelationshipsQueryFieldString) ? ', ' : '';
 
         this.query = 'SELECT ' + queryFieldString
+            + polymorphicFieldsDelimiter + polymorphicFieldsString
             + childRelationshipDelimiter + childRelationshipsQueryFieldString
             + ' FROM ' + this.sobjectType
             + super.doGetUsingScopeString()
