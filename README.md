@@ -1,5 +1,5 @@
 # Nebula Query & Search for Salesforce Apex
-[![Travis CI](https://img.shields.io/travis/jongpie/NebulaLogger/master.svg)](https://travis-ci.org/jongpie/NebulaLogger)
+[![Travis CI](https://img.shields.io/travis/jongpie/NebulaQueryAndSearch/master.svg)](https://travis-ci.org/jongpie/NebulaQueryAndSearch)
 
 <a href="https://githubsfdeploy.herokuapp.com" target="_blank">
     <img alt="Deploy to Salesforce" src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
