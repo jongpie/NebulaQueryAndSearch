@@ -84,9 +84,8 @@ public class SobjectQueryBuilder extends Soql {
     public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField relationshipField, Map<Schema.SobjectType, List<Schema.SobjectField>> fieldsBySobjectType) {
         Map<Schema.SobjectType, List<Soql.QueryField>> queryFieldsBySobjectType = new Map<Schema.SobjectType, List<Soql.QueryField>>();
         for(Schema.SobjectType sobjectType : fieldsBySobjectType.keySet()) {
-            List<Schema.SobjectField> fields = fieldsBySobjectType.get(sobjectType);
             List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-            for(Schema.SobjectField field : fields) {
+            for(Schema.SobjectField field : fieldsBySobjectType.get(sobjectType)) {
                 queryFields.add(new Soql.QueryField(field));
             }
             queryFieldsBySobjectType.put(sobjectType, queryFields);
@@ -105,8 +104,8 @@ public class SobjectQueryBuilder extends Soql {
             polymorphicFieldStatement += ' WHEN ' + sobjectType + ' THEN ' + String.join(fieldNames, ', ');
         }
 
-        List<String> supportedPolymorphicFieldNames = new List<String>();
         // The Name object contains the list of all possible polymorphic fields in the org
+        List<String> supportedPolymorphicFieldNames = new List<String>();
         for(Schema.SobjectField field : Schema.Name.SobjectType.getDescribe().fields.getMap().values()) {
             if(field.getDescribe().isAccessible()) supportedPolymorphicFieldNames.add(String.valueOf(field));
         }
