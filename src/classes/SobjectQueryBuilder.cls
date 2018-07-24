@@ -91,7 +91,14 @@ public class SobjectQueryBuilder extends Soql {
             fieldNames.sort();
             polymorphicFieldStatement += ' WHEN ' + sobjectType + ' THEN ' + String.join(fieldNames, ', ');
         }
-        polymorphicFieldStatement += ' END';
+
+        List<String> nameFields = new List<String>();
+        for(Schema.SobjectField field : Schema.Name.SobjectType.getDescribe().fields.getMap().values()) {
+            if(field.getDescribe().isAccessible()) nameFields.add(String.valueOf(field));
+        }
+        nameFields.sort();
+        polymorphicFieldStatement += ' ELSE ' + String.join(nameFields, ', ') + ' END';
+
         this.polymorphicFieldStatements.add(polymorphicFieldStatement);
         return this.setHasChanged();
     }
