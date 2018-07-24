@@ -86,6 +86,50 @@ private class SobjectQueryBuilder_Tests {
     }
 
     @isTest
+    static void it_should_return_results_and_include_separate_fields_for_for_polymorphic_field() {
+        List<String> supportedPolymorphicFieldNames = new List<String>();
+        for(Schema.SobjectField field : Schema.Name.SobjectType.getDescribe().fields.getMap().values()) {
+            Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
+
+            if(!fieldDescribe.isAccessible()) continue;
+            supportedPolymorphicFieldNames.add(String.valueOf(field));
+
+            Set<String> referenceFieldNames = new Set<String>{'ProfileId',  'RecordTypeId', 'UserRoleId'};
+            if(referenceFieldNames.contains(fieldDescribe.getName())) supportedPolymorphicFieldNames.add(fieldDescribe.getRelationshipName() + '.Name');
+        }
+        supportedPolymorphicFieldNames.sort();
+        String expectedQuery = 'SELECT Id, Subject, TYPEOF Who WHEN Contact THEN Account.Name, AccountId, Id, Name'
+            +' WHEN Lead THEN Company, Id, LeadSource, Name'
+            + ' ELSE ' + String.join(supportedPolymorphicFieldNames, ', ') + ' END'
+            + ' FROM Task';
+
+        Test.startTest();
+
+        Map<Schema.SobjectType, List<Schema.SobjectField>> fieldsBySobjectType = new Map<Schema.SobjectType, List<Schema.SobjectField>>();
+
+        // Contact fields
+        List<Schema.SobjectField> contactFields = new List<Schema.SobjectField>{
+            Schema.Contact.Id, Schema.Contact.Name, Schema.Contact.AccountId
+        };
+        fieldsBySobjectType.put(Schema.Contact.SobjectType, contactFields);
+
+        // Lead fields
+        List<Schema.SobjectField> leadFields = new List<Schema.SobjectField>{
+            Schema.Lead.Id, Schema.Lead.Name, Schema.Lead.Company, Schema.Lead.LeadSource
+        };
+        fieldsBySobjectType.put(Schema.Lead.SobjectType, leadFields );
+
+        // Query the task object
+        SobjectQueryBuilder taskQuery = new SobjectQueryBuilder(Schema.Task.SobjectType)
+            .addPolymorphicFields(Schema.Task.WhoId, fieldsBySobjectType);
+
+        Test.stopTest();
+
+        System.assertEquals(expectedQuery, taskQuery.getQuery());
+        System.debug(taskQuery.getResults());
+    }
+
+    @isTest
     static void it_should_return_results_and_include_sobject_type_for_polymorphic_field() {
         String expectedQueryString = 'SELECT Id, Name, Owner.Name, Owner.Type, OwnerId FROM Lead';
 
