@@ -372,7 +372,7 @@ public class SobjectQueryBuilder extends Soql {
         return null;
     }
 
-    private String getParentObjectNameField(Schema.DescribeFieldResult fieldDescribe) {
+    private String getParentSobjectNameField(Schema.DescribeFieldResult fieldDescribe) {
         String relationshipName = fieldDescribe.getRelationshipName();
         Schema.SobjectType parentSobjectType = fieldDescribe.getReferenceTo()[0];
         String nameField = this.getDisplayFieldApiName(parentSobjectType);
@@ -416,7 +416,7 @@ public class SobjectQueryBuilder extends Soql {
                 fieldsToReturn.add(parentTypeFieldPath);
             }
 
-            String parentNameField = this.getParentObjectNameField(queryField.getDescribe());
+            String parentNameField = this.getParentSobjectNameField(queryField.getDescribe());
             if(parentNameField != null) {
                 fieldsToReturn.add(parentNameField);
                 // Record type names can be translated, so include the translation
