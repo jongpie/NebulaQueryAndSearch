@@ -98,7 +98,7 @@ public class SobjectQueryBuilder extends Soql {
         for(Schema.SobjectType sobjectType : queryFieldsBySobjectType.keySet()) {
             List<String> fieldNames = new List<String>();
             for(Soql.QueryField queryField : queryFieldsBySobjectType.get(sobjectType)) {
-                if(queryField.getDescribe().isAccessible()) fieldNames.add(String.valueOf(queryField));
+                fieldNames.addAll(this.getFieldsToQuery(queryField, Soql.FieldCategory.ACCESSIBLE));
             }
             fieldNames.sort();
             polymorphicFieldStatement += ' WHEN ' + sobjectType + ' THEN ' + String.join(fieldNames, ', ');
@@ -107,7 +107,7 @@ public class SobjectQueryBuilder extends Soql {
         // The Name object contains the list of all possible polymorphic fields in the org
         List<String> supportedPolymorphicFieldNames = new List<String>();
         for(Schema.SobjectField field : Schema.Name.SobjectType.getDescribe().fields.getMap().values()) {
-            if(field.getDescribe().isAccessible()) supportedPolymorphicFieldNames.add(String.valueOf(field));
+            supportedPolymorphicFieldNames.addAll(this.getFieldsToQuery(new QueryField(field), Soql.FieldCategory.ACCESSIBLE));
         }
         supportedPolymorphicFieldNames.sort();
         polymorphicFieldStatement += ' ELSE ' + String.join(supportedPolymorphicFieldNames, ', ') + ' END';
@@ -383,7 +383,6 @@ public class SobjectQueryBuilder extends Soql {
     }
 
     private List<String> getFieldsToQuery(Soql.QueryField queryField, Soql.FieldCategory fieldCat) {
-        //List<String> fieldsToReturn = super.doGetFieldsToQuery(queryField, fieldCat);
         List<String> fieldsToReturn = new List<String>();
 
         if(fieldCat == null) return fieldsToReturn;
@@ -409,7 +408,7 @@ public class SobjectQueryBuilder extends Soql {
         }
 
         // If the field is a lookup, then we need to get the name field from the parent object
-        if(queryField.getDescribe().getType().name() == 'Reference') {
+        if(queryField.getDescribe().getType().name() == 'REFERENCE') {
             if(queryField.getDescribe().isNamePointing()) {
                 String fieldPath = queryField.getFieldPath();
                 Integer indx = fieldPath.lastIndexOf(queryField.getDescribe().getName());
