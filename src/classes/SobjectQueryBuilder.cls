@@ -82,22 +82,36 @@ public class SobjectQueryBuilder extends Soql {
     }
 
     public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField relationshipField, Map<Schema.SobjectType, List<Schema.SobjectField>> fieldsBySobjectType) {
-        String polymorphicFieldStatement = 'TYPEOF ' + relationshipField.getDescribe().getRelationshipName();
+        Map<Schema.SobjectType, List<Soql.QueryField>> queryFieldsBySobjectType = new Map<Schema.SobjectType, List<Soql.QueryField>>();
         for(Schema.SobjectType sobjectType : fieldsBySobjectType.keySet()) {
+            List<Schema.SobjectField> fields = fieldsBySobjectType.get(sobjectType);
+            List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
+            for(Schema.SobjectField field : fields) {
+                queryFields.add(new Soql.QueryField(field));
+            }
+            queryFieldsBySobjectType.put(sobjectType, queryFields);
+        }
+        return this.addPolymorphicFields(relationshipField, queryFieldsBySobjectType);
+    }
+
+    public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField relationshipField, Map<Schema.SobjectType, List<Soql.QueryField>> queryFieldsBySobjectType) {
+        String polymorphicFieldStatement = 'TYPEOF ' + relationshipField.getDescribe().getRelationshipName();
+        for(Schema.SobjectType sobjectType : queryFieldsBySobjectType.keySet()) {
             List<String> fieldNames = new List<String>();
-            for(Schema.SobjectField field : fieldsBySobjectType.get(sobjectType)) {
-                if(field.getDescribe().isAccessible()) fieldNames.add(String.valueOf(field));
+            for(Soql.QueryField queryField : queryFieldsBySobjectType.get(sobjectType)) {
+                if(queryField.getDescribe().isAccessible()) fieldNames.add(String.valueOf(queryField));
             }
             fieldNames.sort();
             polymorphicFieldStatement += ' WHEN ' + sobjectType + ' THEN ' + String.join(fieldNames, ', ');
         }
 
-        List<String> nameFields = new List<String>();
+        List<String> supportedPolymorphicFieldNames = new List<String>();
+        // The Name object contains the list of all possible polymorphic fields in the org
         for(Schema.SobjectField field : Schema.Name.SobjectType.getDescribe().fields.getMap().values()) {
-            if(field.getDescribe().isAccessible()) nameFields.add(String.valueOf(field));
+            if(field.getDescribe().isAccessible()) supportedPolymorphicFieldNames.add(String.valueOf(field));
         }
-        nameFields.sort();
-        polymorphicFieldStatement += ' ELSE ' + String.join(nameFields, ', ') + ' END';
+        supportedPolymorphicFieldNames.sort();
+        polymorphicFieldStatement += ' ELSE ' + String.join(supportedPolymorphicFieldNames, ', ') + ' END';
 
         this.polymorphicFieldStatements.add(polymorphicFieldStatement);
         return this.setHasChanged();
