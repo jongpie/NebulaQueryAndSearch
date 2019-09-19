@@ -5,19 +5,21 @@
 public class SobjectQueryBuilder extends Soql {
 
     private String displayFieldApiName;
+    private List<String> polymorphicFieldStatements;
     private List<String> childRelationshipQueries;
     private Boolean forReference, forUpdate, forView, includeLabels, includeFormattedValues;
 
     public SobjectQueryBuilder(Schema.SobjectType sobjectType) {
         super(sobjectType, true);
 
-        this.displayFieldApiName      = this.getDisplayFieldApiName(this.sobjectType);
-        this.childRelationshipQueries = new List<String>();
-        this.forReference             = false;
-        this.forUpdate                = false;
-        this.forView                  = false;
-        this.includeLabels            = false;
-        this.includeFormattedValues   = false;
+        this.displayFieldApiName        = this.getDisplayFieldApiName(this.sobjectType);
+        this.polymorphicFieldStatements = new List<String>();
+        this.childRelationshipQueries   = new List<String>();
+        this.forReference               = false;
+        this.forUpdate                  = false;
+        this.forView                    = false;
+        this.includeLabels              = false;
+        this.includeFormattedValues     = false;
 
         this.addDefaultFields();
     }
@@ -77,6 +79,53 @@ public class SobjectQueryBuilder extends Soql {
             queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
         }
         return this.addFields(queryFields, fieldCategory);
+    }
+
+    public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField polymorphicRelationshipField) {
+        return addPolymorphicFields(polymorphicRelationshipField, new Map<Schema.SobjectType, List<Schema.SobjectField>>());
+    }
+
+    public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField polymorphicRelationshipField, Map<Schema.SobjectType, List<Schema.SobjectField>> fieldsBySobjectType) {
+        Map<Schema.SobjectType, List<Soql.QueryField>> queryFieldsBySobjectType = new Map<Schema.SobjectType, List<Soql.QueryField>>();
+        for(Schema.SobjectType sobjectType : fieldsBySobjectType.keySet()) {
+            List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
+            for(Schema.SobjectField field : fieldsBySobjectType.get(sobjectType)) {
+                queryFields.add(new Soql.QueryField(field));
+            }
+            queryFieldsBySobjectType.put(sobjectType, queryFields);
+        }
+        return this.addPolymorphicFields(polymorphicRelationshipField, queryFieldsBySobjectType);
+    }
+
+    public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField polymorphicRelationshipField, Map<Schema.SobjectType, List<Soql.QueryField>> queryFieldsBySobjectType) {
+        String polymorphicFieldStatement = queryFieldsBySobjectType.isEmpty() ? '' : 'TYPEOF ' + polymorphicRelationshipField.getDescribe().getRelationshipName();
+        for(Schema.SobjectType sobjectType : queryFieldsBySobjectType.keySet()) {
+            List<String> fieldNames = new List<String>();
+            for(Soql.QueryField queryField : queryFieldsBySobjectType.get(sobjectType)) {
+                fieldNames.addAll(this.getFieldsToQuery(queryField, Soql.FieldCategory.ACCESSIBLE));
+            }
+            fieldNames.sort();
+            polymorphicFieldStatement += ' WHEN ' + sobjectType + ' THEN ' + String.join(fieldNames, ', ');
+        }
+
+        // The Name object contains the list of all possible polymorphic fields in the org
+        List<String> supportedPolymorphicFieldNames = new List<String>();
+        for(Schema.SobjectField field : Schema.Name.SobjectType.getDescribe().fields.getMap().values()) {
+            supportedPolymorphicFieldNames.addAll(this.getFieldsToQuery(new QueryField(field), Soql.FieldCategory.ACCESSIBLE));
+        }
+        supportedPolymorphicFieldNames.sort();
+        if(!queryFieldsBySobjectType.isEmpty()) polymorphicFieldStatement += ' ELSE ';
+        else if(queryFieldsBySobjectType.isEmpty()) {
+            String supportedPolymorphicFieldPrefix = queryFieldsBySobjectType.isEmpty() ? 'Who.' : '';
+            for(Integer i = 0; i < supportedPolymorphicFieldNames.size(); i++) {
+                supportedPolymorphicFieldNames[i] = supportedPolymorphicFieldPrefix + supportedPolymorphicFieldNames[i];
+            }
+        }
+        polymorphicFieldStatement += String.join(supportedPolymorphicFieldNames, ', ');
+        if(!queryFieldsBySobjectType.isEmpty()) polymorphicFieldStatement += ' END';
+
+        this.polymorphicFieldStatements.add(polymorphicFieldStatement);
+        return this.setHasChanged();
     }
 
     public SobjectQueryBuilder includeLabels() {
@@ -209,10 +258,15 @@ public class SobjectQueryBuilder extends Soql {
         if(this.query != null && !this.hasChanged) return this.query;
 
         String queryFieldString = this.getQueryFieldString();
+
+        String polymorphicFieldsString    = String.join(this.polymorphicFieldStatements, ', ');
+        String polymorphicFieldsDelimiter = !String.isEmpty(queryFieldString) && !String.isEmpty(polymorphicFieldsString) ? ', ' : '';
+
         String childRelationshipsQueryFieldString = this.getChildRelationshipsQueryFieldString();
-        String childRelationshipDelimiter = !String.isEmpty(queryFieldString) && !String.isEmpty(childRelationshipsQueryFieldString) ? ', ' : '';
+        String childRelationshipDelimiter         = !String.isEmpty(queryFieldString) && !String.isEmpty(childRelationshipsQueryFieldString) ? ', ' : '';
 
         this.query = 'SELECT ' + queryFieldString
+            + polymorphicFieldsDelimiter + polymorphicFieldsString
             + childRelationshipDelimiter + childRelationshipsQueryFieldString
             + ' FROM ' + this.sobjectType
             + super.doGetUsingScopeString()
@@ -330,7 +384,7 @@ public class SobjectQueryBuilder extends Soql {
         return null;
     }
 
-    private String getParentObjectNameField(Schema.DescribeFieldResult fieldDescribe) {
+    private String getParentSobjectNameField(Schema.DescribeFieldResult fieldDescribe) {
         String relationshipName = fieldDescribe.getRelationshipName();
         Schema.SobjectType parentSobjectType = fieldDescribe.getReferenceTo()[0];
         String nameField = this.getDisplayFieldApiName(parentSobjectType);
@@ -341,7 +395,6 @@ public class SobjectQueryBuilder extends Soql {
     }
 
     private List<String> getFieldsToQuery(Soql.QueryField queryField, Soql.FieldCategory fieldCat) {
-        //List<String> fieldsToReturn = super.doGetFieldsToQuery(queryField, fieldCat);
         List<String> fieldsToReturn = new List<String>();
 
         if(fieldCat == null) return fieldsToReturn;
@@ -367,7 +420,7 @@ public class SobjectQueryBuilder extends Soql {
         }
 
         // If the field is a lookup, then we need to get the name field from the parent object
-        if(queryField.getDescribe().getType().name() == 'Reference') {
+        if(queryField.getDescribe().getType().name() == 'REFERENCE') {
             if(queryField.getDescribe().isNamePointing()) {
                 String fieldPath = queryField.getFieldPath();
                 Integer indx = fieldPath.lastIndexOf(queryField.getDescribe().getName());
@@ -375,7 +428,7 @@ public class SobjectQueryBuilder extends Soql {
                 fieldsToReturn.add(parentTypeFieldPath);
             }
 
-            String parentNameField = this.getParentObjectNameField(queryField.getDescribe());
+            String parentNameField = this.getParentSobjectNameField(queryField.getDescribe());
             if(parentNameField != null) {
                 fieldsToReturn.add(parentNameField);
                 // Record type names can be translated, so include the translation
