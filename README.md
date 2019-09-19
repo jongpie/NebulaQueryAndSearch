@@ -21,23 +21,23 @@ A dynamic SOQL query & SOSL search library for for Salesforce Apex<br /><br />
 ## Overview
 There are 3 main builder classes
 
- &nbsp; | SobjectQueryBuilder | AggregateQueryBuilder | SearchBuilder
+ &nbsp; | SObjectQueryBuilder | AggregateQueryBuilder | SearchBuilder
 ------- | --------------------|-----------------------|--------------
 Super Class | Soql.cls (Queries) | Soql.cls (Queries) | Sosl.cls (Searches) | -
-Action | Queries an Sobject | Queries an Sobject | Searches 1 or more Sobjects
-Returns | `Sobject` or `List<Sobject>` | `AggregateResult` or `List<AggregateResult>` | `Sobject`, `List<Sobject>` or `List<List<Sobject>>`
+Action | Queries an SObject | Queries an SObject | Searches 1 or more SObjects
+Returns | `SObject` or `List<SObject>` | `AggregateResult` or `List<AggregateResult>` | `SObject`, `List<SObject>` or `List<List<SObject>>`
 
-## SOQL Sobject Query Examples
+## SOQL SObject Query Examples
 **Basic Usage:** Query an object & return the object's ID and display name field (typically the 'Name' field, but some objects use other fields, like Task.Subject and Case.CaseNumber). Since no filters have been added, this query would also return all accounts.
 
 ```
-List<Account> accounts = new SobjectQueryBuilder(Schema.Account.SobjectType).getResults();
+List<Account> accounts = new SObjectQueryBuilder(Schema.Account.SObjectType).getResults();
 ```
 
 **Advanced Usage:** Query an object & leverage the query builder methods. The order of the builder methods does not matter - you can arrange the calls to these methods in any order that you prefer.
 
 ```
-SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType) // Query the account object
+SObjectQueryBuilder accountQuery = new SObjectQueryBuilder(Schema.Account.SObjectType) // Query the account object
     .addField(Schema.Account.ParentId)                                                 // Include the ParentId field, using SObjectField. The current user must have at least read access to the field
     .addField(Schema.Account.Type, Soql.FieldCategory.UPDATEABLE)                      // Include the Type field if the current user has access to update it
     .addFields(Soql.FieldCategory.CUSTOM)                                              // Include all custom fields - only fields that are accessible to the user are included
@@ -74,8 +74,8 @@ System.debug(accountQuery.getQuery());
 **Basic Usage:** Search a single object
 
 ```
-SobjectQueryBuilder userQuery = new SobjectQueryBuilder(Schema.User.SobjectType); // Create an instance of SobjectQueryBuilder for an Sobject - you can include additional fields, filters, etc
-SearchBuilder userSearch      = new SearchBuilder('my search term', userQuery);   // Create a new SearchBuilder instance with a search term & instance of SobjectQueryBuilder
+SObjectQueryBuilder userQuery = new SObjectQueryBuilder(Schema.User.SObjectType); // Create an instance of SObjectQueryBuilder for an SObject - you can include additional fields, filters, etc
+SearchBuilder userSearch      = new SearchBuilder('my search term', userQuery);   // Create a new SearchBuilder instance with a search term & instance of SObjectQueryBuilder
 List<User> userSearchResults  = userSearch.getFirstResults();                     // SearchBuilder returns a list of lists of sobjects - getFirstResults() returns the first list
 
 /****** Resulting output *******
@@ -88,13 +88,13 @@ System.debug(userSearch.getSearch());
 **Advanced Usage:** Search several objects
 
 ```
-SobjectQueryBuilder accountQuery  = new SobjectQueryBuilder(Schema.Account.SobjectType);                  // Create an instance of SobjectQueryBuilder for the Account object
-SobjectQueryBuilder contactQuery  = new SobjectQueryBuilder(Schema.Contact.SobjectType);                  // Create an instance of SobjectQueryBuilder for the Contact object
-SobjectQueryBuilder leadQuery     = new SobjectQueryBuilder(Schema.Lead.SobjectType);                     // Create an instance of SobjectQueryBuilder for the Lead object
-List<SobjectQueryBuilder> queries = new List<SobjectQueryBuilder>{contactQuery, accountQuery, leadQuery}; // Add the SobjectQueryBuilder queries to a list
+SObjectQueryBuilder accountQuery  = new SObjectQueryBuilder(Schema.Account.SObjectType);                  // Create an instance of SObjectQueryBuilder for the Account object
+SObjectQueryBuilder contactQuery  = new SObjectQueryBuilder(Schema.Contact.SObjectType);                  // Create an instance of SObjectQueryBuilder for the Contact object
+SObjectQueryBuilder leadQuery     = new SObjectQueryBuilder(Schema.Lead.SObjectType);                     // Create an instance of SObjectQueryBuilder for the Lead object
+List<SObjectQueryBuilder> queries = new List<SObjectQueryBuilder>{contactQuery, accountQuery, leadQuery}; // Add the SObjectQueryBuilder queries to a list
 
-SearchBuilder mySearch            = new SearchBuilder('my search term', queries); // Create a new SearchBuilder instance with a search term & the list of SobjectQueryBuilder queries
-List<List<Sobject>> searchResults = mySearch.getResults();                        // Returns all search results
+SearchBuilder mySearch            = new SearchBuilder('my search term', queries); // Create a new SearchBuilder instance with a search term & the list of SObjectQueryBuilder queries
+List<List<SObject>> searchResults = mySearch.getResults();                        // Returns all search results
 
 /****** Resulting output *******
 FIND 'my search term' IN ALL FIELDS RETURNING Account(Id, Name), Contact(Id, Name), Lead(Id, Name)

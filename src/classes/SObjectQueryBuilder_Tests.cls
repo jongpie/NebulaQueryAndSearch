@@ -3,13 +3,13 @@
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
 @isTest
-private class SobjectQueryBuilder_Tests {
+private class SObjectQueryBuilder_Tests {
 
     @isTest
     static void it_should_return_results_for_a_simple_query() {
         String expectedQueryString = 'SELECT Id, Name FROM Account';
 
-        SobjectQueryBuilder simpleAccountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType);
+        SObjectQueryBuilder simpleAccountQuery = new SObjectQueryBuilder(Schema.Account.SObjectType);
 
         System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
         List<Account> accounts = simpleAccountQuery.getResults();
@@ -30,9 +30,9 @@ private class SobjectQueryBuilder_Tests {
             + ' ORDER BY Profile.CreatedBy.LastModifiedDate ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST'
             + ' LIMIT 100 OFFSET 1 FOR VIEW';
 
-        List<SobjectField> fieldsToQuery = new List<SobjectField>{Schema.User.IsActive, Schema.User.Alias};
+        List<SObjectField> fieldsToQuery = new List<SObjectField>{Schema.User.IsActive, Schema.User.Alias};
 
-        SobjectQueryBuilder userQuery = new SobjectQueryBuilder(Schema.User.SobjectType)
+        SObjectQueryBuilder userQuery = new SObjectQueryBuilder(Schema.User.SObjectType)
             .addFields(fieldsToQuery)
             .addField(Schema.User.ProfileId)
             .addField(Schema.User.Email, Soql.FieldCategory.UPDATEABLE)
@@ -42,12 +42,12 @@ private class SobjectQueryBuilder_Tests {
             .includeFormattedValues()
             .usingScope(Soql.Scope.MINE)
             .filterWhere(Schema.User.IsActive, Soql.Operator.EQUALS, true)
-            .filterWhere(new Soql.QueryField(Schema.User.SobjectType, 'Profile.Id'), Soql.Operator.NOT_EQUAL_TO, UserInfo.getProfileId())
+            .filterWhere(new Soql.QueryField(Schema.User.SObjectType, 'Profile.Id'), Soql.Operator.NOT_EQUAL_TO, UserInfo.getProfileId())
             .filterWhere(Schema.User.LastModifiedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, now)
             .filterWhere(Schema.User.LastLoginDate, Soql.Operator.GREATER_THAN_OR_EQUAL_TO, new Soql.DateLiteral(Soql.RelativeDateLiteral.LAST_N_DAYS, 3))
             .filterWhere(Schema.User.CreatedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, new Soql.DateLiteral(Soql.FixedDateLiteral.LAST_WEEK))
             .filterWhere(Schema.User.Email, Soql.Operator.NOT_EQUAL_TO, null)
-            .orderByField(new Soql.QueryField(Schema.User.SobjectType, 'Profile.CreatedBy.LastModifiedDate'))
+            .orderByField(new Soql.QueryField(Schema.User.SObjectType, 'Profile.CreatedBy.LastModifiedDate'))
             .orderByField(Schema.User.Name, Soql.SortOrder.ASCENDING)
             .orderByField(Schema.User.Email)
             .limitTo(100)
@@ -62,12 +62,12 @@ private class SobjectQueryBuilder_Tests {
     static void it_should_return_results_and_include_grandparent_query_field() {
         String expectedQueryString = 'SELECT Id, Name, Parent.Owner.Name FROM Account';
 
-        List<Schema.SobjectField> fieldChain = new List<Schema.SobjectField>{
+        List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{
             Schema.Account.ParentId, Schema.Account.OwnerId, Schema.User.Name
         };
         Soql.QueryField queryField = new Soql.QueryField(fieldChain);
 
-        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType);
+        SObjectQueryBuilder accountQuery = new SObjectQueryBuilder(Schema.Account.SObjectType);
         accountQuery.addField(queryField);
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());
@@ -78,7 +78,7 @@ private class SobjectQueryBuilder_Tests {
     static void it_should_return_results_and_not_include_sobject_type_for_monomorphic_field() {
         String expectedQueryString = 'SELECT Id, Name, Owner.Name, OwnerId FROM Account';
 
-        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
+        SObjectQueryBuilder accountQuery = new SObjectQueryBuilder(Schema.Account.SObjectType)
             .addField(new Soql.QueryField(Schema.Account.OwnerId));
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());
@@ -88,7 +88,7 @@ private class SobjectQueryBuilder_Tests {
     @isTest
     static void it_should_return_results_and_include_separate_fields_for_for_polymorphic_field() {
         List<String> supportedPolymorphicFieldNames = new List<String>();
-        for(Schema.SobjectField field : Schema.Name.SobjectType.getDescribe().fields.getMap().values()) {
+        for(Schema.SObjectField field : Schema.Name.SObjectType.getDescribe().fields.getMap().values()) {
             Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
 
             if(!fieldDescribe.isAccessible()) continue;
@@ -105,23 +105,23 @@ private class SobjectQueryBuilder_Tests {
 
         Test.startTest();
 
-        Map<Schema.SobjectType, List<Schema.SobjectField>> fieldsBySobjectType = new Map<Schema.SobjectType, List<Schema.SobjectField>>();
+        Map<Schema.SObjectType, List<Schema.SObjectField>> fieldsBySObjectType = new Map<Schema.SObjectType, List<Schema.SObjectField>>();
 
         // Contact fields
-        List<Schema.SobjectField> contactFields = new List<Schema.SobjectField>{
+        List<Schema.SObjectField> contactFields = new List<Schema.SObjectField>{
             Schema.Contact.Id, Schema.Contact.Name, Schema.Contact.AccountId
         };
-        fieldsBySobjectType.put(Schema.Contact.SobjectType, contactFields);
+        fieldsBySObjectType.put(Schema.Contact.SObjectType, contactFields);
 
         // Lead fields
-        List<Schema.SobjectField> leadFields = new List<Schema.SobjectField>{
+        List<Schema.SObjectField> leadFields = new List<Schema.SObjectField>{
             Schema.Lead.Id, Schema.Lead.Name, Schema.Lead.Company, Schema.Lead.LeadSource
         };
-        fieldsBySobjectType.put(Schema.Lead.SobjectType, leadFields );
+        fieldsBySObjectType.put(Schema.Lead.SObjectType, leadFields );
 
         // Query the task object
-        SobjectQueryBuilder taskQuery = new SobjectQueryBuilder(Schema.Task.SobjectType)
-            .addPolymorphicFields(Schema.Task.WhoId, fieldsBySobjectType);
+        SObjectQueryBuilder taskQuery = new SObjectQueryBuilder(Schema.Task.SObjectType)
+            .addPolymorphicFields(Schema.Task.WhoId, fieldsBySObjectType);
 
         Test.stopTest();
 
@@ -133,7 +133,7 @@ private class SobjectQueryBuilder_Tests {
     static void it_should_return_results_and_include_sobject_type_for_polymorphic_field() {
         String expectedQueryString = 'SELECT Id, Name, Owner.Name, Owner.Type, OwnerId FROM Lead';
 
-        SobjectQueryBuilder leadQuery = new SobjectQueryBuilder(Schema.Lead.SobjectType)
+        SObjectQueryBuilder leadQuery = new SObjectQueryBuilder(Schema.Lead.SObjectType)
             .addField(new Soql.QueryField(Schema.Lead.OwnerId));
 
         System.assertEquals(expectedQueryString, leadQuery.getQuery());
@@ -144,10 +144,10 @@ private class SobjectQueryBuilder_Tests {
     static void it_should_return_results_and_include_related_records() {
         String expectedQueryString = 'SELECT Id, Name, Type, (SELECT Email, Id, Name FROM Contacts) FROM Account';
 
-        SobjectQueryBuilder contactQuery = new SobjectQueryBuilder(Schema.Contact.SobjectType)
+        SObjectQueryBuilder contactQuery = new SObjectQueryBuilder(Schema.Contact.SObjectType)
             .addField(Schema.Contact.Email);
 
-        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
+        SObjectQueryBuilder accountQuery = new SObjectQueryBuilder(Schema.Account.SObjectType)
             .includeRelatedRecords(Schema.Contact.AccountId, contactQuery)
             .addField(new Soql.QueryField(Schema.Account.Type));
 
@@ -159,7 +159,7 @@ private class SobjectQueryBuilder_Tests {
     static void it_should_return_results_when_filtering_with_an_or_statement() {
         String expectedQueryString = 'SELECT Id, Name FROM Account WHERE ParentId != null AND (AccountNumber = null OR Type = null)';
 
-        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
+        SObjectQueryBuilder accountQuery = new SObjectQueryBuilder(Schema.Account.SObjectType)
             .addField(Schema.Account.AnnualRevenue)
             .orFilterWhere(new List<Soql.QueryFilter>{
                 new Soql.QueryFilter(Schema.Account.Type, Soql.Operator.EQUALS, null),
@@ -175,7 +175,7 @@ private class SobjectQueryBuilder_Tests {
         if(!UserInfo.isMultiCurrencyOrganization()) return;
 
         // If multi-currency is enabled, then execute the test
-        SobjectQueryBuilder accountQuery = new SobjectQueryBuilder(Schema.Account.SobjectType)
+        SObjectQueryBuilder accountQuery = new SObjectQueryBuilder(Schema.Account.SObjectType)
             .addField(Schema.Account.AnnualRevenue)
             .filterWhere(Schema.Account.AnnualRevenue, Soql.Operator.LESS_THAN, new Soql.IsoCurrency('USD', 100));
         List<Account> accounts = accountQuery.getResults();
@@ -184,7 +184,7 @@ private class SobjectQueryBuilder_Tests {
     @isTest
     static void it_should_cache_query_results_when_enabled() {
         Integer loops = 4;
-        SobjectQueryBuilder userQuery = new SobjectQueryBuilder(Schema.User.SobjectType).limitTo(1);
+        SObjectQueryBuilder userQuery = new SObjectQueryBuilder(Schema.User.SObjectType).limitTo(1);
 
         // First, verify that caching is not enabled by default
         System.assertEquals(0, Limits.getQueries());

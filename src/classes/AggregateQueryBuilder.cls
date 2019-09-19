@@ -8,24 +8,24 @@ public class AggregateQueryBuilder extends Soql {
     private List<AggregateField> aggregateFields;
     private List<String> havingConditions;
 
-    public AggregateQueryBuilder(Schema.SobjectType sobjectType) {
+    public AggregateQueryBuilder(Schema.SObjectType sobjectType) {
         super(sobjectType, false);
 
         this.aggregateFields  = new List<AggregateField>();
         this.havingConditions = new List<String>();
     }
 
-    public AggregateQueryBuilder groupByField(Schema.SobjectField field) {
-       return this.groupByFields(new List<Schema.SobjectField>{field});
+    public AggregateQueryBuilder groupByField(Schema.SObjectField field) {
+       return this.groupByFields(new List<Schema.SObjectField>{field});
     }
 
     public AggregateQueryBuilder groupByField(Soql.QueryField queryField) {
         return this.groupByFields(new List<Soql.QueryField>{queryField});
     }
 
-    public AggregateQueryBuilder groupByFields(List<Schema.SobjectField> fields) {
+    public AggregateQueryBuilder groupByFields(List<Schema.SObjectField> fields) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-        for(Schema.SobjectField field : fields) {
+        for(Schema.SObjectField field : fields) {
             queryFields.add(new Soql.QueryField(field));
         }
         return this.groupByFields(queryFields);
@@ -49,11 +49,11 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field) {
+    public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Schema.SObjectField field) {
         return this.addAggregate(aggregateFunction, field, null);
     }
 
-    public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field, String fieldAlias) {
+    public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Schema.SObjectField field, String fieldAlias) {
         return this.addAggregate(aggregateFunction, new Soql.QueryField(field), fieldAlias);
     }
 
@@ -62,11 +62,11 @@ public class AggregateQueryBuilder extends Soql {
     }
 
     public AggregateQueryBuilder addAggregate(Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
-        this.aggregateFields.add(new AggregateField(this.getSobjectType(), aggregateFunction, queryField, fieldAlias));
+        this.aggregateFields.add(new AggregateField(this.getSObjectType(), aggregateFunction, queryField, fieldAlias));
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder havingAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field, Soql.Operator operator, Object value) {
+    public AggregateQueryBuilder havingAggregate(Soql.Aggregate aggregateFunction, Schema.SObjectField field, Soql.Operator operator, Object value) {
         return this.havingAggregate(aggregateFunction, new Soql.QueryField(field), operator, value);
     }
 
@@ -75,7 +75,7 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder filterWhere(Schema.SobjectField field, Soql.Operator operator, Object value) {
+    public AggregateQueryBuilder filterWhere(Schema.SObjectField field, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryField(field), operator, value);
     }
 
@@ -97,7 +97,7 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder orderByField(Schema.SobjectField field) {
+    public AggregateQueryBuilder orderByField(Schema.SObjectField field) {
         return this.orderByField(field, null);
     }
 
@@ -105,7 +105,7 @@ public class AggregateQueryBuilder extends Soql {
         return this.orderByField(queryField, null);
     }
 
-    public AggregateQueryBuilder orderByField(Schema.SobjectField field, Soql.SortOrder sortOrder) {
+    public AggregateQueryBuilder orderByField(Schema.SObjectField field, Soql.SortOrder sortOrder) {
         return this.orderByField(field, sortOrder, null);
     }
 
@@ -113,7 +113,7 @@ public class AggregateQueryBuilder extends Soql {
         return this.orderByField(queryField, sortOrder, null);
     }
 
-    public AggregateQueryBuilder orderByField(Schema.SobjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public AggregateQueryBuilder orderByField(Schema.SObjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         return this.orderByField(new Soql.QueryField(field), sortOrder, sortNullsFirst);
     }
 
@@ -122,15 +122,15 @@ public class AggregateQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public AggregateQueryBuilder orderByAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field) {
+    public AggregateQueryBuilder orderByAggregate(Soql.Aggregate aggregateFunction, Schema.SObjectField field) {
         return this.orderByAggregate(aggregateFunction, field, null);
     }
 
-    public AggregateQueryBuilder orderByAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field, Soql.SortOrder sortOrder) {
+    public AggregateQueryBuilder orderByAggregate(Soql.Aggregate aggregateFunction, Schema.SObjectField field, Soql.SortOrder sortOrder) {
         return this.orderByAggregate(aggregateFunction, field, sortOrder, null);
     }
 
-    public AggregateQueryBuilder orderByAggregate(Soql.Aggregate aggregateFunction, Schema.SobjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public AggregateQueryBuilder orderByAggregate(Soql.Aggregate aggregateFunction, Schema.SObjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         return this.orderByAggregate(aggregateFunction, new Soql.QueryField(field), sortOrder, sortNullsFirst);
     }
 
@@ -171,8 +171,8 @@ public class AggregateQueryBuilder extends Soql {
 
         String combinedFieldsString = queryFieldString + aggregateFieldDelimiter + aggregateQueryFieldString;
         if(String.isBlank(combinedFieldsString)) {
-            Schema.SobjectField idField = this.getSobjectType().getDescribe().fields.getMap().get('Id');
-            combinedFieldsString = new AggregateField(this.getSobjectType(), Soql.Aggregate.COUNT, new Soql.QueryField(idField), null).toString();
+            Schema.SObjectField idField = this.getSObjectType().getDescribe().fields.getMap().get('Id');
+            combinedFieldsString = new AggregateField(this.getSObjectType(), Soql.Aggregate.COUNT, new Soql.QueryField(idField), null).toString();
         }
 
         this.query = 'SELECT ' + combinedFieldsString
@@ -245,10 +245,10 @@ public class AggregateQueryBuilder extends Soql {
 
     private class AggregateField {
 
-        private Schema.SobjectType sobjectType;
+        private Schema.SObjectType sobjectType;
         private String aggregateFieldPath;
 
-        public AggregateField(Schema.SobjectType sobjectType, Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
+        public AggregateField(Schema.SObjectType sobjectType, Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
             this.sobjectType        = sobjectType;
             this.aggregateFieldPath = this.getAggregateFieldPath(aggregateFunction, queryField, fieldAlias);
         }

@@ -8,21 +8,21 @@ public abstract class Sosl {
     public enum DataCategoryLocation { AT, ABOVE, BELOW, ABOVE_OR_BELOW }
     public enum SearchGroup { ALL_FIELDS, NAME_FIELDS, EMAIL_FIELDS, PHONE_FIELDS, SIDEBAR_FIELDS }
 
-    private static Map<Integer, List<List<Sobject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<Sobject>>>();
+    private static Map<Integer, List<List<SObject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<SObject>>>();
 
     protected String searchQuery, searchTerm;
-    protected List<SobjectQueryBuilder> sobjectQueries;
-    protected Set<Schema.SobjectType> sobjectTypes;
+    protected List<SObjectQueryBuilder> sobjectQueries;
+    protected Set<Schema.SObjectType> sobjectTypes;
     protected Boolean cacheResults, hasChanged;
     protected Sosl.ArticleReporting articleReporting;
     protected List<String> withClauses, withDataCategoryClauses;
     protected Sosl.SearchGroup searchGroup;
 
-    protected Sosl(String searchTerm, SobjectQueryBuilder sobjectQuery) {
-        this(searchTerm, new List<SobjectQueryBuilder>{sobjectQuery});
+    protected Sosl(String searchTerm, SObjectQueryBuilder sobjectQuery) {
+        this(searchTerm, new List<SObjectQueryBuilder>{sobjectQuery});
     }
 
-    protected Sosl(String searchTerm, List<SobjectQueryBuilder> sobjectQueries) {
+    protected Sosl(String searchTerm, List<SObjectQueryBuilder> sobjectQueries) {
         this.searchTerm     = String.escapeSingleQuotes(searchTerm);
         this.sobjectQueries = sobjectQueries;
 
@@ -33,29 +33,29 @@ public abstract class Sosl {
         this.withDataCategoryClauses = new List<String>();
     }
 
-    public Set<Schema.SobjectType> getSobjectTypes() {
+    public Set<Schema.SObjectType> getSObjectTypes() {
         if(this.sobjectTypes != null) return this.sobjectTypes;
 
-        this.sobjectTypes = new Set<Schema.SobjectType>();
-        for(SobjectQueryBuilder query : this.sobjectQueries) {
-            this.sobjectTypes.add(query.getSobjectType());
+        this.sobjectTypes = new Set<Schema.SObjectType>();
+        for(SObjectQueryBuilder query : this.sobjectQueries) {
+            this.sobjectTypes.add(query.getSObjectType());
         }
         return this.sobjectTypes;
     }
 
     public abstract String getSearch();
 
-    protected Sobject doGetFirstResult() {
-        List<List<Sobject>> results = this.doGetResults();
+    protected SObject doGetFirstResult() {
+        List<List<SObject>> results = this.doGetResults();
         return results.isEmpty() || results[0].isEmpty() ? null : results[0][0];
     }
 
-    protected List<Sobject> doGetFirstResults() {
-        List<List<Sobject>> results = this.doGetResults();
+    protected List<SObject> doGetFirstResults() {
+        List<List<SObject>> results = this.doGetResults();
         return results.isEmpty() ? null : results[0];
     }
 
-    protected List<List<Sobject>> doGetResults() {
+    protected List<List<SObject>> doGetResults() {
         if(this.cacheResults) return this.getCachedResults();
         else return Search.query(this.getSearch());
     }
@@ -64,12 +64,12 @@ public abstract class Sosl {
         return ' IN ' + this.searchGroup.name().replace('_', ' ');
     }
 
-    protected String doGetReturningSobjectsString() {
+    protected String doGetReturningSObjectsString() {
         if(this.sobjectQueries.isEmpty()) return '';
 
         List<String> queryStrings = new List<String>();
         this.sobjectQueries.sort();
-        for(SobjectQueryBuilder query : this.sobjectQueries) {
+        for(SObjectQueryBuilder query : this.sobjectQueries) {
             queryStrings.add(query.getSearchQuery());
         }
         return ' RETURNING ' + String.join(queryStrings, ', ');
@@ -89,7 +89,7 @@ public abstract class Sosl {
         return this.articleReporting == null ? '' : ' UPDATE ' + this.articleReporting.name();
     }
 
-    private List<List<Sobject>> getCachedResults() {
+    private List<List<SObject>> getCachedResults() {
         String searchQuery = this.getSearch();
         Integer hashCode   = searchQuery.hashCode();
 
@@ -97,9 +97,9 @@ public abstract class Sosl {
         if(!isCached) cachedSearchResultsByHashCode.put(hashCode, Search.query(searchQuery));
 
         // Always return a deep clone so the original cached version is never modified
-        List<List<Sobject>> cachedResults = cachedSearchResultsByHashCode.get(hashCode);
-        List<List<Sobject>> deepClonedResults = new List<List<Sobject>>();
-        for(List<Sobject> cachedListOfResults : cachedResults) {
+        List<List<SObject>> cachedResults = cachedSearchResultsByHashCode.get(hashCode);
+        List<List<SObject>> deepClonedResults = new List<List<SObject>>();
+        for(List<SObject> cachedListOfResults : cachedResults) {
             deepClonedResults.add(cachedListOfResults.deepClone(true, true, true));
         }
         return deepClonedResults;

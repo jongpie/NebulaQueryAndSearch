@@ -4,15 +4,17 @@
 ******************************************************************************************************/
 public class SearchBuilder extends Sosl {
 
-    public SearchBuilder(String searchTerm, SobjectQueryBuilder sobjectQuery) {
+    public SearchBuilder(String searchTerm, SObjectQueryBuilder sobjectQuery) {
         super(searchTerm, sobjectQuery);
     }
 
-    public SearchBuilder(String searchTerm, List<SobjectQueryBuilder> sobjectQueries) {
+    public SearchBuilder(String searchTerm, List<SObjectQueryBuilder> sobjectQueries) {
         super(searchTerm, sobjectQueries);
     }
 
     public SearchBuilder inSearchGroup(Sosl.SearchGroup searchGroup) {
+        if(searchGroup == null) return this;
+
         this.searchGroup = searchGroup;
         return this.setHasChanged();
     }
@@ -60,7 +62,7 @@ public class SearchBuilder extends Sosl {
 
         this.searchQuery = 'FIND \'' + this.searchTerm + '\''
             + super.doGetSearchGroupString()
-            + super.doGetReturningSobjectsString()
+            + super.doGetReturningSObjectsString()
             + super.doGetWithClauseString()
             + super.doGetUpdateArticleReportingString();
 
@@ -72,15 +74,15 @@ public class SearchBuilder extends Sosl {
         return this.searchQuery;
     }
 
-    public Sobject getFirstResult() {
+    public SObject getFirstResult() {
         return super.doGetFirstResult();
     }
 
-    public List<Sobject> getFirstResults() {
+    public List<SObject> getFirstResults() {
         return super.doGetFirstResults();
     }
 
-    public List<List<Sobject>> getResults() {
+    public List<List<SObject>> getResults() {
         return super.doGetResults();
     }
 

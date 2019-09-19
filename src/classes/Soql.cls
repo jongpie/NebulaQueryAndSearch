@@ -48,7 +48,7 @@ public abstract class Soql implements Comparable {
     private static final Soql.SortOrder DEFAULT_SORT_ORDER         = Soql.SortOrder.ASCENDING;
     private static final Boolean DEFAULT_NULLS_SORT_ORDER_FIRST    = true;
 
-    private static Map<Integer, List<Sobject>> cachedResultsByHashCode = new Map<Integer, List<Sobject>>();
+    private static Map<Integer, List<SObject>> cachedResultsByHashCode = new Map<Integer, List<SObject>>();
 
     public static String getOperatorValue(Soql.Operator operator) {
         switch on operator {
@@ -69,8 +69,8 @@ public abstract class Soql implements Comparable {
     }
 
     protected String query;
-    protected Schema.SobjectType sobjectType;
-    protected Schema.DescribeSobjectResult sobjectDescribe;
+    protected Schema.SObjectType sobjectType;
+    protected Schema.DescribeSObjectResult sobjectDescribe;
     protected Map<Soql.QueryField, Soql.FieldCategory> includedQueryFieldsAndCategory;
     protected Set<Soql.QueryField> excludedQueryFields;
     protected Scope scope;
@@ -81,7 +81,7 @@ public abstract class Soql implements Comparable {
 
     protected Boolean cacheResults;
 
-    protected Soql(Schema.SobjectType sobjectType, Boolean sortQueryFields) {
+    protected Soql(Schema.SObjectType sobjectType, Boolean sortQueryFields) {
         this.sobjectType     = sobjectType;
         this.sortQueryFields = sortQueryFields;
 
@@ -94,19 +94,19 @@ public abstract class Soql implements Comparable {
         this.hasChanged                     = false;
     }
 
-    public Schema.SobjectType getSobjectType() {
+    public Schema.SObjectType getSObjectType() {
         return this.sobjectType;
     }
 
     public abstract String getQuery();
 
     public Integer compareTo(Object compareTo) {
-        String currentSobjectApiName   = String.valueOf(this.getSobjectType());
+        String currentSObjectApiName   = String.valueOf(this.getSObjectType());
         Soql soqlToCompareTo           = (Soql)compareTo;
-        String compareToSobjectApiName = String.valueOf(soqlToCompareTo.getSobjectType());
+        String compareToSObjectApiName = String.valueOf(soqlToCompareTo.getSObjectType());
 
-        if(currentSobjectApiName == compareToSobjectApiName) return 0;
-        else if(currentSobjectApiName > compareToSobjectApiName) return 1;
+        if(currentSObjectApiName == compareToSObjectApiName) return 0;
+        else if(currentSObjectApiName > compareToSObjectApiName) return 1;
         else return -1;
     }
 
@@ -169,12 +169,12 @@ public abstract class Soql implements Comparable {
         this.offset = offset;
     }
 
-    protected Sobject doGetFirstResult() {
-        List<Sobject> results = this.doGetResults();
+    protected SObject doGetFirstResult() {
+        List<SObject> results = this.doGetResults();
         return results == null || results.isEmpty() ? null : results[0];
     }
 
-    protected List<Sobject> doGetResults() {
+    protected List<SObject> doGetResults() {
         if(this.cacheResults) return this.getCachedResults();
         else return Database.query(this.getQuery());
     }
@@ -238,7 +238,7 @@ public abstract class Soql implements Comparable {
         this.hasChanged = true;
     }
 
-    private List<Sobject> getCachedResults() {
+    private List<SObject> getCachedResults() {
         String query     = this.getQuery();
         Integer hashCode = query.hashCode();
 
@@ -253,11 +253,11 @@ public abstract class Soql implements Comparable {
 
         private String dateLiteral;
 
-        public DateLiteral(FixedDateLiteral fixedDateLiteral) {
+        public DateLiteral(Soql.FixedDateLiteral fixedDateLiteral) {
             this.dateLiteral = fixedDateLiteral.name();
         }
 
-        public DateLiteral(RelativeDateLiteral relativeDateLiteral, Integer n) {
+        public DateLiteral(Soql.RelativeDateLiteral relativeDateLiteral, Integer n) {
             this.dateLiteral = relativeDateLiteral.name() + ':' + n;
         }
 
@@ -287,35 +287,40 @@ public abstract class Soql implements Comparable {
         private final String queryFieldPath;
         private final Schema.DescribeFieldResult fieldDescribe;
 
-        public QueryField(Schema.SobjectType sobjectType, String queryFieldPath) {
+        public QueryField(Schema.SObjectType sobjectType, String queryFieldPath) {
             this.fieldDescribe  = this.getLastFieldDescribe(sobjectType, queryFieldPath);
             this.queryFieldPath = queryFieldPath;
         }
 
-        public QueryField(Schema.SobjectField field) {
-            this(new List<Schema.SobjectField>{field});
+        public QueryField(Schema.SObjectField field) {
+            this(new List<Schema.SObjectField>{field});
         }
 
-        public QueryField(List<Schema.SobjectField> fieldChain) {
+        public QueryField(List<Schema.SObjectField> fieldChain) {
             this.fieldDescribe  = this.getLastFieldDescribe(fieldChain);
             this.queryFieldPath = this.getQueryField(fieldChain);
         }
 
-        public QueryField(Soql.DateFunction dateFunction, Schema.SobjectField field) {
+        public QueryField(Soql.DateFunction dateFunction, Schema.SObjectField field) {
             this(dateFunction, field, false);
         }
 
-        public QueryField(Soql.DateFunction dateFunction, Schema.SobjectField field, Boolean convertTimeZone) {
-            this(dateFunction, new List<Schema.SobjectField>{field}, convertTimeZone);
+        public QueryField(Soql.DateFunction dateFunction, Schema.SObjectField field, Boolean convertTimeZone) {
+            this(dateFunction, new List<Schema.SObjectField>{field}, convertTimeZone);
         }
 
-        public QueryField(Soql.DateFunction dateFunction, List<Schema.SobjectField> fieldChain) {
+        public QueryField(Soql.DateFunction dateFunction, List<Schema.SObjectField> fieldChain) {
             this(dateFunction, fieldChain, false);
         }
 
-        public QueryField(Soql.DateFunction dateFunction, List<Schema.SobjectField> fieldChain, Boolean convertTimeZone) {
+        public QueryField(Soql.DateFunction dateFunction, List<Schema.SObjectField> fieldChain, Boolean convertTimeZone) {
             this.fieldDescribe  = this.getLastFieldDescribe(fieldChain);
             this.queryFieldPath = this.getDateFunctionFieldPath(dateFunction, fieldChain, convertTimeZone);
+        }
+//https://help.salesforce.com/articleView?id=custom_field_geolocate_overview.htm&type=5
+        public QueryField(List<Schema.SObjectField> fieldChain, Decimal latitude, Decimal longitude) {
+            this.fieldDescribe  = this.getLastFieldDescribe(fieldChain);
+            //this.queryFieldPath = 'DISTANCE(' + this.getQueryField(fieldChain), GEOLOCATION(10,10), :units)
         }
 
         public override String toString() {
@@ -330,16 +335,16 @@ public abstract class Soql implements Comparable {
             return this.queryFieldPath;
         }
 
-        private String getDateFunctionFieldPath(Soql.DateFunction dateFunction, List<Schema.SobjectField> fieldChain, Boolean convertTimeZone) {
+        private String getDateFunctionFieldPath(Soql.DateFunction dateFunction, List<Schema.SObjectField> fieldChain, Boolean convertTimeZone) {
             String fieldPath = !convertTimeZone ? this.getQueryField(fieldChain) : 'convertTimeZone(' + this.getQueryField(fieldChain) + ')';
 
             return dateFunction.name() + '(' + fieldPath + ')';
         }
 
-        private Schema.DescribeFieldResult getLastFieldDescribe(Schema.SobjectType sobjectType, String queryField) {
-            Schema.SobjectType currentSobjectType = sobjectType;
+        private Schema.DescribeFieldResult getLastFieldDescribe(Schema.SObjectType sobjectType, String queryField) {
+            Schema.SObjectType currentSObjectType = sobjectType;
 
-            List<Schema.SobjectField> fields = new List<Schema.SobjectField>();
+            List<Schema.SObjectField> fields = new List<Schema.SObjectField>();
             List<String> queryFieldPieces = queryField.split('\\.');
             Integer lastFieldIndex = queryFieldPieces.size() <= 1 ? 0 : queryFieldPieces.size() - 1;
 
@@ -351,25 +356,25 @@ public abstract class Soql implements Comparable {
                 else if(queryFieldPiece.endsWith('__r')) fieldApiName = queryFieldPiece.replace('__r', '__c');
                 else fieldApiName = queryFieldPiece + 'Id';
 
-                Schema.SobjectField field = currentSobjectType.getDescribe().fields.getMap().get(fieldApiName);
+                Schema.SObjectField field = currentSObjectType.getDescribe().fields.getMap().get(fieldApiName);
 
-                if(i < lastFieldIndex) currentSobjectType = field.getDescribe().getReferenceTo()[0]; // TODO add support for polymorphic fields
+                if(i < lastFieldIndex) currentSObjectType = field.getDescribe().getReferenceTo()[0]; // TODO add support for polymorphic fields
 
                 fields.add(field);
             }
             return this.getLastFieldDescribe(fields);
         }
 
-        private Schema.DescribeFieldResult getLastFieldDescribe(List<Schema.SobjectField> fields) {
+        private Schema.DescribeFieldResult getLastFieldDescribe(List<Schema.SObjectField> fields) {
             Integer lastFieldIndex = fields.size() - 1;
             return fields[lastFieldIndex].getDescribe();
         }
 
-        private String getQueryField(List<Schema.SobjectField> fields) {
+        private String getQueryField(List<Schema.SObjectField> fields) {
             Integer lastFieldIndex = fields.size() - 1;
             List<String> queryFieldPieces = new List<String>();
             for(Integer i = 0; i < fields.size(); i++) {
-                SobjectField field = fields[i];
+                SObjectField field = fields[i];
                 // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
                 if(!field.getDescribe().isAccessible()) return null;
                 else if(i == lastFieldIndex) queryFieldPieces.add(field.getDescribe().getName());
@@ -388,7 +393,7 @@ public abstract class Soql implements Comparable {
         private String formattedValue;
         private String filterString;
 
-        public QueryFilter(Schema.SobjectField field, Soql.Operator operator, Object value) {
+        public QueryFilter(Schema.SObjectField field, Soql.Operator operator, Object value) {
             this(new QueryField(field), operator, value);
         }
 
@@ -401,14 +406,14 @@ public abstract class Soql implements Comparable {
             this.filterString = queryField + ' ' + Soql.getOperatorValue(operator) + ' ' + formattedValue;
         }
 
-        public QueryFilter(Schema.SobjectType childSobjectType, Boolean inOrNotIn, Schema.SobjectField lookupFieldOnChildSobject) {
+        public QueryFilter(Schema.SObjectType childSObjectType, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
             this.operator     = inOrNotIn ? Soql.Operator.IS_IN : Soql.Operator.IS_NOT_IN;
-            this.filterString = 'Id ' + Soql.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSobject + ' FROM ' + childSobjectType + ')';
+            this.filterString = 'Id ' + Soql.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')';
         }
 
-        public QueryFilter(SobjectQueryBuilder childSobjectQueryBuilder, Boolean inOrNotIn, Schema.SobjectField lookupFieldOnChildSobject) {
+        public QueryFilter(SObjectQueryBuilder childSObjectQueryBuilder, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
             this.operator     = inOrNotIn ? Soql.Operator.IS_IN : Soql.Operator.IS_NOT_IN;
-            this.filterString = 'Id ' + Soql.getOperatorValue(this.operator) + ' ' + childSobjectQueryBuilder.getSubquery(lookupFieldOnChildSobject);
+            this.filterString = 'Id ' + Soql.getOperatorValue(this.operator) + ' ' + childSObjectQueryBuilder.getSubquery(lookupFieldOnChildSObject);
         }
 
         public Integer compareTo(Object compareTo) {
@@ -465,9 +470,9 @@ public abstract class Soql implements Comparable {
                 Datetime datetimeValue = (Datetime)valueToFormat;
                 return datetimeValue.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time');
             }
-            else if(valueToFormat instanceOf Sobject) {
-                Sobject record = (Sobject)valueToFormat;
-                return this.wrapInSingleQuotes(((Sobject)valueToFormat).Id);
+            else if(valueToFormat instanceOf SObject) {
+                SObject record = (SObject)valueToFormat;
+                return this.wrapInSingleQuotes(((SObject)valueToFormat).Id);
             }
             else if(valueToFormat instanceOf String) {
                 // Escape single quotes to prevent SOQL/SOSL injection

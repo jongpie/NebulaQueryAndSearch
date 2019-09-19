@@ -2,14 +2,14 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
-public class SobjectQueryBuilder extends Soql {
+public class SObjectQueryBuilder extends Soql {
 
     private String displayFieldApiName;
     private List<String> polymorphicFieldStatements;
     private List<String> childRelationshipQueries;
     private Boolean forReference, forUpdate, forView, includeLabels, includeFormattedValues;
 
-    public SobjectQueryBuilder(Schema.SobjectType sobjectType) {
+    public SObjectQueryBuilder(Schema.SObjectType sobjectType) {
         super(sobjectType, true);
 
         this.displayFieldApiName        = this.getDisplayFieldApiName(this.sobjectType);
@@ -24,56 +24,56 @@ public class SobjectQueryBuilder extends Soql {
         this.addDefaultFields();
     }
 
-    public SobjectQueryBuilder addField(Schema.SobjectField field) {
+    public SObjectQueryBuilder addField(Schema.SObjectField field) {
         return this.addField(field, null);
     }
 
-    public SobjectQueryBuilder addField(Schema.SobjectField field, Soql.FieldCategory fieldCategory) {
-        return this.addFields(new List<Schema.SobjectField>{field}, fieldCategory);
+    public SObjectQueryBuilder addField(Schema.SObjectField field, Soql.FieldCategory fieldCategory) {
+        return this.addFields(new List<Schema.SObjectField>{field}, fieldCategory);
     }
 
-    public SobjectQueryBuilder addField(Soql.QueryField queryField) {
+    public SObjectQueryBuilder addField(Soql.QueryField queryField) {
         return this.addField(queryField, null);
     }
 
-    public SobjectQueryBuilder addField(Soql.QueryField queryField, Soql.FieldCategory fieldCategory) {
+    public SObjectQueryBuilder addField(Soql.QueryField queryField, Soql.FieldCategory fieldCategory) {
         return this.addFields(new List<Soql.QueryField>{queryField}, fieldCategory);
     }
 
-    public SobjectQueryBuilder addFields(List<Schema.SobjectField> fields) {
+    public SObjectQueryBuilder addFields(List<Schema.SObjectField> fields) {
         return this.addFields(fields, null);
     }
 
-    public SobjectQueryBuilder addFields(List<Schema.SobjectField> fields, Soql.FieldCategory fieldCategory) {
+    public SObjectQueryBuilder addFields(List<Schema.SObjectField> fields, Soql.FieldCategory fieldCategory) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-        for(Schema.SobjectField field : fields) {
+        for(Schema.SObjectField field : fields) {
             queryFields.add(new Soql.QueryField(field));
         }
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public SobjectQueryBuilder addFields(List<Soql.QueryField> queryFields) {
+    public SObjectQueryBuilder addFields(List<Soql.QueryField> queryFields) {
         return this.addFields(queryFields, null);
     }
 
-    public SobjectQueryBuilder addFields(Soql.FieldCategory fieldCategory) {
+    public SObjectQueryBuilder addFields(Soql.FieldCategory fieldCategory) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-        for(Schema.SobjectField field : this.sobjectDescribe.fields.getMap().values()) {
+        for(Schema.SObjectField field : this.sobjectDescribe.fields.getMap().values()) {
             queryFields.add(new Soql.QueryField(field));
         }
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public SobjectQueryBuilder addFields(List<Soql.QueryField> queryFields, Soql.FieldCategory fieldCategory) {
+    public SObjectQueryBuilder addFields(List<Soql.QueryField> queryFields, Soql.FieldCategory fieldCategory) {
         super.doAddFields(queryFields, fieldCategory);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder addFieldSet(Schema.FieldSet fieldSet) {
+    public SObjectQueryBuilder addFieldSet(Schema.FieldSet fieldSet) {
         return this.addFieldSet(fieldSet, null);
     }
 
-    public SobjectQueryBuilder addFieldSet(Schema.FieldSet fieldSet, Soql.FieldCategory fieldCategory) {
+    public SObjectQueryBuilder addFieldSet(Schema.FieldSet fieldSet, Soql.FieldCategory fieldCategory) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
         for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
             queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
@@ -81,27 +81,27 @@ public class SobjectQueryBuilder extends Soql {
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField polymorphicRelationshipField) {
-        return addPolymorphicFields(polymorphicRelationshipField, new Map<Schema.SobjectType, List<Schema.SobjectField>>());
+    public SObjectQueryBuilder addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField) {
+        return addPolymorphicFields(polymorphicRelationshipField, new Map<Schema.SObjectType, List<Schema.SObjectField>>());
     }
 
-    public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField polymorphicRelationshipField, Map<Schema.SobjectType, List<Schema.SobjectField>> fieldsBySobjectType) {
-        Map<Schema.SobjectType, List<Soql.QueryField>> queryFieldsBySobjectType = new Map<Schema.SobjectType, List<Soql.QueryField>>();
-        for(Schema.SobjectType sobjectType : fieldsBySobjectType.keySet()) {
+    public SObjectQueryBuilder addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField, Map<Schema.SObjectType, List<Schema.SObjectField>> fieldsBySObjectType) {
+        Map<Schema.SObjectType, List<Soql.QueryField>> queryFieldsBySObjectType = new Map<Schema.SObjectType, List<Soql.QueryField>>();
+        for(Schema.SObjectType sobjectType : fieldsBySObjectType.keySet()) {
             List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-            for(Schema.SobjectField field : fieldsBySobjectType.get(sobjectType)) {
+            for(Schema.SObjectField field : fieldsBySObjectType.get(sobjectType)) {
                 queryFields.add(new Soql.QueryField(field));
             }
-            queryFieldsBySobjectType.put(sobjectType, queryFields);
+            queryFieldsBySObjectType.put(sobjectType, queryFields);
         }
-        return this.addPolymorphicFields(polymorphicRelationshipField, queryFieldsBySobjectType);
+        return this.addPolymorphicFields(polymorphicRelationshipField, queryFieldsBySObjectType);
     }
 
-    public SobjectQueryBuilder addPolymorphicFields(Schema.SobjectField polymorphicRelationshipField, Map<Schema.SobjectType, List<Soql.QueryField>> queryFieldsBySobjectType) {
-        String polymorphicFieldStatement = queryFieldsBySobjectType.isEmpty() ? '' : 'TYPEOF ' + polymorphicRelationshipField.getDescribe().getRelationshipName();
-        for(Schema.SobjectType sobjectType : queryFieldsBySobjectType.keySet()) {
+    public SObjectQueryBuilder addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField, Map<Schema.SObjectType, List<Soql.QueryField>> queryFieldsBySObjectType) {
+        String polymorphicFieldStatement = queryFieldsBySObjectType.isEmpty() ? '' : 'TYPEOF ' + polymorphicRelationshipField.getDescribe().getRelationshipName();
+        for(Schema.SObjectType sobjectType : queryFieldsBySObjectType.keySet()) {
             List<String> fieldNames = new List<String>();
-            for(Soql.QueryField queryField : queryFieldsBySobjectType.get(sobjectType)) {
+            for(Soql.QueryField queryField : queryFieldsBySObjectType.get(sobjectType)) {
                 fieldNames.addAll(this.getFieldsToQuery(queryField, Soql.FieldCategory.ACCESSIBLE));
             }
             fieldNames.sort();
@@ -110,146 +110,168 @@ public class SobjectQueryBuilder extends Soql {
 
         // The Name object contains the list of all possible polymorphic fields in the org
         List<String> supportedPolymorphicFieldNames = new List<String>();
-        for(Schema.SobjectField field : Schema.Name.SobjectType.getDescribe().fields.getMap().values()) {
+        for(Schema.SObjectField field : Schema.Name.SObjectType.getDescribe().fields.getMap().values()) {
             supportedPolymorphicFieldNames.addAll(this.getFieldsToQuery(new QueryField(field), Soql.FieldCategory.ACCESSIBLE));
         }
         supportedPolymorphicFieldNames.sort();
-        if(!queryFieldsBySobjectType.isEmpty()) polymorphicFieldStatement += ' ELSE ';
-        else if(queryFieldsBySobjectType.isEmpty()) {
-            String supportedPolymorphicFieldPrefix = queryFieldsBySobjectType.isEmpty() ? 'Who.' : '';
+        if(!queryFieldsBySObjectType.isEmpty()) polymorphicFieldStatement += ' ELSE ';
+        else if(queryFieldsBySObjectType.isEmpty()) {
+            String supportedPolymorphicFieldPrefix = queryFieldsBySObjectType.isEmpty() ? 'Who.' : '';
             for(Integer i = 0; i < supportedPolymorphicFieldNames.size(); i++) {
                 supportedPolymorphicFieldNames[i] = supportedPolymorphicFieldPrefix + supportedPolymorphicFieldNames[i];
             }
         }
         polymorphicFieldStatement += String.join(supportedPolymorphicFieldNames, ', ');
-        if(!queryFieldsBySobjectType.isEmpty()) polymorphicFieldStatement += ' END';
+        if(!queryFieldsBySObjectType.isEmpty()) polymorphicFieldStatement += ' END';
 
         this.polymorphicFieldStatements.add(polymorphicFieldStatement);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder includeLabels() {
+    public SObjectQueryBuilder includeLabels() {
         this.includeLabels = true;
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder includeFormattedValues() {
+    public SObjectQueryBuilder includeFormattedValues() {
         this.includeFormattedValues = true;
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder removeField(Schema.SobjectField field) {
-        return this.removeFields(new List<Schema.SobjectField>{field});
+    public SObjectQueryBuilder removeField(Schema.SObjectField field) {
+        return this.removeFields(new List<Schema.SObjectField>{field});
     }
 
-    public SobjectQueryBuilder removeField(Soql.QueryField queryField) {
+    public SObjectQueryBuilder removeField(Soql.QueryField queryField) {
         return this.removeFields(new List<Soql.QueryField>{queryField});
     }
 
-    public SobjectQueryBuilder removeFields(Schema.FieldSet fieldSet) {
+    public SObjectQueryBuilder removeFields(Schema.FieldSet fieldSet) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
         for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
-            queryFields.add(new Soql.QueryField(this.getSobjectType(), fieldSetMember.getFieldPath()));
+            queryFields.add(new Soql.QueryField(this.getSObjectType(), fieldSetMember.getFieldPath()));
         }
         return this.removeFields(queryFields);
     }
 
-    public SobjectQueryBuilder removeFields(List<Schema.SobjectField> fields) {
+    public SObjectQueryBuilder removeFields(List<Schema.SObjectField> fields) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-        for(Schema.SobjectField field : fields) {
+        for(Schema.SObjectField field : fields) {
             queryFields.add(new Soql.QueryField(field));
         }
         return this.removeFields(queryFields);
     }
 
-    public SobjectQueryBuilder removeFields(List<Soql.QueryField> queryFields) {
+    public SObjectQueryBuilder removeFields(List<Soql.QueryField> queryFields) {
         super.doRemoveFields(queryFields);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder includeRelatedRecords(Schema.SobjectField childToParentRelationshipField, SobjectQueryBuilder relatedSobjectQuery) {
-         this.childRelationshipQueries.add(relatedSobjectQuery.getRelatedRecordsQuery(childToParentRelationshipField));
+    public SObjectQueryBuilder includeRelatedRecords(Schema.SObjectField childToParentRelationshipField, SObjectQueryBuilder relatedSObjectQuery) {
+         this.childRelationshipQueries.add(relatedSObjectQuery.getRelatedRecordsQuery(childToParentRelationshipField));
          return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder usingScope(Scope scope) {
+    public SObjectQueryBuilder usingScope(Scope scope) {
         super.doUsingScope(scope);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder filterWhere(Schema.SobjectField field, Soql.Operator operator, Object value) {
+    public SObjectQueryBuilder filterWhere(Schema.SObjectField field, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryField(field), operator, value);
     }
 
-    public SobjectQueryBuilder filterWhere(Soql.QueryField queryField, Soql.Operator operator, Object value) {
+    public SObjectQueryBuilder filterWhere(Soql.QueryField queryField, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryFilter(queryField, operator, value));
     }
 
-    public SobjectQueryBuilder filterWhere(Soql.QueryFilter filter) {
+    public SObjectQueryBuilder filterWhere(Soql.QueryFilter filter) {
         return this.filterWhere(new List<Soql.QueryFilter>{filter});
     }
 
-    public SobjectQueryBuilder filterWhere(List<Soql.QueryFilter> filters) {
+    public SObjectQueryBuilder filterWhere(List<Soql.QueryFilter> filters) {
         super.doFilterWhere(filters);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder orFilterWhere(List<Soql.QueryFilter> filters) {
+    public SObjectQueryBuilder orFilterWhere(List<Soql.QueryFilter> filters) {
         super.doOrFilterWhere(filters);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder orderByField(Schema.SobjectField field) {
+    //public SObjectQueryBuilder filterWhereInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
+        //this.whereFilters.add('Id IN (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')');
+        //return this.setHasChanged();
+    //}
+//
+    //public SObjectQueryBuilder filterWhereInSubquery(SObjectQueryBuilder childSObjectQueryBuilder, Schema.SObjectField lookupFieldOnChildSObject) {
+        //String subqueryString = childSObjectQueryBuilder.getSubquery(lookupFieldOnChildSObject);
+        //this.whereFilters.add('Id IN ' + subqueryString);
+        //return this.setHasChanged();
+    //}
+//
+    //public SObjectQueryBuilder filterWhereNotInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
+        //this.whereFilters.add('Id NOT IN (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')');
+        //return this.setHasChanged();
+    //}
+//
+    //public SObjectQueryBuilder filterWhereNotInSubquery(SObjectQueryBuilder childSObjectQueryBuilder, Schema.SObjectField lookupFieldOnChildSObject) {
+        //String subqueryString = childSObjectQueryBuilder.getSubquery(lookupFieldOnChildSObject);
+        //this.whereFilters.add('Id NOT IN ' + subqueryString);
+        //return this.setHasChanged();
+    //}
+
+    public SObjectQueryBuilder orderByField(Schema.SObjectField field) {
         return this.orderByField(new Soql.QueryField(field));
     }
 
-    public SobjectQueryBuilder orderByField(Soql.QueryField queryField) {
+    public SObjectQueryBuilder orderByField(Soql.QueryField queryField) {
         return this.orderByField(queryField, null);
     }
 
-    public SobjectQueryBuilder orderByField(Schema.SobjectField field, Soql.SortOrder sortOrder) {
+    public SObjectQueryBuilder orderByField(Schema.SObjectField field, Soql.SortOrder sortOrder) {
         return this.orderByField(field, sortOrder, null);
     }
 
-    public SobjectQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder) {
+    public SObjectQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder) {
         return this.orderByField(queryField, sortOrder, null);
     }
 
-    public SobjectQueryBuilder orderByField(Schema.SobjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public SObjectQueryBuilder orderByField(Schema.SObjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         return this.orderByField(new Soql.QueryField(field), sortOrder, sortNullsFirst);
     }
 
-    public SobjectQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public SObjectQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         super.doOrderBy(queryField, sortOrder, sortNullsFirst);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder limitTo(Integer numberOfRecords) {
+    public SObjectQueryBuilder limitTo(Integer numberOfRecords) {
         super.doLimitTo(numberOfRecords);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder offsetBy(Integer offset) {
+    public SObjectQueryBuilder offsetBy(Integer offset) {
         super.doOffsetBy(offset);
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder forReference() {
+    public SObjectQueryBuilder forReference() {
         this.forReference = true;
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder forUpdate() {
+    public SObjectQueryBuilder forUpdate() {
         this.forUpdate = true;
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder forView() {
+    public SObjectQueryBuilder forView() {
         this.forView = true;
         return this.setHasChanged();
     }
 
-    public SobjectQueryBuilder cacheResults() {
+    public SObjectQueryBuilder cacheResults() {
         super.doCacheResults();
         return this;
     }
@@ -286,12 +308,12 @@ public class SobjectQueryBuilder extends Soql {
         return this.query;
     }
 
-    public String getRelatedRecordsQuery(Schema.SobjectField childToParentRelationshipField) {
-        Schema.SobjectType parentSobjectType = childToParentRelationshipField.getDescribe().getReferenceTo()[0];
+    public String getRelatedRecordsQuery(Schema.SObjectField childToParentRelationshipField) {
+        Schema.SObjectType parentSObjectType = childToParentRelationshipField.getDescribe().getReferenceTo()[0];
 
         // Get the relationship name
         String childRelationshipName;
-        for(Schema.ChildRelationship childRelationship : parentSobjectType.getDescribe().getChildRelationships()) {
+        for(Schema.ChildRelationship childRelationship : parentSObjectType.getDescribe().getChildRelationships()) {
             if(childRelationship.getField() != childToParentRelationshipField) continue;
 
             childRelationshipName = childRelationship.getRelationshipName();
@@ -309,7 +331,7 @@ public class SobjectQueryBuilder extends Soql {
         return childQuery;
     }
 
-    public String getSubquery(Schema.SobjectField childToParentRelationshipField) {
+    public String getSubquery(Schema.SObjectField childToParentRelationshipField) {
         String subquery = '(SELECT ' + childToParentRelationshipField
             + ' FROM ' + this.sobjectType
             + super.doGetUsingScopeString()
@@ -331,27 +353,27 @@ public class SobjectQueryBuilder extends Soql {
         // If we have any sobject-specific options, then wrap the options in parentheses
         sobjectTypeOptions = String.isEmpty(sobjectTypeOptions) ? '' : '(' + sobjectTypeOptions + ')';
 
-        String searchQuery = this.getSobjectType() + sobjectTypeOptions;
+        String searchQuery = this.getSObjectType() + sobjectTypeOptions;
 
         System.debug(LoggingLevel.FINEST, searchQuery);
         return searchQuery;
     }
 
-    public Sobject getFirstResult() {
+    public SObject getFirstResult() {
         return super.doGetFirstResult();
     }
 
-    public List<Sobject> getResults() {
+    public List<SObject> getResults() {
         return super.doGetResults();
     }
 
     private void addDefaultFields() {
-        Map<String, Schema.SobjectField> fieldMap = this.getSobjectType().getDescribe().fields.getMap();
+        Map<String, Schema.SObjectField> fieldMap = this.getSObjectType().getDescribe().fields.getMap();
         this.addField(fieldMap.get('Id'));
         if(!String.isBlank(this.displayFieldApiName)) this.addField(fieldMap.get(this.displayFieldApiName));
     }
 
-    private SobjectQueryBuilder setHasChanged() {
+    private SObjectQueryBuilder setHasChanged() {
         this.hasChanged = true;
         return this;
     }
@@ -376,7 +398,7 @@ public class SobjectQueryBuilder extends Soql {
         return String.join(fieldApiNamesToQuery, ', ');
     }
 
-    private String getDisplayFieldApiName(Schema.SobjectType sobjectType) {
+    private String getDisplayFieldApiName(Schema.SObjectType sobjectType) {
         // There are several commonly used names for the display field name - typically, Name
         // The order of the field names has been sorted based on number of objects in a new dev org with that field
         List<String> possibleDisplayFieldApiNames = new List<String>{
@@ -384,9 +406,9 @@ public class SobjectQueryBuilder extends Soql {
             'CaseNumber', 'ContractNumber', 'Domain', 'FriendlyName', 'FunctionName', 'Label', 'LocalPart',
             'OrderItemNumber', 'OrderNumber', 'SolutionName', 'TestSuiteName'
         };
-        Map<String, Schema.SobjectField> fieldMap = sobjectType.getDescribe().fields.getMap();
+        Map<String, Schema.SObjectField> fieldMap = sobjectType.getDescribe().fields.getMap();
         for(String fieldApiName : possibleDisplayFieldApiNames) {
-            Schema.SobjectField field = fieldMap.get(fieldApiName);
+            Schema.SObjectField field = fieldMap.get(fieldApiName);
 
             if(field == null) continue;
 
@@ -397,10 +419,10 @@ public class SobjectQueryBuilder extends Soql {
         return null;
     }
 
-    private String getParentSobjectNameField(Schema.DescribeFieldResult fieldDescribe) {
+    private String getParentSObjectNameField(Schema.DescribeFieldResult fieldDescribe) {
         String relationshipName = fieldDescribe.getRelationshipName();
-        Schema.SobjectType parentSobjectType = fieldDescribe.getReferenceTo()[0];
-        String nameField = this.getDisplayFieldApiName(parentSobjectType);
+        Schema.SObjectType parentSObjectType = fieldDescribe.getReferenceTo()[0];
+        String nameField = this.getDisplayFieldApiName(parentSObjectType);
 
         if(relationshipName == null) return null;
         else if(nameField == null) return null;
@@ -441,7 +463,7 @@ public class SobjectQueryBuilder extends Soql {
                 fieldsToReturn.add(parentTypeFieldPath);
             }
 
-            String parentNameField = this.getParentSobjectNameField(queryField.getDescribe());
+            String parentNameField = this.getParentSObjectNameField(queryField.getDescribe());
             if(parentNameField != null) {
                 fieldsToReturn.add(parentNameField);
                 // Record type names can be translated, so include the translation
