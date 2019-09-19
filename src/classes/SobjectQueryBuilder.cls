@@ -309,6 +309,19 @@ public class SobjectQueryBuilder extends Soql {
         return childQuery;
     }
 
+    public String getSubquery(Schema.SobjectField childToParentRelationshipField) {
+        String subquery = '(SELECT ' + childToParentRelationshipField
+            + ' FROM ' + this.sobjectType
+            + super.doGetUsingScopeString()
+            + super.doGetWhereClauseString()
+            + super.doGetOrderByString()
+            + super.doGetLimitCountString()
+            + ')';
+
+        System.debug(LoggingLevel.FINEST, subquery);
+        return subquery;
+    }
+
     public String getSearchQuery() {
         String sobjectTypeOptions = super.doGetQueryFieldString()
             + super.doGetWhereClauseString()
