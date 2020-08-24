@@ -11,18 +11,18 @@ public abstract class Sosl {
     private static Map<Integer, List<List<SObject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<SObject>>>();
 
     protected String searchQuery, searchTerm;
-    protected List<SObjectQueryBuilder> sobjectQueries;
+    protected List<Query> sobjectQueries;
     protected Set<Schema.SObjectType> sobjectTypes;
     protected Boolean cacheResults, hasChanged;
     protected Sosl.ArticleReporting articleReporting;
     protected List<String> withClauses, withDataCategoryClauses;
     protected Sosl.SearchGroup searchGroup;
 
-    protected Sosl(String searchTerm, SObjectQueryBuilder sobjectQuery) {
-        this(searchTerm, new List<SObjectQueryBuilder>{sobjectQuery});
+    protected Sosl(String searchTerm, Query sobjectQuery) {
+        this(searchTerm, new List<Query>{sobjectQuery});
     }
 
-    protected Sosl(String searchTerm, List<SObjectQueryBuilder> sobjectQueries) {
+    protected Sosl(String searchTerm, List<Query> sobjectQueries) {
         this.searchTerm     = String.escapeSingleQuotes(searchTerm);
         this.sobjectQueries = sobjectQueries;
 
@@ -37,7 +37,7 @@ public abstract class Sosl {
         if(this.sobjectTypes != null) return this.sobjectTypes;
 
         this.sobjectTypes = new Set<Schema.SObjectType>();
-        for(SObjectQueryBuilder query : this.sobjectQueries) {
+        for(Query query : this.sobjectQueries) {
             this.sobjectTypes.add(query.getSObjectType());
         }
         return this.sobjectTypes;
@@ -69,7 +69,7 @@ public abstract class Sosl {
 
         List<String> queryStrings = new List<String>();
         this.sobjectQueries.sort();
-        for(SObjectQueryBuilder query : this.sobjectQueries) {
+        for(Query query : this.sobjectQueries) {
             queryStrings.add(query.getSearchQuery());
         }
         return ' RETURNING ' + String.join(queryStrings, ', ');

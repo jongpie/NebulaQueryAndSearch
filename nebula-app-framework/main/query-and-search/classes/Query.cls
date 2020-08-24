@@ -2,14 +2,14 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
-public class SObjectQueryBuilder extends Soql {
+public class Query extends Soql {
 
     private String displayFieldApiName;
     private List<String> polymorphicFieldStatements;
     private List<String> childRelationshipQueries;
     private Boolean forReference, forUpdate, forView, includeLabels, includeFormattedValues;
 
-    public SObjectQueryBuilder(Schema.SObjectType sobjectType) {
+    public Query(Schema.SObjectType sobjectType) {
         super(sobjectType, true);
 
         this.displayFieldApiName        = this.getDisplayFieldApiName(this.sobjectType);
@@ -24,27 +24,27 @@ public class SObjectQueryBuilder extends Soql {
         this.addDefaultFields();
     }
 
-    public SObjectQueryBuilder addField(Schema.SObjectField field) {
+    public Query addField(Schema.SObjectField field) {
         return this.addField(field, null);
     }
 
-    public SObjectQueryBuilder addField(Schema.SObjectField field, Soql.FieldCategory fieldCategory) {
+    public Query addField(Schema.SObjectField field, Soql.FieldCategory fieldCategory) {
         return this.addFields(new List<Schema.SObjectField>{field}, fieldCategory);
     }
 
-    public SObjectQueryBuilder addField(Soql.QueryField queryField) {
+    public Query addField(Soql.QueryField queryField) {
         return this.addField(queryField, null);
     }
 
-    public SObjectQueryBuilder addField(Soql.QueryField queryField, Soql.FieldCategory fieldCategory) {
+    public Query addField(Soql.QueryField queryField, Soql.FieldCategory fieldCategory) {
         return this.addFields(new List<Soql.QueryField>{queryField}, fieldCategory);
     }
 
-    public SObjectQueryBuilder addFields(List<Schema.SObjectField> fields) {
+    public Query addFields(List<Schema.SObjectField> fields) {
         return this.addFields(fields, null);
     }
 
-    public SObjectQueryBuilder addFields(List<Schema.SObjectField> fields, Soql.FieldCategory fieldCategory) {
+    public Query addFields(List<Schema.SObjectField> fields, Soql.FieldCategory fieldCategory) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
         for(Schema.SObjectField field : fields) {
             queryFields.add(new Soql.QueryField(field));
@@ -52,11 +52,11 @@ public class SObjectQueryBuilder extends Soql {
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public SObjectQueryBuilder addFields(List<Soql.QueryField> queryFields) {
+    public Query addFields(List<Soql.QueryField> queryFields) {
         return this.addFields(queryFields, null);
     }
 
-    public SObjectQueryBuilder addFields(Soql.FieldCategory fieldCategory) {
+    public Query addFields(Soql.FieldCategory fieldCategory) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
         for(Schema.SObjectField field : this.sobjectDescribe.fields.getMap().values()) {
             queryFields.add(new Soql.QueryField(field));
@@ -64,16 +64,16 @@ public class SObjectQueryBuilder extends Soql {
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public SObjectQueryBuilder addFields(List<Soql.QueryField> queryFields, Soql.FieldCategory fieldCategory) {
+    public Query addFields(List<Soql.QueryField> queryFields, Soql.FieldCategory fieldCategory) {
         super.doAddFields(queryFields, fieldCategory);
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder addFieldSet(Schema.FieldSet fieldSet) {
+    public Query addFieldSet(Schema.FieldSet fieldSet) {
         return this.addFieldSet(fieldSet, null);
     }
 
-    public SObjectQueryBuilder addFieldSet(Schema.FieldSet fieldSet, Soql.FieldCategory fieldCategory) {
+    public Query addFieldSet(Schema.FieldSet fieldSet, Soql.FieldCategory fieldCategory) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
         for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
             queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
@@ -81,11 +81,11 @@ public class SObjectQueryBuilder extends Soql {
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public SObjectQueryBuilder addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField) {
+    public Query addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField) {
         return addPolymorphicFields(polymorphicRelationshipField, new Map<Schema.SObjectType, List<Schema.SObjectField>>());
     }
 
-    public SObjectQueryBuilder addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField, Map<Schema.SObjectType, List<Schema.SObjectField>> fieldsBySObjectType) {
+    public Query addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField, Map<Schema.SObjectType, List<Schema.SObjectField>> fieldsBySObjectType) {
         Map<Schema.SObjectType, List<Soql.QueryField>> queryFieldsBySObjectType = new Map<Schema.SObjectType, List<Soql.QueryField>>();
         for(Schema.SObjectType sobjectType : fieldsBySObjectType.keySet()) {
             List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
@@ -97,7 +97,7 @@ public class SObjectQueryBuilder extends Soql {
         return this.addPolymorphicFields(polymorphicRelationshipField, queryFieldsBySObjectType);
     }
 
-    public SObjectQueryBuilder addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField, Map<Schema.SObjectType, List<Soql.QueryField>> queryFieldsBySObjectType) {
+    public Query addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField, Map<Schema.SObjectType, List<Soql.QueryField>> queryFieldsBySObjectType) {
         String polymorphicFieldStatement = queryFieldsBySObjectType.isEmpty() ? '' : 'TYPEOF ' + polymorphicRelationshipField.getDescribe().getRelationshipName();
         for(Schema.SObjectType sobjectType : queryFieldsBySObjectType.keySet()) {
             List<String> fieldNames = new List<String>();
@@ -128,25 +128,25 @@ public class SObjectQueryBuilder extends Soql {
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder includeLabels() {
+    public Query includeLabels() {
         this.includeLabels = true;
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder includeFormattedValues() {
+    public Query includeFormattedValues() {
         this.includeFormattedValues = true;
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder removeField(Schema.SObjectField field) {
+    public Query removeField(Schema.SObjectField field) {
         return this.removeFields(new List<Schema.SObjectField>{field});
     }
 
-    public SObjectQueryBuilder removeField(Soql.QueryField queryField) {
+    public Query removeField(Soql.QueryField queryField) {
         return this.removeFields(new List<Soql.QueryField>{queryField});
     }
 
-    public SObjectQueryBuilder removeFields(Schema.FieldSet fieldSet) {
+    public Query removeFields(Schema.FieldSet fieldSet) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
         for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
             queryFields.add(new Soql.QueryField(this.getSObjectType(), fieldSetMember.getFieldPath()));
@@ -154,7 +154,7 @@ public class SObjectQueryBuilder extends Soql {
         return this.removeFields(queryFields);
     }
 
-    public SObjectQueryBuilder removeFields(List<Schema.SObjectField> fields) {
+    public Query removeFields(List<Schema.SObjectField> fields) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
         for(Schema.SObjectField field : fields) {
             queryFields.add(new Soql.QueryField(field));
@@ -162,116 +162,116 @@ public class SObjectQueryBuilder extends Soql {
         return this.removeFields(queryFields);
     }
 
-    public SObjectQueryBuilder removeFields(List<Soql.QueryField> queryFields) {
+    public Query removeFields(List<Soql.QueryField> queryFields) {
         super.doRemoveFields(queryFields);
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder includeRelatedRecords(Schema.SObjectField childToParentRelationshipField, SObjectQueryBuilder relatedSObjectQuery) {
+    public Query includeRelatedRecords(Schema.SObjectField childToParentRelationshipField, Query relatedSObjectQuery) {
          this.childRelationshipQueries.add(relatedSObjectQuery.getRelatedRecordsQuery(childToParentRelationshipField));
          return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder usingScope(Scope scope) {
+    public Query usingScope(Scope scope) {
         super.doUsingScope(scope);
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder filterWhere(Schema.SObjectField field, Soql.Operator operator, Object value) {
+    public Query filterWhere(Schema.SObjectField field, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryField(field), operator, value);
     }
 
-    public SObjectQueryBuilder filterWhere(Soql.QueryField queryField, Soql.Operator operator, Object value) {
+    public Query filterWhere(Soql.QueryField queryField, Soql.Operator operator, Object value) {
         return this.filterWhere(new Soql.QueryFilter(queryField, operator, value));
     }
 
-    public SObjectQueryBuilder filterWhere(Soql.QueryFilter filter) {
+    public Query filterWhere(Soql.QueryFilter filter) {
         return this.filterWhere(new List<Soql.QueryFilter>{filter});
     }
 
-    public SObjectQueryBuilder filterWhere(List<Soql.QueryFilter> filters) {
+    public Query filterWhere(List<Soql.QueryFilter> filters) {
         super.doFilterWhere(filters);
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder orFilterWhere(List<Soql.QueryFilter> filters) {
+    public Query orFilterWhere(List<Soql.QueryFilter> filters) {
         super.doOrFilterWhere(filters);
         return this.setHasChanged();
     }
 
-    //public SObjectQueryBuilder filterWhereInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
+    //public Query filterWhereInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
         //this.whereFilters.add('Id IN (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')');
         //return this.setHasChanged();
     //}
 //
-    //public SObjectQueryBuilder filterWhereInSubquery(SObjectQueryBuilder childSObjectQueryBuilder, Schema.SObjectField lookupFieldOnChildSObject) {
-        //String subqueryString = childSObjectQueryBuilder.getSubquery(lookupFieldOnChildSObject);
+    //public Query filterWhereInSubquery(Query childQuery, Schema.SObjectField lookupFieldOnChildSObject) {
+        //String subqueryString = childQuery.getSubquery(lookupFieldOnChildSObject);
         //this.whereFilters.add('Id IN ' + subqueryString);
         //return this.setHasChanged();
     //}
 //
-    //public SObjectQueryBuilder filterWhereNotInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
+    //public Query filterWhereNotInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
         //this.whereFilters.add('Id NOT IN (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')');
         //return this.setHasChanged();
     //}
 //
-    //public SObjectQueryBuilder filterWhereNotInSubquery(SObjectQueryBuilder childSObjectQueryBuilder, Schema.SObjectField lookupFieldOnChildSObject) {
-        //String subqueryString = childSObjectQueryBuilder.getSubquery(lookupFieldOnChildSObject);
+    //public Query filterWhereNotInSubquery(Query childQuery, Schema.SObjectField lookupFieldOnChildSObject) {
+        //String subqueryString = childQuery.getSubquery(lookupFieldOnChildSObject);
         //this.whereFilters.add('Id NOT IN ' + subqueryString);
         //return this.setHasChanged();
     //}
 
-    public SObjectQueryBuilder orderByField(Schema.SObjectField field) {
+    public Query orderByField(Schema.SObjectField field) {
         return this.orderByField(new Soql.QueryField(field));
     }
 
-    public SObjectQueryBuilder orderByField(Soql.QueryField queryField) {
+    public Query orderByField(Soql.QueryField queryField) {
         return this.orderByField(queryField, null);
     }
 
-    public SObjectQueryBuilder orderByField(Schema.SObjectField field, Soql.SortOrder sortOrder) {
+    public Query orderByField(Schema.SObjectField field, Soql.SortOrder sortOrder) {
         return this.orderByField(field, sortOrder, null);
     }
 
-    public SObjectQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder) {
+    public Query orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder) {
         return this.orderByField(queryField, sortOrder, null);
     }
 
-    public SObjectQueryBuilder orderByField(Schema.SObjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public Query orderByField(Schema.SObjectField field, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         return this.orderByField(new Soql.QueryField(field), sortOrder, sortNullsFirst);
     }
 
-    public SObjectQueryBuilder orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    public Query orderByField(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
         super.doOrderBy(queryField, sortOrder, sortNullsFirst);
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder limitTo(Integer numberOfRecords) {
+    public Query limitTo(Integer numberOfRecords) {
         super.doLimitTo(numberOfRecords);
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder offsetBy(Integer offset) {
+    public Query offsetBy(Integer offset) {
         super.doOffsetBy(offset);
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder forReference() {
+    public Query forReference() {
         this.forReference = true;
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder forUpdate() {
+    public Query forUpdate() {
         this.forUpdate = true;
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder forView() {
+    public Query forView() {
         this.forView = true;
         return this.setHasChanged();
     }
 
-    public SObjectQueryBuilder cacheResults() {
+    public Query cacheResults() {
         super.doCacheResults();
         return this;
     }
@@ -373,7 +373,7 @@ public class SObjectQueryBuilder extends Soql {
         if(!String.isBlank(this.displayFieldApiName)) this.addField(fieldMap.get(this.displayFieldApiName));
     }
 
-    private SObjectQueryBuilder setHasChanged() {
+    private Query setHasChanged() {
         this.hasChanged = true;
         return this;
     }
