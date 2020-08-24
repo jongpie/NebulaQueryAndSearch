@@ -3,16 +3,16 @@
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
 @isTest
-private class AggregateQueryBuilder_Tests {
+private class AggregateQuery_Tests {
 
     @isTest
     static void it_should_be_usable_after_construction() {
         // Query builders should be usable as soon as it's constructed - it should be able to execute a query with some default values
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SObjectType);
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType);
 
         Test.startTest();
 
-        AggregateResult result = (AggregateResult)aggregateQueryBuilder.getFirstResult();
+        AggregateResult result = (AggregateResult)AggregateQuery.getFirstResult();
 
         Test.stopTest();
     }
@@ -21,14 +21,14 @@ private class AggregateQueryBuilder_Tests {
     static void it_should_return_results_when_filtering() {
         String expectedQueryString = 'SELECT Type FROM Opportunity WHERE AccountId != null GROUP BY Type';
 
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SObjectType)
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
             .groupByField(Schema.Opportunity.Type)
             .filterWhere(new Soql.QueryFilter(Schema.Opportunity.AccountId, Soql.Operator.NOT_EQUAL_TO, null));
 
         Test.startTest();
 
-        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
-        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
+        List<AggregateResult> results = AggregateQuery.getResults();
 
         Test.stopTest();
     }
@@ -37,7 +37,7 @@ private class AggregateQueryBuilder_Tests {
     static void it_should_return_results_when_filtering_with_an_or_statement() {
         String expectedQueryString = 'SELECT Type, COUNT(Id) COUNT__Id FROM Account WHERE (AccountNumber = null OR Type = null) AND ParentId != null GROUP BY Type';
 
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SObjectType)
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
             .groupByField(Schema.Account.Type)
             .filterWhere(new Soql.QueryFilter(Schema.Account.ParentId, Soql.Operator.NOT_EQUAL_TO, null))
             .orFilterWhere(new List<Soql.QueryFilter>{
@@ -46,20 +46,20 @@ private class AggregateQueryBuilder_Tests {
             })
             .addAggregate(Soql.Aggregate.COUNT, Schema.Account.Id);
 
-        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
-        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
+        List<AggregateResult> results = AggregateQuery.getResults();
     }
 
     @isTest
     static void it_should_cache_results() {
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SObjectType);
-        aggregateQueryBuilder.cacheResults();
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType);
+        AggregateQuery.cacheResults();
 
         Test.startTest();
 
         System.assertEquals(0, Limits.getQueries());
         for(Integer i = 0; i < 3; i++) {
-            aggregateQueryBuilder.getResults();
+            AggregateQuery.getResults();
         }
 
         System.assertEquals(1, Limits.getQueries());
@@ -71,7 +71,7 @@ private class AggregateQueryBuilder_Tests {
     static void it_should_group_by_cube() {
         String expectedQueryString = 'SELECT Type, StageName, SUM(Amount) SUM__Amount FROM Opportunity GROUP BY CUBE(Type, StageName)';
 
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SObjectType)
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
             .groupByField(Schema.Opportunity.Type)
             .groupByField(Schema.Opportunity.StageName)
             .addAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
@@ -79,8 +79,8 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
-        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
-        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
+        List<AggregateResult> results = AggregateQuery.getResults();
 
         Test.stopTest();
     }
@@ -89,7 +89,7 @@ private class AggregateQueryBuilder_Tests {
     static void it_should_group_by_rollup() {
         String expectedQueryString = 'SELECT Type, StageName, SUM(Amount) SUM__Amount FROM Opportunity GROUP BY ROLLUP(Type, StageName)';
 
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SObjectType)
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
             .groupByField(Schema.Opportunity.Type)
             .groupByField(Schema.Opportunity.StageName)
             .addAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
@@ -97,8 +97,8 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
-        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
-        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
+        List<AggregateResult> results = AggregateQuery.getResults();
 
         Test.stopTest();
     }
@@ -107,15 +107,15 @@ private class AggregateQueryBuilder_Tests {
     static void it_should_group_by_having_aggregate() {
         String expectedQueryString = 'SELECT Name, COUNT(Id) COUNT__Id FROM Account GROUP BY Name HAVING COUNT(Id) > 2';
 
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Account.SObjectType)
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
           .groupByField(Account.Name)
           .addAggregate(Soql.Aggregate.COUNT, Account.Id)
           .havingAggregate(Soql.Aggregate.COUNT, Account.Id, Soql.Operator.GREATER_THAN, 2);
 
         Test.startTest();
 
-        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
-        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
+        List<AggregateResult> results = AggregateQuery.getResults();
 
         Test.stopTest();
     }
@@ -124,14 +124,14 @@ private class AggregateQueryBuilder_Tests {
     static void it_should_group_by_a_date_function() {
         String expectedQueryString = 'SELECT CALENDAR_MONTH(CloseDate), COUNT(Id) COUNT__Id FROM Opportunity GROUP BY CALENDAR_MONTH(CloseDate)';
 
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SObjectType)
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
           .groupByField(new Soql.QueryField(Soql.DateFunction.CALENDAR_MONTH, Schema.Opportunity.CloseDate))
           .addAggregate(Soql.Aggregate.COUNT, Opportunity.Id);
 
         Test.startTest();
 
-        System.assertEquals(expectedQueryString, aggregateQueryBuilder.getQuery());
-        List<AggregateResult> results = aggregateQueryBuilder.getResults();
+        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
+        List<AggregateResult> results = AggregateQuery.getResults();
 
         Test.stopTest();
     }
@@ -149,7 +149,7 @@ private class AggregateQueryBuilder_Tests {
             + ' LIMIT 100'
             + ' OFFSET 0';
 
-        AggregateQueryBuilder aggregateQueryBuilder = new AggregateQueryBuilder(Schema.Opportunity.SObjectType)
+        AggregateQuery AggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
             .addAggregate(Soql.Aggregate.MAX, Schema.Opportunity.CreatedDate)
             .addAggregate(Soql.Aggregate.AVG, Schema.Opportunity.Amount)
             .addAggregate(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.OwnerId)
@@ -180,7 +180,7 @@ private class AggregateQueryBuilder_Tests {
 
         Test.startTest();
 
-        String returnedQueryString = aggregateQueryBuilder.getQuery();
+        String returnedQueryString = AggregateQuery.getQuery();
 
         Test.stopTest();
 

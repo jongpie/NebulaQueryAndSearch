@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>NebulaQueryAndSearch</fullName>
+    <types>
+        <members>AggregateQuery</members>
+        <members>AggregateQuery_Tests</members>
+        <members>Query</members>
+        <members>Query_Tests</members>
+        <members>RecordSearch</members>
+        <members>RecordSearch_Tests</members>
+        <members>Soql</members>
+        <members>Sosl</members>
+        <name>ApexClass</name>
+    </types>
+    <version>49.0</version>
+</Package>
