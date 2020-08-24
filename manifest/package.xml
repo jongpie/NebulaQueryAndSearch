@@ -2,12 +2,12 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>NebulaQueryAndSearch</fullName>
     <types>
-        <members>AggregateQueryBuilder</members>
-        <members>AggregateQueryBuilder_Tests</members>
-        <members>SObjectQueryBuilder</members>
-        <members>SObjectQueryBuilder_Tests</members>
-        <members>SearchBuilder</members>
-        <members>SearchBuilder_Tests</members>
+        <members>AggregateQuery</members>
+        <members>AggregateQuery_Tests</members>
+        <members>Query</members>
+        <members>Query_Tests</members>
+        <members>RecordSearch</members>
+        <members>RecordSearch_Tests</members>
         <members>Soql</members>
         <members>Sosl</members>
         <name>ApexClass</name>
