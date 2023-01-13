@@ -1,0 +1,28 @@
+{
+  "name": "nebula-query-and-search",
+  "version": "3.2.0",
+  "description": "A dynamic SOQL query & SOSL search library for for Salesforce Apex",
+  "scripts": {
+    "package:aliases:sort": "sfdx bummer:package:aliases:sort",
+    "package:version:create:nonamespace": "sfdx force:package:version:create --json --package \"Nebula Query & Search (no namespace)\" --skipancestorcheck --codecoverage --installationkeybypass --wait 30",
+    "package:version:create:withnamespace": "sfdx force:package:version:create --json --package \"Nebula Query & Search (Nebula namespace)\" --skipancestorcheck --codecoverage --installationkeybypass --wait 30",
+    "scan:apex": "sfdx scanner:run --pmdconfig ./config/pmd-ruleset.xml --target ./nebula-query-and-search/ --engine pmd --severity-threshold 3",
+    "test:apex": "sfdx force:apex:test:run --verbose --testlevel RunLocalTests --wait 30 --resultformat human --codecoverage --detailedcoverage --outputdir ./test-coverage/apex",
+    "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
+    "prettier:verify": "prettier --list-different \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
+    "postinstall": "husky install",
+    "precommit": "lint-staged"
+  },
+  "devDependencies": {
+    "@prettier/plugin-xml": "^2.0.1",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.3.7",
+    "prettier": "^2.6.0",
+    "prettier-plugin-apex": "^1.10.0"
+  },
+  "lint-staged": {
+    "**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}": [
+      "prettier --write"
+    ]
+  }
+}

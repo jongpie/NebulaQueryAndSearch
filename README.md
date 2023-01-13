@@ -1,13 +1,21 @@
 # Nebula Query & Search for Salesforce Apex
-[![Travis CI](https://img.shields.io/travis/jongpie/NebulaQueryAndSearch/master.svg)](https://travis-ci.org/jongpie/NebulaQueryAndSearch)
+A dynamic SOQL query & SOSL search library for for Salesforce Apex
+# Apex UUID
 
-<a href="https://githubsfdeploy.herokuapp.com" target="_blank">
-    <img alt="Deploy to Salesforce" src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
-</a>
+Provides a way to generate a [UUID (Universally Unique Identifier)](https://en.wikipedia.org/wiki/Universally_unique_identifier) in Salesforce's Apex language. This uses Verion 4 of the UUID standard - more details available [here](<https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)>)
 
-A dynamic SOQL query & SOSL search library for for Salesforce Apex<br /><br />
+## Unlocked Package - no namespace - v3.2.0
 
-## Features
+[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=TODO)
+[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=TODO)
+
+## Unlocked Package - `Nebula` namespace - v3.2.0
+
+[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=TODO)
+[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=TODO)
+
+
+# Features
 * Provides chainable builder methods for dyanmically building queries & searches in APex
 * Easily add fields to a query based on field level security
 * Easily add fields from a field set
@@ -18,7 +26,7 @@ A dynamic SOQL query & SOSL search library for for Salesforce Apex<br /><br />
 * Enable query & search caching by simple calling cacheResults()
 * Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
 
-## Overview
+# Overview
 There are 3 main builder classes
 
  &nbsp; | Query | AggregateQuery | RecordSearch
