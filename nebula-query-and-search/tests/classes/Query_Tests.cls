@@ -1,15 +1,14 @@
-/******************************************************************************************************
-* This file is part of the Nebula Query & Search project, released under the MIT License.             *
-* See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
-******************************************************************************************************/
+/*******************************************************************************************************
+ * This file is part of the Nebula Query & Search project, released under the MIT License.             *
+ * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
+ ******************************************************************************************************/
 
 @SuppressWarnings(
     'PMD.ApexDoc, PMD.ApexAssertionsShouldIncludeMessage, PMD.ApexUnitTestClassShouldHaveAsserts, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessiveParameterList, PMD.MethodNamingConventions, PMD.NcssMethodCount, PMD.UnusedLocalVariable'
 )
-@isTest
+@IsTest(IsParallel=true)
 private class Query_Tests {
-
-    @isTest
+    @IsTest
     static void it_should_return_results_for_a_simple_query() {
         String expectedQueryString = 'SELECT Id, Name FROM Account';
 
@@ -19,22 +18,26 @@ private class Query_Tests {
         List<Account> accounts = simpleAccountQuery.getResults();
     }
 
-    @isTest
+    @IsTest
     static void it_should_return_results_for_an_advanced_query() {
         Datetime now = System.now();
 
-        String expectedQueryString = 'SELECT Alias, Email, Id, IsActive, Profile.Name, ProfileId'
-            + ' FROM User USING SCOPE MINE'
-            + ' WHERE CreatedDate <= LAST_WEEK'
-            + ' AND Email != null'
-            + ' AND IsActive = true'
-            + ' AND LastLoginDate >= LAST_N_DAYS:3'
-            + ' AND LastModifiedDate <= ' + now.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time')
-            + ' AND Profile.Id != \'' + UserInfo.getProfileId() + '\''
-            + ' ORDER BY Profile.CreatedBy.LastModifiedDate ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST'
-            + ' LIMIT 100 OFFSET 1 FOR VIEW';
+        String expectedQueryString =
+            'SELECT Alias, Email, Id, IsActive, Profile.Name, ProfileId' +
+            ' FROM User USING SCOPE MINE' +
+            ' WHERE CreatedDate <= LAST_WEEK' +
+            ' AND Email != null' +
+            ' AND IsActive = true' +
+            ' AND LastLoginDate >= LAST_N_DAYS:3' +
+            ' AND LastModifiedDate <= ' +
+            now.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time') +
+            ' AND Profile.Id != \'' +
+            UserInfo.getProfileId() +
+            '\'' +
+            ' ORDER BY Profile.CreatedBy.LastModifiedDate ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST' +
+            ' LIMIT 100 OFFSET 1 FOR VIEW';
 
-        List<SObjectField> fieldsToQuery = new List<SObjectField>{Schema.User.IsActive, Schema.User.Alias};
+        List<SObjectField> fieldsToQuery = new List<SObjectField>{ Schema.User.IsActive, Schema.User.Alias };
 
         Query userQuery = new Query(Schema.User.SObjectType)
             .addFields(fieldsToQuery)
@@ -62,13 +65,11 @@ private class Query_Tests {
         List<User> users = userQuery.getResults();
     }
 
-    @isTest
+    @IsTest
     static void it_should_return_results_and_include_grandparent_query_field() {
         String expectedQueryString = 'SELECT Id, Name, Parent.Owner.Name FROM Account';
 
-        List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{
-            Schema.Account.ParentId, Schema.Account.OwnerId, Schema.User.Name
-        };
+        List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{ Schema.Account.ParentId, Schema.Account.OwnerId, Schema.User.Name };
         Soql.QueryField queryField = new Soql.QueryField(fieldChain);
 
         Query accountQuery = new Query(Schema.Account.SObjectType);
@@ -78,77 +79,76 @@ private class Query_Tests {
         List<Account> accounts = accountQuery.getResults();
     }
 
-    @isTest
+    @IsTest
     static void it_should_return_results_and_not_include_sobject_type_for_monomorphic_field() {
         String expectedQueryString = 'SELECT Id, Name, Owner.Name, OwnerId FROM Account';
 
-        Query accountQuery = new Query(Schema.Account.SObjectType)
-            .addField(new Soql.QueryField(Schema.Account.OwnerId));
+        Query accountQuery = new Query(Schema.Account.SObjectType).addField(new Soql.QueryField(Schema.Account.OwnerId));
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());
         List<Account> accounts = accountQuery.getResults();
     }
 
-    @isTest
+    @IsTest
     static void it_should_return_results_and_include_separate_fields_for_for_polymorphic_field() {
         List<String> supportedPolymorphicFieldNames = new List<String>();
-        for(Schema.SObjectField field : Schema.Name.SObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED).fields.getMap().values()) {
+        for (Schema.SObjectField field : Schema.Name.SObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED).fields.getMap().values()) {
             Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
 
-            if(!fieldDescribe.isAccessible()) { continue; }
+            if (!fieldDescribe.isAccessible()) {
+                continue;
+            }
             supportedPolymorphicFieldNames.add(String.valueOf(field));
 
-            Set<String> referenceFieldNames = new Set<String>{'ProfileId',  'RecordTypeId', 'UserRoleId'};
-            if(referenceFieldNames.contains(fieldDescribe.getName())) { supportedPolymorphicFieldNames.add(fieldDescribe.getRelationshipName() + '.Name'); }
+            Set<String> referenceFieldNames = new Set<String>{ 'ProfileId', 'RecordTypeId', 'UserRoleId' };
+            if (referenceFieldNames.contains(fieldDescribe.getName())) {
+                supportedPolymorphicFieldNames.add(fieldDescribe.getRelationshipName() + '.Name');
+            }
         }
         supportedPolymorphicFieldNames.sort();
-        String expectedQuery = 'SELECT Id, Subject, TYPEOF Who WHEN Contact THEN Account.Name, AccountId, Id, Name'
-            +' WHEN Lead THEN Company, Id, LeadSource, Name'
-            + ' ELSE ' + String.join(supportedPolymorphicFieldNames, ', ') + ' END'
-            + ' FROM Task';
+        String expectedQuery =
+            'SELECT Id, Subject, TYPEOF Who WHEN Contact THEN Account.Name, AccountId, Id, Name' +
+            ' WHEN Lead THEN Company, Id, LeadSource, Name' +
+            ' ELSE ' +
+            String.join(supportedPolymorphicFieldNames, ', ') +
+            ' END' +
+            ' FROM Task';
 
         Test.startTest();
 
         Map<Schema.SObjectType, List<Schema.SObjectField>> fieldsBySObjectType = new Map<Schema.SObjectType, List<Schema.SObjectField>>();
 
         // Contact fields
-        List<Schema.SObjectField> contactFields = new List<Schema.SObjectField>{
-            Schema.Contact.Id, Schema.Contact.Name, Schema.Contact.AccountId
-        };
+        List<Schema.SObjectField> contactFields = new List<Schema.SObjectField>{ Schema.Contact.Id, Schema.Contact.Name, Schema.Contact.AccountId };
         fieldsBySObjectType.put(Schema.Contact.SObjectType, contactFields);
 
         // Lead fields
-        List<Schema.SObjectField> leadFields = new List<Schema.SObjectField>{
-            Schema.Lead.Id, Schema.Lead.Name, Schema.Lead.Company, Schema.Lead.LeadSource
-        };
-        fieldsBySObjectType.put(Schema.Lead.SObjectType, leadFields );
+        List<Schema.SObjectField> leadFields = new List<Schema.SObjectField>{ Schema.Lead.Id, Schema.Lead.Name, Schema.Lead.Company, Schema.Lead.LeadSource };
+        fieldsBySObjectType.put(Schema.Lead.SObjectType, leadFields);
 
         // Query the task object
-        Query taskQuery = new Query(Schema.Task.SObjectType)
-            .addPolymorphicFields(Schema.Task.WhoId, fieldsBySObjectType);
+        Query taskQuery = new Query(Schema.Task.SObjectType).addPolymorphicFields(Schema.Task.WhoId, fieldsBySObjectType);
 
         Test.stopTest();
 
         System.assertEquals(expectedQuery, taskQuery.getQuery());
     }
 
-    @isTest
+    @IsTest
     static void it_should_return_results_and_include_sobject_type_for_polymorphic_field() {
         String expectedQueryString = 'SELECT Id, Name, Owner.Name, Owner.Type, OwnerId FROM Lead';
 
-        Query leadQuery = new Query(Schema.Lead.SObjectType)
-            .addField(new Soql.QueryField(Schema.Lead.OwnerId));
+        Query leadQuery = new Query(Schema.Lead.SObjectType).addField(new Soql.QueryField(Schema.Lead.OwnerId));
 
         System.assertEquals(expectedQueryString, leadQuery.getQuery());
         List<Lead> leads = leadQuery.getResults();
     }
 
-    @isTest
+    @IsTest
     static void it_should_return_results_and_include_related_records() {
         String expectedQueryString = 'SELECT Id, Name, Type, (SELECT Email, Id, Name FROM Contacts) FROM Account';
 
-        Query contactQuery = new Query(Schema.Contact.SObjectType)
-            .addField(Schema.Contact.Email);
+        Query contactQuery = new Query(Schema.Contact.SObjectType).addField(Schema.Contact.Email);
 
         Query accountQuery = new Query(Schema.Account.SObjectType)
             .includeRelatedRecords(Schema.Contact.AccountId, contactQuery)
@@ -158,24 +158,28 @@ private class Query_Tests {
         List<Account> accounts = accountQuery.getResults();
     }
 
-    @isTest
+    @IsTest
     static void it_should_return_results_when_filtering_with_an_or_statement() {
         String expectedQueryString = 'SELECT Id, Name FROM Account WHERE ParentId != null AND (AccountNumber = null OR Type = null)';
 
         Query accountQuery = new Query(Schema.Account.SObjectType)
             .addField(Schema.Account.AnnualRevenue)
-            .orFilterWhere(new List<Soql.QueryFilter>{
-                new Soql.QueryFilter(Schema.Account.Type, Soql.Operator.EQUALS, null),
-                new Soql.QueryFilter(Schema.Account.AccountNumber, Soql.Operator.EQUALS, null)
-            })
+            .orFilterWhere(
+                new List<Soql.QueryFilter>{
+                    new Soql.QueryFilter(Schema.Account.Type, Soql.Operator.EQUALS, null),
+                    new Soql.QueryFilter(Schema.Account.AccountNumber, Soql.Operator.EQUALS, null)
+                }
+            )
             .filterWhere(new Soql.QueryFilter(Schema.Account.ParentId, Soql.Operator.NOT_EQUAL_TO, null));
         List<Account> accounts = accountQuery.getResults();
     }
 
-    @isTest
+    @IsTest
     static void it_should_return_results_when_filtering_with_iso_currency() {
         // If multi-currency isn't enabled, then we cannot use IsoCurrency, so skip running this test
-        if(!UserInfo.isMultiCurrencyOrganization()) { return; }
+        if (!UserInfo.isMultiCurrencyOrganization()) {
+            return;
+        }
 
         // If multi-currency is enabled, then execute the test
         Query accountQuery = new Query(Schema.Account.SObjectType)
@@ -184,14 +188,14 @@ private class Query_Tests {
         List<Account> accounts = accountQuery.getResults();
     }
 
-    @isTest
+    @IsTest
     static void it_should_cache_query_results_when_enabled() {
         Integer loops = 4;
         Query userQuery = new Query(Schema.User.SObjectType).limitTo(1);
 
         // First, verify that caching is not enabled by default
         System.assertEquals(0, Limits.getQueries());
-        for(Integer i = 0; i < loops; i++) {
+        for (Integer i = 0; i < loops; i++) {
             userQuery.getResults();
         }
         System.assertEquals(loops, Limits.getQueries());
@@ -199,12 +203,11 @@ private class Query_Tests {
         Test.startTest();
 
         userQuery.cacheResults();
-        for(Integer i = 0; i < loops; i++) {
+        for (Integer i = 0; i < loops; i++) {
             userQuery.getResults();
         }
         System.assertEquals(1, Limits.getQueries());
 
         Test.stopTest();
     }
-
 }

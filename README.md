@@ -1,5 +1,7 @@
 # Nebula Query & Search for Salesforce Apex
+
 A dynamic SOQL query & SOSL search library for for Salesforce Apex
+
 # Apex UUID
 
 Provides a way to generate a [UUID (Universally Unique Identifier)](https://en.wikipedia.org/wiki/Universally_unique_identifier) in Salesforce's Apex language. This uses Verion 4 of the UUID standard - more details available [here](<https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)>)
@@ -14,28 +16,30 @@ Provides a way to generate a [UUID (Universally Unique Identifier)](https://en.w
 [![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=TODO)
 [![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=TODO)
 
-
 # Features
-* Provides chainable builder methods for dyanmically building queries & searches in APex
-* Easily add fields to a query based on field level security
-* Easily add fields from a field set
-* Automatically adds the parent name field for any lookup/master-detail fields
-* Adds translations for picklist fields & record types by calling includeLabels()
-* Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
-* Leverage query scope to filter results
-* Enable query & search caching by simple calling cacheResults()
-* Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
+
+-   Provides chainable builder methods for dyanmically building queries & searches in APex
+-   Easily add fields to a query based on field level security
+-   Easily add fields from a field set
+-   Automatically adds the parent name field for any lookup/master-detail fields
+-   Adds translations for picklist fields & record types by calling includeLabels()
+-   Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
+-   Leverage query scope to filter results
+-   Enable query & search caching by simple calling cacheResults()
+-   Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
 
 # Overview
+
 There are 3 main builder classes
 
- &nbsp; | Query | AggregateQuery | RecordSearch
-------- | --------------------|-----------------------|--------------
-Super Class | Soql.cls (Queries) | Soql.cls (Queries) | Sosl.cls (Searches) | -
-Action | Queries an SObject | Queries an SObject | Searches 1 or more SObjects
-Returns | `SObject` or `List<SObject>` | `AggregateResult` or `List<AggregateResult>` | `SObject`, `List<SObject>` or `List<List<SObject>>`
+| &nbsp;      | Query                        | AggregateQuery                               | RecordSearch                                        |
+| ----------- | ---------------------------- | -------------------------------------------- | --------------------------------------------------- | --- |
+| Super Class | Soql.cls (Queries)           | Soql.cls (Queries)                           | Sosl.cls (Searches)                                 | -   |
+| Action      | Queries an SObject           | Queries an SObject                           | Searches 1 or more SObjects                         |
+| Returns     | `SObject` or `List<SObject>` | `AggregateResult` or `List<AggregateResult>` | `SObject`, `List<SObject>` or `List<List<SObject>>` |
 
 ## SOQL SObject Query Examples
+
 **Basic Usage:** Query an object & return the object's ID and display name field (typically the 'Name' field, but some objects use other fields, like Task.Subject and Case.CaseNumber). Since no filters have been added, this query would also return all accounts.
 
 ```
@@ -79,6 +83,7 @@ System.debug(accountQuery.getQuery());
 ```
 
 ## SOSL Search Examples
+
 **Basic Usage:** Search a single object
 
 ```

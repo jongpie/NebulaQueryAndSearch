@@ -1,11 +1,12 @@
-/******************************************************************************************************
-* This file is part of the Nebula Query & Search project, released under the MIT License.             *
-* See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
-******************************************************************************************************/
+/*******************************************************************************************************
+ * This file is part of the Nebula Query & Search project, released under the MIT License.             *
+ * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
+ ******************************************************************************************************/
 
-@SuppressWarnings('PMD.ApexDoc, PMD.ApexSharingViolations, PMD.CyclomaticComplexity, PMD.ExcessiveParameterList, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart')
+@SuppressWarnings(
+    'PMD.ApexDoc, PMD.ApexSharingViolations, PMD.CyclomaticComplexity, PMD.ExcessiveParameterList, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart'
+)
 public class AggregateQuery extends Soql {
-
     private Soql.GroupingDimension groupingDimension;
     private List<AggregateField> aggregateFields;
     private List<String> havingConditions;
@@ -13,21 +14,21 @@ public class AggregateQuery extends Soql {
     public AggregateQuery(Schema.SObjectType sobjectType) {
         super(sobjectType, false);
 
-        this.aggregateFields  = new List<AggregateField>();
+        this.aggregateFields = new List<AggregateField>();
         this.havingConditions = new List<String>();
     }
 
     public AggregateQuery groupByField(Schema.SObjectField field) {
-       return this.groupByFields(new List<Schema.SObjectField>{field});
+        return this.groupByFields(new List<Schema.SObjectField>{ field });
     }
 
     public AggregateQuery groupByField(Soql.QueryField queryField) {
-        return this.groupByFields(new List<Soql.QueryField>{queryField});
+        return this.groupByFields(new List<Soql.QueryField>{ queryField });
     }
 
     public AggregateQuery groupByFields(List<Schema.SObjectField> fields) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-        for(Schema.SObjectField field : fields) {
+        for (Schema.SObjectField field : fields) {
             queryFields.add(new Soql.QueryField(field));
         }
         return this.groupByFields(queryFields);
@@ -40,7 +41,7 @@ public class AggregateQuery extends Soql {
 
     public AggregateQuery groupByFieldSet(Schema.FieldSet fieldSet) {
         List<Soql.QueryField> queryFields = new List<Soql.QueryField>();
-        for(Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
+        for (Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
             queryFields.add(new Soql.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
         }
         return this.groupByFields(queryFields);
@@ -86,7 +87,7 @@ public class AggregateQuery extends Soql {
     }
 
     public AggregateQuery filterWhere(Soql.QueryFilter filter) {
-        return this.filterWhere(new List<Soql.QueryFilter>{filter});
+        return this.filterWhere(new List<Soql.QueryFilter>{ filter });
     }
 
     public AggregateQuery filterWhere(List<Soql.QueryFilter> filters) {
@@ -166,27 +167,32 @@ public class AggregateQuery extends Soql {
 
     @SuppressWarnings('PMD.AvoidDebugStatements')
     public override String getQuery() {
-        if(this.query != null && !this.hasChanged) { return this.query; }
+        if (this.query != null && !this.hasChanged) {
+            return this.query;
+        }
 
         String queryFieldString = super.doGetQueryFieldString();
         String aggregateQueryFieldString = this.getAggregateQueryFieldString();
         String aggregateFieldDelimiter = !String.isEmpty(queryFieldString) && !String.isEmpty(aggregateQueryFieldString) ? ', ' : '';
 
         String combinedFieldsString = queryFieldString + aggregateFieldDelimiter + aggregateQueryFieldString;
-        if(String.isBlank(combinedFieldsString)) {
+        if (String.isBlank(combinedFieldsString)) {
             Schema.SObjectField idField = this.getSObjectType().getDescribe().fields.getMap().get('Id');
             combinedFieldsString = new AggregateField(this.getSObjectType(), Soql.Aggregate.COUNT, new Soql.QueryField(idField), null).toString();
         }
 
-        this.query = 'SELECT ' + combinedFieldsString
-            + ' FROM ' + this.sobjectType
-            + super.doGetUsingScopeString()
-            + super.doGetWhereClauseString()
-            + this.getGroupByString()
-            + this.getHavingString()
-            + super.doGetOrderByString()
-            + super.doGetLimitCountString()
-            + super.doGetOffetString();
+        this.query =
+            'SELECT ' +
+            combinedFieldsString +
+            ' FROM ' +
+            this.sobjectType +
+            super.doGetUsingScopeString() +
+            super.doGetWhereClauseString() +
+            this.getGroupByString() +
+            this.getHavingString() +
+            super.doGetOrderByString() +
+            super.doGetLimitCountString() +
+            super.doGetOffetString();
 
         System.debug(LoggingLevel.FINEST, this.query);
         return this.query;
@@ -194,24 +200,26 @@ public class AggregateQuery extends Soql {
 
     @SuppressWarnings('PMD.ApexSOQLInjection')
     public Integer getResultCount() {
-        String countQuery = 'SELECT COUNT()'
-            + ' FROM ' + this.sobjectType
-            + super.doGetUsingScopeString()
-            + super.doGetWhereClauseString()
-            + this.getGroupByString()
-            + this.getHavingString()
-            + super.doGetOrderByString()
-            + super.doGetLimitCountString()
-            + super.doGetOffetString();
+        String countQuery =
+            'SELECT COUNT()' +
+            ' FROM ' +
+            this.sobjectType +
+            super.doGetUsingScopeString() +
+            super.doGetWhereClauseString() +
+            this.getGroupByString() +
+            this.getHavingString() +
+            super.doGetOrderByString() +
+            super.doGetLimitCountString() +
+            super.doGetOffetString();
         return Database.countQuery(countQuery);
     }
 
     public AggregateResult getFirstResult() {
-        return (AggregateResult)super.doGetFirstResult();
+        return (AggregateResult) super.doGetFirstResult();
     }
 
     public List<AggregateResult> getResults() {
-        return (List<AggregateResult>)super.doGetResults();
+        return (List<AggregateResult>) super.doGetResults();
     }
 
     private AggregateQuery setHasChanged() {
@@ -220,10 +228,12 @@ public class AggregateQuery extends Soql {
     }
 
     private String getAggregateQueryFieldString() {
-        if(this.aggregateFields.isEmpty()) { return ''; }
+        if (this.aggregateFields.isEmpty()) {
+            return '';
+        }
 
         List<String> aggregateFieldStrings = new List<String>();
-        for(AggregateQuery.AggregateField aggregatedField : this.aggregateFields) {
+        for (AggregateQuery.AggregateField aggregatedField : this.aggregateFields) {
             aggregateFieldStrings.add(aggregatedField.toString());
         }
         aggregateFieldStrings.sort();
@@ -233,10 +243,10 @@ public class AggregateQuery extends Soql {
     private String getGroupByString() {
         String queryFieldString = super.doGetQueryFieldString();
 
-        String groupByTextString              = ' GROUP BY ';
+        String groupByTextString = ' GROUP BY ';
         String groupingDimensionClosingString = '';
-        if(this.groupingDimension != null) {
-            groupByTextString              += this.groupingDimension.name() + '(';
+        if (this.groupingDimension != null) {
+            groupByTextString += this.groupingDimension.name() + '(';
             groupingDimensionClosingString = ')';
         }
 
@@ -248,12 +258,11 @@ public class AggregateQuery extends Soql {
     }
 
     private class AggregateField {
-
         private Schema.SObjectType sobjectType;
         private String aggregateFieldPath;
 
         public AggregateField(Schema.SObjectType sobjectType, Soql.Aggregate aggregateFunction, Soql.QueryField queryField, String fieldAlias) {
-            this.sobjectType        = sobjectType;
+            this.sobjectType = sobjectType;
             this.aggregateFieldPath = this.getAggregateFieldPath(aggregateFunction, queryField, fieldAlias);
         }
 
@@ -268,7 +277,5 @@ public class AggregateQuery extends Soql {
             // Example: MIN(Schema.Lead.MyField__c) is auto-aliased to MyField__c__MIN
             return aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
         }
-
     }
-
 }

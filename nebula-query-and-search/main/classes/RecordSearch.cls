@@ -1,11 +1,10 @@
-/******************************************************************************************************
-* This file is part of the Nebula Query & Search project, released under the MIT License.             *
-* See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
-******************************************************************************************************/
+/*******************************************************************************************************
+ * This file is part of the Nebula Query & Search project, released under the MIT License.             *
+ * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
+ ******************************************************************************************************/
 
 @SuppressWarnings('PMD.ApexDoc')
 public class RecordSearch extends Sosl {
-
     public RecordSearch(String searchTerm, Query sobjectQuery) {
         super(searchTerm, sobjectQuery);
     }
@@ -15,19 +14,29 @@ public class RecordSearch extends Sosl {
     }
 
     public RecordSearch inSearchGroup(Sosl.SearchGroup searchGroup) {
-        if(searchGroup == null) { return this; }
+        if (searchGroup == null) {
+            return this;
+        }
 
         this.searchGroup = searchGroup;
         return this.setHasChanged();
     }
 
-    public RecordSearch withDataCategory(Schema.DataCategory dataCategory, Sosl.DataCategoryLocation dataCategoryLocation, Schema.DataCategory childDataCategory) {
-        return this.withDataCategory(dataCategory, dataCategoryLocation, new List<Schema.DataCategory>{childDataCategory});
+    public RecordSearch withDataCategory(
+        Schema.DataCategory dataCategory,
+        Sosl.DataCategoryLocation dataCategoryLocation,
+        Schema.DataCategory childDataCategory
+    ) {
+        return this.withDataCategory(dataCategory, dataCategoryLocation, new List<Schema.DataCategory>{ childDataCategory });
     }
 
-    public RecordSearch withDataCategory(Schema.DataCategory dataCategory, Sosl.DataCategoryLocation dataCategoryLocation, List<Schema.DataCategory> childDataCategories) {
+    public RecordSearch withDataCategory(
+        Schema.DataCategory dataCategory,
+        Sosl.DataCategoryLocation dataCategoryLocation,
+        List<Schema.DataCategory> childDataCategories
+    ) {
         List<String> childDataCategoryApiNames = new List<String>();
-        for(Schema.DataCategory childDataCategory : childDataCategories) {
+        for (Schema.DataCategory childDataCategory : childDataCategories) {
             childDataCategoryApiNames.add(childDataCategory.getName());
         }
         this.withDataCategoryClauses.add(dataCategory.getName() + ' ' + dataCategoryLocation + ' (' + String.join(childDataCategoryApiNames, ', ') + ')');
@@ -61,13 +70,18 @@ public class RecordSearch extends Sosl {
 
     @SuppressWarnings('PMD.AvoidDebugStatements')
     public override String getSearch() {
-        if(this.searchQuery != null && !this.hasChanged) { return this.searchQuery; }
+        if (this.searchQuery != null && !this.hasChanged) {
+            return this.searchQuery;
+        }
 
-        this.searchQuery = 'FIND \'' + this.searchTerm + '\''
-            + super.doGetSearchGroupString()
-            + super.doGetReturningSObjectsString()
-            + super.doGetWithClauseString()
-            + super.doGetUpdateArticleReportingString();
+        this.searchQuery =
+            'FIND \'' +
+            this.searchTerm +
+            '\'' +
+            super.doGetSearchGroupString() +
+            super.doGetReturningSObjectsString() +
+            super.doGetWithClauseString() +
+            super.doGetUpdateArticleReportingString();
 
         // Change hasChanged to false so that subsequent calls to getSearchQuery() use the cached search query string
         // If additional builder methods are later called, the builder methods will set hasChanged = true
@@ -93,5 +107,4 @@ public class RecordSearch extends Sosl {
         this.hasChanged = true;
         return this;
     }
-
 }
