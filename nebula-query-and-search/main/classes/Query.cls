@@ -2,12 +2,18 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
+
+@SuppressWarnings('PMD.ApexDoc, PMD.CognitiveComplexity, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessivePublicCount, PMD.StdCyclomaticComplexity')
 public class Query extends Soql {
 
     private String displayFieldApiName;
     private List<String> polymorphicFieldStatements;
     private List<String> childRelationshipQueries;
-    private Boolean forReference, forUpdate, forView, includeLabels, includeFormattedValues;
+    private Boolean forReference;
+    private Boolean forUpdate;
+    private Boolean forView;
+    private Boolean includeLabels;
+    private Boolean includeFormattedValues;
 
     public Query(Schema.SObjectType sobjectType) {
         super(sobjectType, true);
@@ -97,6 +103,7 @@ public class Query extends Soql {
         return this.addPolymorphicFields(polymorphicRelationshipField, queryFieldsBySObjectType);
     }
 
+    @SuppressWarnings('PMD.StdCyclomaticComplexity')
     public Query addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField, Map<Schema.SObjectType, List<Soql.QueryField>> queryFieldsBySObjectType) {
         String polymorphicFieldStatement = queryFieldsBySObjectType.isEmpty() ? '' : 'TYPEOF ' + polymorphicRelationshipField.getDescribe().getRelationshipName();
         for(Schema.SObjectType sobjectType : queryFieldsBySObjectType.keySet()) {
@@ -110,19 +117,20 @@ public class Query extends Soql {
 
         // The Name object contains the list of all possible polymorphic fields in the org
         List<String> supportedPolymorphicFieldNames = new List<String>();
-        for(Schema.SObjectField field : Schema.Name.SObjectType.getDescribe().fields.getMap().values()) {
+        for(Schema.SObjectField field : Schema.Name.SObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED).fields.getMap().values()) {
             supportedPolymorphicFieldNames.addAll(this.getFieldsToQuery(new QueryField(field), Soql.FieldCategory.ACCESSIBLE));
         }
         supportedPolymorphicFieldNames.sort();
-        if(!queryFieldsBySObjectType.isEmpty()) polymorphicFieldStatement += ' ELSE ';
+        if(!queryFieldsBySObjectType.isEmpty()) { polymorphicFieldStatement += ' ELSE '; }
         else if(queryFieldsBySObjectType.isEmpty()) {
             String supportedPolymorphicFieldPrefix = queryFieldsBySObjectType.isEmpty() ? 'Who.' : '';
             for(Integer i = 0; i < supportedPolymorphicFieldNames.size(); i++) {
                 supportedPolymorphicFieldNames[i] = supportedPolymorphicFieldPrefix + supportedPolymorphicFieldNames[i];
             }
         }
+
         polymorphicFieldStatement += String.join(supportedPolymorphicFieldNames, ', ');
-        if(!queryFieldsBySObjectType.isEmpty()) polymorphicFieldStatement += ' END';
+        if(!queryFieldsBySObjectType.isEmpty()) { polymorphicFieldStatement += ' END'; }
 
         this.polymorphicFieldStatements.add(polymorphicFieldStatement);
         return this.setHasChanged();
@@ -276,8 +284,9 @@ public class Query extends Soql {
         return this;
     }
 
+    @SuppressWarnings('PMD.AvoidDebugStatements')
     public override String getQuery() {
-        if(this.query != null && !this.hasChanged) return this.query;
+        if(this.query != null && !this.hasChanged) { return this.query; }
 
         String queryFieldString = this.getQueryFieldString();
 
@@ -308,13 +317,14 @@ public class Query extends Soql {
         return this.query;
     }
 
+    @SuppressWarnings('PMD.AvoidDebugStatements')
     public String getRelatedRecordsQuery(Schema.SObjectField childToParentRelationshipField) {
         Schema.SObjectType parentSObjectType = childToParentRelationshipField.getDescribe().getReferenceTo()[0];
 
         // Get the relationship name
         String childRelationshipName;
-        for(Schema.ChildRelationship childRelationship : parentSObjectType.getDescribe().getChildRelationships()) {
-            if(childRelationship.getField() != childToParentRelationshipField) continue;
+        for(Schema.ChildRelationship childRelationship : parentSObjectType.getDescribe(Schema.SObjectDescribeOptions.FULL).getChildRelationships()) {
+            if(childRelationship.getField() != childToParentRelationshipField) { continue; }
 
             childRelationshipName = childRelationship.getRelationshipName();
         }
@@ -331,6 +341,7 @@ public class Query extends Soql {
         return childQuery;
     }
 
+    @SuppressWarnings('PMD.AvoidDebugStatements')
     public String getSubquery(Schema.SObjectField childToParentRelationshipField) {
         String subquery = '(SELECT ' + childToParentRelationshipField
             + ' FROM ' + this.sobjectType
@@ -344,6 +355,7 @@ public class Query extends Soql {
         return subquery;
     }
 
+    @SuppressWarnings('PMD.AvoidDebugStatements')
     public String getSearchQuery() {
         String sobjectTypeOptions = super.doGetQueryFieldString()
             + super.doGetWhereClauseString()
@@ -368,9 +380,9 @@ public class Query extends Soql {
     }
 
     private void addDefaultFields() {
-        Map<String, Schema.SObjectField> fieldMap = this.getSObjectType().getDescribe().fields.getMap();
+        Map<String, Schema.SObjectField> fieldMap = this.getSObjectType().getDescribe(Schema.SObjectDescribeOptions.DEFERRED).fields.getMap();
         this.addField(fieldMap.get('Id'));
-        if(!String.isBlank(this.displayFieldApiName)) this.addField(fieldMap.get(this.displayFieldApiName));
+        if(!String.isBlank(this.displayFieldApiName)) { this.addField(fieldMap.get(this.displayFieldApiName)); }
     }
 
     private Query setHasChanged() {
@@ -384,7 +396,7 @@ public class Query extends Soql {
             Soql.FieldCategory fieldCategory = this.includedQueryFieldsAndCategory.get(queryField);
 
             List<String> fieldsToQuery = this.getFieldsToQuery(queryField, fieldCategory);
-            if(!fieldsToQuery.isEmpty()) distinctFieldApiNamesToQuery.addAll(fieldsToQuery);
+            if(!fieldsToQuery.isEmpty()) { distinctFieldApiNamesToQuery.addAll(fieldsToQuery); }
         }
 
 
@@ -406,14 +418,14 @@ public class Query extends Soql {
             'CaseNumber', 'ContractNumber', 'Domain', 'FriendlyName', 'FunctionName', 'Label', 'LocalPart',
             'OrderItemNumber', 'OrderNumber', 'SolutionName', 'TestSuiteName'
         };
-        Map<String, Schema.SObjectField> fieldMap = sobjectType.getDescribe().fields.getMap();
+        Map<String, Schema.SObjectField> fieldMap = sobjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED).fields.getMap();
         for(String fieldApiName : possibleDisplayFieldApiNames) {
             Schema.SObjectField field = fieldMap.get(fieldApiName);
 
-            if(field == null) continue;
+            if(field == null) { continue; }
 
             Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
-            if(fieldDescribe.isNameField()) return fieldDescribe.getName();
+            if(fieldDescribe.isNameField()) { return fieldDescribe.getName(); }
         }
 
         return null;
@@ -424,19 +436,20 @@ public class Query extends Soql {
         Schema.SObjectType parentSObjectType = fieldDescribe.getReferenceTo()[0];
         String nameField = this.getDisplayFieldApiName(parentSObjectType);
 
-        if(relationshipName == null) return null;
-        else if(nameField == null) return null;
-        else return relationshipName + '.' + nameField;
+        if(relationshipName == null) { return null; }
+        else if(nameField == null) { return null; }
+        else { return relationshipName + '.' + nameField; }
     }
 
+    @SuppressWarnings('PMD.AvoidDeeplyNestedIfStmts, PMD.NcssMethodCount')
     private List<String> getFieldsToQuery(Soql.QueryField queryField, Soql.FieldCategory fieldCat) {
         List<String> fieldsToReturn = new List<String>();
 
-        if(fieldCat == null) return fieldsToReturn;
-        else if(fieldCat == Soql.FieldCategory.ACCESSIBLE && !queryField.getDescribe().isAccessible()) return fieldsToReturn;
-        else if(fieldCat == Soql.FieldCategory.UPDATEABLE && !queryField.getDescribe().isUpdateable()) return fieldsToReturn;
-        else if(fieldCat == Soql.FieldCategory.STANDARD && queryField.getDescribe().isCustom()) return fieldsToReturn;
-        else if(fieldCat == Soql.FieldCategory.CUSTOM && !queryField.getDescribe().isCustom()) return fieldsToReturn;
+        if(fieldCat == null) { return fieldsToReturn; }
+        else if(fieldCat == Soql.FieldCategory.ACCESSIBLE && !queryField.getDescribe().isAccessible()) { return fieldsToReturn; }
+        else if(fieldCat == Soql.FieldCategory.UPDATEABLE && !queryField.getDescribe().isUpdateable()) { return fieldsToReturn; }
+        else if(fieldCat == Soql.FieldCategory.STANDARD && queryField.getDescribe().isCustom()) { return fieldsToReturn; }
+        else if(fieldCat == Soql.FieldCategory.CUSTOM && !queryField.getDescribe().isCustom()) { return fieldsToReturn; }
 
         fieldsToReturn.add(queryField.toString());
 
@@ -467,7 +480,7 @@ public class Query extends Soql {
             if(parentNameField != null) {
                 fieldsToReturn.add(parentNameField);
                 // Record type names can be translated, so include the translation
-                if(this.includeLabels && queryField.toString() == 'RecordTypeId') fieldsToReturn.add(this.getFieldToLabel(parentNameField));
+                if(this.includeLabels && queryField.toString() == 'RecordTypeId') { fieldsToReturn.add(this.getFieldToLabel(parentNameField)); }
             }
         }
 
@@ -475,7 +488,7 @@ public class Query extends Soql {
     }
 
     private String getChildRelationshipsQueryFieldString() {
-        if(this.childRelationshipQueries.isEmpty()) return '';
+        if(this.childRelationshipQueries.isEmpty()) { return ''; }
 
         this.childRelationshipQueries.sort();
         return String.join(this.childRelationshipQueries, ', ');

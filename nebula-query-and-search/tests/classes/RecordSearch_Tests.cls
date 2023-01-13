@@ -2,6 +2,10 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
+
+@SuppressWarnings(
+    'PMD.ApexDoc, PMD.ApexAssertionsShouldIncludeMessage, PMD.ApexUnitTestClassShouldHaveAsserts, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessiveParameterList, PMD.MethodNamingConventions, PMD.NcssMethodCount, PMD.UnusedLocalVariable'
+)
 @isTest
 private class RecordSearch_Tests {
 
@@ -92,7 +96,7 @@ private class RecordSearch_Tests {
     @isTest
     static void it_should_return_results_with_update_article_reporting_for_tracking_enabled() {
         // If Knowledge isn't enabled, then we cannot use Knowledge-specific SOSL methods, so skip running this test
-        if(!Schema.getGlobalDescribe().containsKey('KnowledgeArticle')) return;
+        if(!Schema.getGlobalDescribe().containsKey('KnowledgeArticle')) { return; }
 
         // If Knowledge is enabled, then execute the test
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'
@@ -108,7 +112,7 @@ private class RecordSearch_Tests {
     @isTest
     static void it_should_return_results_with_update_article_reporting_for_viewstat_enabled() {
         // If Knowledge isn't enabled, then we cannot use Knowledge-specific SOSL methods, so skip running this test
-        if(!Schema.getGlobalDescribe().containsKey('KnowledgeArticle')) return;
+        if(!Schema.getGlobalDescribe().containsKey('KnowledgeArticle')) { return; }
 
         // If Knowledge is enabled, then execute the test
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)'

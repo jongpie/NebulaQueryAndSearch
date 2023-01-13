@@ -2,6 +2,10 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
+
+@SuppressWarnings(
+    'PMD.ApexDoc, PMD.ApexAssertionsShouldIncludeMessage, PMD.ApexUnitTestClassShouldHaveAsserts, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessiveParameterList, PMD.MethodNamingConventions, PMD.NcssMethodCount, PMD.UnusedLocalVariable'
+)
 @isTest
 private class Query_Tests {
 
@@ -88,14 +92,14 @@ private class Query_Tests {
     @isTest
     static void it_should_return_results_and_include_separate_fields_for_for_polymorphic_field() {
         List<String> supportedPolymorphicFieldNames = new List<String>();
-        for(Schema.SObjectField field : Schema.Name.SObjectType.getDescribe().fields.getMap().values()) {
+        for(Schema.SObjectField field : Schema.Name.SObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED).fields.getMap().values()) {
             Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
 
-            if(!fieldDescribe.isAccessible()) continue;
+            if(!fieldDescribe.isAccessible()) { continue; }
             supportedPolymorphicFieldNames.add(String.valueOf(field));
 
             Set<String> referenceFieldNames = new Set<String>{'ProfileId',  'RecordTypeId', 'UserRoleId'};
-            if(referenceFieldNames.contains(fieldDescribe.getName())) supportedPolymorphicFieldNames.add(fieldDescribe.getRelationshipName() + '.Name');
+            if(referenceFieldNames.contains(fieldDescribe.getName())) { supportedPolymorphicFieldNames.add(fieldDescribe.getRelationshipName() + '.Name'); }
         }
         supportedPolymorphicFieldNames.sort();
         String expectedQuery = 'SELECT Id, Subject, TYPEOF Who WHEN Contact THEN Account.Name, AccountId, Id, Name'
@@ -126,7 +130,6 @@ private class Query_Tests {
         Test.stopTest();
 
         System.assertEquals(expectedQuery, taskQuery.getQuery());
-        System.debug(taskQuery.getResults());
     }
 
     @isTest
@@ -172,7 +175,7 @@ private class Query_Tests {
     @isTest
     static void it_should_return_results_when_filtering_with_iso_currency() {
         // If multi-currency isn't enabled, then we cannot use IsoCurrency, so skip running this test
-        if(!UserInfo.isMultiCurrencyOrganization()) return;
+        if(!UserInfo.isMultiCurrencyOrganization()) { return; }
 
         // If multi-currency is enabled, then execute the test
         Query accountQuery = new Query(Schema.Account.SObjectType)

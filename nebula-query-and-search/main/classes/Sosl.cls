@@ -2,6 +2,8 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
+
+@SuppressWarnings('PMD.ApexDoc')
 public abstract class Sosl {
 
     public enum ArticleReporting { TRACKING, VIEWSTAT }
@@ -10,12 +12,15 @@ public abstract class Sosl {
 
     private static Map<Integer, List<List<SObject>>> cachedSearchResultsByHashCode = new Map<Integer, List<List<SObject>>>();
 
-    protected String searchQuery, searchTerm;
+    protected String searchQuery;
+    protected String searchTerm;
     protected List<Query> sobjectQueries;
     protected Set<Schema.SObjectType> sobjectTypes;
-    protected Boolean cacheResults, hasChanged;
+    protected Boolean cacheResults;
+    protected Boolean hasChanged;
     protected Sosl.ArticleReporting articleReporting;
-    protected List<String> withClauses, withDataCategoryClauses;
+    protected List<String> withClauses;
+    protected List<String> withDataCategoryClauses;
     protected Sosl.SearchGroup searchGroup;
 
     protected Sosl(String searchTerm, Query sobjectQuery) {
@@ -34,7 +39,7 @@ public abstract class Sosl {
     }
 
     public Set<Schema.SObjectType> getSObjectTypes() {
-        if(this.sobjectTypes != null) return this.sobjectTypes;
+        if(this.sobjectTypes != null) { return this.sobjectTypes; }
 
         this.sobjectTypes = new Set<Schema.SObjectType>();
         for(Query query : this.sobjectQueries) {
@@ -56,8 +61,8 @@ public abstract class Sosl {
     }
 
     protected List<List<SObject>> doGetResults() {
-        if(this.cacheResults) return this.getCachedResults();
-        else return Search.query(this.getSearch());
+        if(this.cacheResults) { return this.getCachedResults(); }
+        else { return Search.query(this.getSearch()); }
     }
 
     protected String doGetSearchGroupString() {
@@ -65,7 +70,7 @@ public abstract class Sosl {
     }
 
     protected String doGetReturningSObjectsString() {
-        if(this.sobjectQueries.isEmpty()) return '';
+        if(this.sobjectQueries.isEmpty()) { return ''; }
 
         List<String> queryStrings = new List<String>();
         this.sobjectQueries.sort();
@@ -94,7 +99,7 @@ public abstract class Sosl {
         Integer hashCode   = searchQuery.hashCode();
 
         Boolean isCached = cachedSearchResultsByHashCode.containsKey(hashCode);
-        if(!isCached) cachedSearchResultsByHashCode.put(hashCode, Search.query(searchQuery));
+        if(!isCached) { cachedSearchResultsByHashCode.put(hashCode, Search.query(searchQuery)); }
 
         // Always return a deep clone so the original cached version is never modified
         List<List<SObject>> cachedResults = cachedSearchResultsByHashCode.get(hashCode);

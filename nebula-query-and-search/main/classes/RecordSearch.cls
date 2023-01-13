@@ -2,6 +2,8 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
+
+@SuppressWarnings('PMD.ApexDoc')
 public class RecordSearch extends Sosl {
 
     public RecordSearch(String searchTerm, Query sobjectQuery) {
@@ -13,7 +15,7 @@ public class RecordSearch extends Sosl {
     }
 
     public RecordSearch inSearchGroup(Sosl.SearchGroup searchGroup) {
-        if(searchGroup == null) return this;
+        if(searchGroup == null) { return this; }
 
         this.searchGroup = searchGroup;
         return this.setHasChanged();
@@ -57,8 +59,9 @@ public class RecordSearch extends Sosl {
         return this.setHasChanged();
     }
 
+    @SuppressWarnings('PMD.AvoidDebugStatements')
     public override String getSearch() {
-        if(this.searchQuery != null && !this.hasChanged) return this.searchQuery;
+        if(this.searchQuery != null && !this.hasChanged) { return this.searchQuery; }
 
         this.searchQuery = 'FIND \'' + this.searchTerm + '\''
             + super.doGetSearchGroupString()

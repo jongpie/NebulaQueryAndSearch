@@ -2,6 +2,8 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
+
+@SuppressWarnings('PMD.ApexDoc, PMD.ApexSharingViolations, PMD.CyclomaticComplexity, PMD.ExcessiveParameterList, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart')
 public class AggregateQuery extends Soql {
 
     private Soql.GroupingDimension groupingDimension;
@@ -162,8 +164,9 @@ public class AggregateQuery extends Soql {
         return this;
     }
 
+    @SuppressWarnings('PMD.AvoidDebugStatements')
     public override String getQuery() {
-        if(this.query != null && !this.hasChanged) return this.query;
+        if(this.query != null && !this.hasChanged) { return this.query; }
 
         String queryFieldString = super.doGetQueryFieldString();
         String aggregateQueryFieldString = this.getAggregateQueryFieldString();
@@ -189,6 +192,7 @@ public class AggregateQuery extends Soql {
         return this.query;
     }
 
+    @SuppressWarnings('PMD.ApexSOQLInjection')
     public Integer getResultCount() {
         String countQuery = 'SELECT COUNT()'
             + ' FROM ' + this.sobjectType
@@ -216,7 +220,7 @@ public class AggregateQuery extends Soql {
     }
 
     private String getAggregateQueryFieldString() {
-        if(this.aggregateFields.isEmpty()) return '';
+        if(this.aggregateFields.isEmpty()) { return ''; }
 
         List<String> aggregateFieldStrings = new List<String>();
         for(AggregateQuery.AggregateField aggregatedField : this.aggregateFields) {

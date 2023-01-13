@@ -2,6 +2,8 @@
 * This file is part of the Nebula Query & Search project, released under the MIT License.             *
 * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
 ******************************************************************************************************/
+
+@SuppressWarnings('PMD.ApexDoc, PMD.ApexSharingViolations, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart')
 public abstract class Soql implements Comparable {
 
     public enum Aggregate { AVG, COUNT, COUNT_DISTINCT, MAX, MIN, SUM }
@@ -74,10 +76,12 @@ public abstract class Soql implements Comparable {
     protected Map<Soql.QueryField, Soql.FieldCategory> includedQueryFieldsAndCategory;
     protected Set<Soql.QueryField> excludedQueryFields;
     protected Scope scope;
-    protected List<String> whereFilters, orderByFieldApiNames;
+    protected List<String> whereFilters;
+    protected List<String> orderByFieldApiNames;
     protected Integer limitCount;
     protected Integer offset;
-    protected Boolean hasChanged, sortQueryFields;
+    protected Boolean hasChanged;
+    protected Boolean sortQueryFields;
 
     protected Boolean cacheResults;
 
@@ -85,7 +89,7 @@ public abstract class Soql implements Comparable {
         this.sobjectType     = sobjectType;
         this.sortQueryFields = sortQueryFields;
 
-        this.sobjectDescribe                = this.sobjectType.getDescribe();
+        this.sobjectDescribe                = this.sobjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED);
         this.includedQueryFieldsAndCategory = new Map<Soql.QueryField, Soql.FieldCategory>();
         this.excludedQueryFields            = new Set<Soql.QueryField>();
         this.whereFilters                   = new List<String>();
@@ -105,9 +109,9 @@ public abstract class Soql implements Comparable {
         Soql soqlToCompareTo           = (Soql)compareTo;
         String compareToSObjectApiName = String.valueOf(soqlToCompareTo.getSObjectType());
 
-        if(currentSObjectApiName == compareToSObjectApiName) return 0;
-        else if(currentSObjectApiName > compareToSObjectApiName) return 1;
-        else return -1;
+        if(currentSObjectApiName == compareToSObjectApiName) { return 0; }
+        else if(currentSObjectApiName > compareToSObjectApiName) { return 1; }
+        else { return -1; }
     }
 
     protected void doCacheResults() {
@@ -115,7 +119,7 @@ public abstract class Soql implements Comparable {
     }
 
     protected void doAddFields(List<Soql.QueryField> queryFields, Soql.FieldCategory fieldCategory) {
-        if(fieldCategory == null) fieldCategory = DEFAULT_FIELD_CATEGORY;
+        if(fieldCategory == null) { fieldCategory = DEFAULT_FIELD_CATEGORY; }
         for(Soql.QueryField queryField : queryFields) {
             this.includedQueryFieldsAndCategory.put(queryField, fieldCategory);
         }
@@ -131,19 +135,19 @@ public abstract class Soql implements Comparable {
     }
 
     protected void doFilterWhere(List<Soql.QueryFilter> filters) {
-        if(filters == null || filters.isEmpty()) return;
+        if(filters == null || filters.isEmpty()) { return; }
 
-        for(Soql.QueryFilter filter : filters) this.whereFilters.add(filter.toString());
+        for(Soql.QueryFilter filter : filters) { this.whereFilters.add(filter.toString()); }
         this.doSetHasChanged();
     }
 
     protected void doOrFilterWhere(List<Soql.QueryFilter> filters) {
-        if(filters == null || filters.isEmpty()) return;
+        if(filters == null || filters.isEmpty()) { return; }
 
         filters.sort();
 
         List<String> orFilterPieces = new List<String>();
-        for(Soql.QueryFilter filter : filters) orFilterPieces.add(filter.toString());
+        for(Soql.QueryFilter filter : filters) { orFilterPieces.add(filter.toString()); }
         this.whereFilters.add('(' + String.join(orFilterPieces, ' OR ') + ')');
         this.doSetHasChanged();
     }
@@ -153,8 +157,8 @@ public abstract class Soql implements Comparable {
     }
 
     protected void doOrderBy(String fieldPath, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
-        if(sortOrder == null) sortOrder = DEFAULT_SORT_ORDER;
-        if(sortNullsFirst == null) sortNullsFirst = DEFAULT_NULLS_SORT_ORDER_FIRST;
+        if(sortOrder == null) { sortOrder = DEFAULT_SORT_ORDER; }
+        if(sortNullsFirst == null) { sortNullsFirst = DEFAULT_NULLS_SORT_ORDER_FIRST; }
 
         String sortOrderString = sortOrder == Soql.SortOrder.ASCENDING ? 'ASC' : 'DESC';
         String nullsSortOrder = sortNullsFirst ? 'FIRST' : 'LAST';
@@ -175,18 +179,18 @@ public abstract class Soql implements Comparable {
     }
 
     protected List<SObject> doGetResults() {
-        if(this.cacheResults) return this.getCachedResults();
-        else return Database.query(this.getQuery());
+        if(this.cacheResults) { return this.getCachedResults(); }
+        else { return Database.query(this.getQuery()); }
     }
 
     protected List<String> doGetFieldsToQuery(Soql.QueryField queryField, Soql.FieldCategory fieldCat) {
         List<String> fieldsToReturn = new List<String>();
 
-        if(fieldCat == null) return fieldsToReturn;
-        else if(fieldCat == Soql.FieldCategory.ACCESSIBLE && !queryField.getDescribe().isAccessible()) return fieldsToReturn;
-        else if(fieldCat == Soql.FieldCategory.UPDATEABLE && !queryField.getDescribe().isUpdateable()) return fieldsToReturn;
-        else if(fieldCat == Soql.FieldCategory.STANDARD && queryField.getDescribe().isCustom()) return fieldsToReturn;
-        else if(fieldCat == Soql.FieldCategory.CUSTOM && !queryField.getDescribe().isCustom()) return fieldsToReturn;
+        if(fieldCat == null) { return fieldsToReturn; }
+        else if(fieldCat == Soql.FieldCategory.ACCESSIBLE && !queryField.getDescribe().isAccessible()) { return fieldsToReturn; }
+        else if(fieldCat == Soql.FieldCategory.UPDATEABLE && !queryField.getDescribe().isUpdateable()) { return fieldsToReturn; }
+        else if(fieldCat == Soql.FieldCategory.STANDARD && queryField.getDescribe().isCustom()) { return fieldsToReturn; }
+        else if(fieldCat == Soql.FieldCategory.CUSTOM && !queryField.getDescribe().isCustom()) { return fieldsToReturn; }
 
         fieldsToReturn.add(queryField.toString());
 
@@ -199,7 +203,7 @@ public abstract class Soql implements Comparable {
             Soql.FieldCategory fieldCategory = this.includedQueryFieldsAndCategory.get(queryField);
 
             List<String> fieldsToQuery = this.doGetFieldsToQuery(queryField, fieldCategory);
-            if(!fieldsToQuery.isEmpty()) distinctFieldApiNamesToQuery.addAll(fieldsToQuery);
+            if(!fieldsToQuery.isEmpty()) { distinctFieldApiNamesToQuery.addAll(fieldsToQuery); }
         }
 
 
@@ -209,7 +213,7 @@ public abstract class Soql implements Comparable {
         }
 
         List<String> fieldApiNamesToQuery = new List<String>(distinctFieldApiNamesToQuery);
-        if(this.sortQueryFields) fieldApiNamesToQuery.sort();
+        if(this.sortQueryFields) { fieldApiNamesToQuery.sort(); }
         return String.join(fieldApiNamesToQuery, ', ');
     }
 
@@ -243,7 +247,7 @@ public abstract class Soql implements Comparable {
         Integer hashCode = query.hashCode();
 
         Boolean isCached = cachedResultsByHashCode.containsKey(hashCode);
-        if(!isCached) cachedResultsByHashCode.put(hashCode, Database.query(query));
+        if(!isCached) { cachedResultsByHashCode.put(hashCode, Database.query(query)); }
 
         // Always return a deep clone so the original cached version is never modified
         return cachedResultsByHashCode.get(hashCode).deepClone(true, true, true);
@@ -272,7 +276,7 @@ public abstract class Soql implements Comparable {
         private final String isoCurrency;
 
         public IsoCurrency(String isoCode, Decimal currencyAmount) {
-            if(!UserInfo.isMultiCurrencyOrganization()) throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
+            if(!UserInfo.isMultiCurrencyOrganization()) { throw new SoqlException('IsoCurrency is only supported in multi-currency orgs'); }
             this.isoCurrency = isoCode + currencyAmount;
         }
 
@@ -352,13 +356,16 @@ public abstract class Soql implements Comparable {
                 String queryFieldPiece = queryFieldPieces[i];
 
                 String fieldApiName;
-                if(i == lastFieldIndex) fieldApiName = queryFieldPiece;
-                else if(queryFieldPiece.endsWith('__r')) fieldApiName = queryFieldPiece.replace('__r', '__c');
-                else fieldApiName = queryFieldPiece + 'Id';
+                if(i == lastFieldIndex) { fieldApiName = queryFieldPiece; }
+                else if(queryFieldPiece.endsWith('__r')) { fieldApiName = queryFieldPiece.replace('__r', '__c'); }
+                else { fieldApiName = queryFieldPiece + 'Id'; }
 
-                Schema.SObjectField field = currentSObjectType.getDescribe().fields.getMap().get(fieldApiName);
+                Schema.SObjectField field = currentSObjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED).fields.getMap().get(fieldApiName);
 
-                if(i < lastFieldIndex) currentSObjectType = field.getDescribe().getReferenceTo()[0]; // TODO add support for polymorphic fields
+                if(i < lastFieldIndex) {
+                    // TODO add support for polymorphic fields
+                    currentSObjectType = field.getDescribe().getReferenceTo()[0];
+                }
 
                 fields.add(field);
             }
@@ -376,9 +383,9 @@ public abstract class Soql implements Comparable {
             for(Integer i = 0; i < fields.size(); i++) {
                 SObjectField field = fields[i];
                 // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
-                if(!field.getDescribe().isAccessible()) return null;
-                else if(i == lastFieldIndex) queryFieldPieces.add(field.getDescribe().getName());
-                else queryFieldPieces.add(field.getDescribe().getRelationshipName());
+                if(!field.getDescribe().isAccessible()) { return null; }
+                else if(i == lastFieldIndex) { queryFieldPieces.add(field.getDescribe().getName()); }
+                else { queryFieldPieces.add(field.getDescribe().getRelationshipName()); }
             }
             return String.join(queryFieldPieces, '.');
         }
@@ -419,9 +426,9 @@ public abstract class Soql implements Comparable {
         public Integer compareTo(Object compareTo) {
             QueryFilter compareToQueryFilter = (QueryFilter)compareTo;
 
-            if(this.toString() == compareToQueryFilter.toString()) return 0;
-            else if(this.toString() > compareToQueryFilter.toString()) return 1;
-            else return -1;
+            if(this.toString() == compareToQueryFilter.toString()) { return 0; }
+            else if(this.toString() > compareToQueryFilter.toString()) { return 1; }
+            else { return -1; }
         }
 
         public Soql.QueryField getQueryField() {
@@ -461,17 +468,16 @@ public abstract class Soql implements Comparable {
         }
 
         private String formatObjectForQueryString(Object valueToFormat) {
-            if(valueToFormat == null) return null;
-            else if(valueToFormat instanceOf List<Object>) return this.convertListToQueryString((List<Object>)valueToFormat);
-            else if(valueToFormat instanceOf Set<Object>) return this.convertSetToQueryString(valueToFormat);
-            else if(valueToFormat instanceOf Map<Object, Object>) return this.convertMapToQueryString(valueToFormat);
-            else if(valueToFormat instanceOf Date) return String.valueOf((Date)valueToFormat).left(10);
+            if(valueToFormat == null) { return null; }
+            else if(valueToFormat instanceOf List<Object>) { return this.convertListToQueryString((List<Object>)valueToFormat); }
+            else if(valueToFormat instanceOf Set<Object>) { return this.convertSetToQueryString(valueToFormat); }
+            else if(valueToFormat instanceOf Map<Object, Object>) { return this.convertMapToQueryString(valueToFormat); }
+            else if(valueToFormat instanceOf Date) { return String.valueOf((Date)valueToFormat).left(10); }
             else if(valueToFormat instanceOf Datetime) {
                 Datetime datetimeValue = (Datetime)valueToFormat;
                 return datetimeValue.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time');
             }
             else if(valueToFormat instanceOf SObject) {
-                SObject record = (SObject)valueToFormat;
                 return this.wrapInSingleQuotes(((SObject)valueToFormat).Id);
             }
             else if(valueToFormat instanceOf String) {
@@ -480,13 +486,13 @@ public abstract class Soql implements Comparable {
                 String stringArgument = String.escapeSingleQuotes(unformattedString.trim());
                 return this.wrapInSingleQuotes(stringArgument);
             }
-            else return String.valueOf(valueToFormat);
+            else { return String.valueOf(valueToFormat); }
         }
 
         private String wrapInSingleQuotes(String input) {
             input = input.trim();
-            if(input.left(1) != '\'') input = '\'' + input;
-            if(input.right(1) != '\'') input = input + '\'';
+            if(input.left(1) != '\'') { input = '\'' + input; }
+            if(input.right(1) != '\'') { input = input + '\''; }
             return input;
         }
 

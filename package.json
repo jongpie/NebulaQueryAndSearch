@@ -6,12 +6,12 @@
     "package:aliases:sort": "sfdx bummer:package:aliases:sort",
     "package:version:create:nonamespace": "sfdx force:package:version:create --json --package \"Nebula Query & Search (no namespace)\" --skipancestorcheck --codecoverage --installationkeybypass --wait 30",
     "package:version:create:withnamespace": "sfdx force:package:version:create --json --package \"Nebula Query & Search (Nebula namespace)\" --skipancestorcheck --codecoverage --installationkeybypass --wait 30",
-    "scan:apex": "sfdx scanner:run --pmdconfig ./config/pmd-ruleset.xml --target ./nebula-query-and-search/ --engine pmd --severity-threshold 3",
-    "test:apex": "sfdx force:apex:test:run --verbose --testlevel RunLocalTests --wait 30 --resultformat human --codecoverage --detailedcoverage --outputdir ./test-coverage/apex",
     "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "prettier:verify": "prettier --list-different \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "postinstall": "husky install",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "scan": "sfdx scanner:run --pmdconfig ./config/pmd-ruleset.xml --target ./nebula-query-and-search/ --engine pmd --severity-threshold 3",
+    "test": "sfdx force:apex:test:run --verbose --testlevel RunLocalTests --wait 30 --resultformat human --codecoverage --detailedcoverage --outputdir ./test-coverage/apex"
   },
   "devDependencies": {
     "@prettier/plugin-xml": "^2.0.1",
