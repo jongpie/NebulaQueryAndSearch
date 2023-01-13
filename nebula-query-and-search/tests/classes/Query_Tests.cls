@@ -42,20 +42,20 @@ private class Query_Tests {
         Query userQuery = new Query(Schema.User.SObjectType)
             .addFields(fieldsToQuery)
             .addField(Schema.User.ProfileId)
-            .addField(Schema.User.Email, Soql.FieldCategory.UPDATEABLE)
-            .removeField(new Soql.QueryField(Schema.User.Name))
+            .addField(Schema.User.Email, SOQL.FieldCategory.UPDATEABLE)
+            .removeField(new SOQL.QueryField(Schema.User.Name))
             .removeField(Schema.User.UserRoleId)
             .includeLabels()
             .includeFormattedValues()
-            .usingScope(Soql.Scope.MINE)
-            .filterWhere(Schema.User.IsActive, Soql.Operator.EQUALS, true)
-            .filterWhere(new Soql.QueryField(Schema.User.SObjectType, 'Profile.Id'), Soql.Operator.NOT_EQUAL_TO, UserInfo.getProfileId())
-            .filterWhere(Schema.User.LastModifiedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, now)
-            .filterWhere(Schema.User.LastLoginDate, Soql.Operator.GREATER_THAN_OR_EQUAL_TO, new Soql.DateLiteral(Soql.RelativeDateLiteral.LAST_N_DAYS, 3))
-            .filterWhere(Schema.User.CreatedDate, Soql.Operator.LESS_THAN_OR_EQUAL_TO, new Soql.DateLiteral(Soql.FixedDateLiteral.LAST_WEEK))
-            .filterWhere(Schema.User.Email, Soql.Operator.NOT_EQUAL_TO, null)
-            .orderByField(new Soql.QueryField(Schema.User.SObjectType, 'Profile.CreatedBy.LastModifiedDate'))
-            .orderByField(Schema.User.Name, Soql.SortOrder.ASCENDING)
+            .usingScope(SOQL.Scope.MINE)
+            .filterWhere(Schema.User.IsActive, SOQL.Operator.EQUALS, true)
+            .filterWhere(new SOQL.QueryField(Schema.User.SObjectType, 'Profile.Id'), SOQL.Operator.NOT_EQUAL_TO, UserInfo.getProfileId())
+            .filterWhere(Schema.User.LastModifiedDate, SOQL.Operator.LESS_THAN_OR_EQUAL_TO, now)
+            .filterWhere(Schema.User.LastLoginDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, new SOQL.DateLiteral(SOQL.RelativeDateLiteral.LAST_N_DAYS, 3))
+            .filterWhere(Schema.User.CreatedDate, SOQL.Operator.LESS_THAN_OR_EQUAL_TO, new SOQL.DateLiteral(SOQL.FixedDateLiteral.LAST_WEEK))
+            .filterWhere(Schema.User.Email, SOQL.Operator.NOT_EQUAL_TO, null)
+            .orderByField(new SOQL.QueryField(Schema.User.SObjectType, 'Profile.CreatedBy.LastModifiedDate'))
+            .orderByField(Schema.User.Name, SOQL.SortOrder.ASCENDING)
             .orderByField(Schema.User.Email)
             .limitTo(100)
             .offsetBy(1)
@@ -70,7 +70,7 @@ private class Query_Tests {
         String expectedQueryString = 'SELECT Id, Name, Parent.Owner.Name FROM Account';
 
         List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{ Schema.Account.ParentId, Schema.Account.OwnerId, Schema.User.Name };
-        Soql.QueryField queryField = new Soql.QueryField(fieldChain);
+        SOQL.QueryField queryField = new SOQL.QueryField(fieldChain);
 
         Query accountQuery = new Query(Schema.Account.SObjectType);
         accountQuery.addField(queryField);
@@ -83,7 +83,7 @@ private class Query_Tests {
     static void it_should_return_results_and_not_include_sobject_type_for_monomorphic_field() {
         String expectedQueryString = 'SELECT Id, Name, Owner.Name, OwnerId FROM Account';
 
-        Query accountQuery = new Query(Schema.Account.SObjectType).addField(new Soql.QueryField(Schema.Account.OwnerId));
+        Query accountQuery = new Query(Schema.Account.SObjectType).addField(new SOQL.QueryField(Schema.Account.OwnerId));
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());
         List<Account> accounts = accountQuery.getResults();
@@ -138,7 +138,7 @@ private class Query_Tests {
     static void it_should_return_results_and_include_sobject_type_for_polymorphic_field() {
         String expectedQueryString = 'SELECT Id, Name, Owner.Name, Owner.Type, OwnerId FROM Lead';
 
-        Query leadQuery = new Query(Schema.Lead.SObjectType).addField(new Soql.QueryField(Schema.Lead.OwnerId));
+        Query leadQuery = new Query(Schema.Lead.SObjectType).addField(new SOQL.QueryField(Schema.Lead.OwnerId));
 
         System.assertEquals(expectedQueryString, leadQuery.getQuery());
         List<Lead> leads = leadQuery.getResults();
@@ -152,7 +152,7 @@ private class Query_Tests {
 
         Query accountQuery = new Query(Schema.Account.SObjectType)
             .includeRelatedRecords(Schema.Contact.AccountId, contactQuery)
-            .addField(new Soql.QueryField(Schema.Account.Type));
+            .addField(new SOQL.QueryField(Schema.Account.Type));
 
         System.assertEquals(expectedQueryString, accountQuery.getQuery());
         List<Account> accounts = accountQuery.getResults();
@@ -165,12 +165,12 @@ private class Query_Tests {
         Query accountQuery = new Query(Schema.Account.SObjectType)
             .addField(Schema.Account.AnnualRevenue)
             .orFilterWhere(
-                new List<Soql.QueryFilter>{
-                    new Soql.QueryFilter(Schema.Account.Type, Soql.Operator.EQUALS, null),
-                    new Soql.QueryFilter(Schema.Account.AccountNumber, Soql.Operator.EQUALS, null)
+                new List<SOQL.QueryFilter>{
+                    new SOQL.QueryFilter(Schema.Account.Type, SOQL.Operator.EQUALS, null),
+                    new SOQL.QueryFilter(Schema.Account.AccountNumber, SOQL.Operator.EQUALS, null)
                 }
             )
-            .filterWhere(new Soql.QueryFilter(Schema.Account.ParentId, Soql.Operator.NOT_EQUAL_TO, null));
+            .filterWhere(new SOQL.QueryFilter(Schema.Account.ParentId, SOQL.Operator.NOT_EQUAL_TO, null));
         List<Account> accounts = accountQuery.getResults();
     }
 
@@ -184,7 +184,7 @@ private class Query_Tests {
         // If multi-currency is enabled, then execute the test
         Query accountQuery = new Query(Schema.Account.SObjectType)
             .addField(Schema.Account.AnnualRevenue)
-            .filterWhere(Schema.Account.AnnualRevenue, Soql.Operator.LESS_THAN, new Soql.IsoCurrency('USD', 100));
+            .filterWhere(Schema.Account.AnnualRevenue, SOQL.Operator.LESS_THAN, new SOQL.IsoCurrency('USD', 100));
         List<Account> accounts = accountQuery.getResults();
     }
 

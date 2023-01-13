@@ -6,7 +6,7 @@
 @SuppressWarnings(
     'PMD.ApexDoc, PMD.ApexSharingViolations, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart'
 )
-public abstract class Soql implements Comparable {
+public abstract class SOQL implements Comparable {
     public enum Aggregate {
         AVG,
         COUNT,
@@ -15,10 +15,12 @@ public abstract class Soql implements Comparable {
         MIN,
         SUM
     }
+
     public enum GroupingDimension {
         CUBE,
         ROLLUP
     }
+
     public enum FieldCategory {
         ACCESSIBLE,
         UPDATEABLE,
@@ -26,6 +28,7 @@ public abstract class Soql implements Comparable {
         CUSTOM,
         IGNORE_FLS
     }
+
     public enum Operator {
         EQUALS,
         NOT_EQUAL_TO,
@@ -40,6 +43,7 @@ public abstract class Soql implements Comparable {
         IS_LIKE,
         IS_NOT_LIKE
     }
+
     public enum Scope {
         EVERYTHING,
         DELEGATED,
@@ -48,10 +52,12 @@ public abstract class Soql implements Comparable {
         MY_TERRITORY,
         MY_TEAM_TERRITORY
     }
+
     public enum SortOrder {
         ASCENDING,
         DESCENDING
     }
+
     public enum DateFunction {
         HOUR_IN_DAY,
         DAY_ONLY,
@@ -67,6 +73,7 @@ public abstract class Soql implements Comparable {
         CALENDAR_QUARTER,
         CALENDAR_YEAR
     }
+
     public enum FixedDateLiteral {
         YESTERDAY,
         TODAY,
@@ -92,6 +99,7 @@ public abstract class Soql implements Comparable {
         THIS_FISCAL_YEAR,
         NEXT_FISCAL_YEAR
     }
+
     public enum RelativeDateLiteral {
         N_DAYS_AGO,
         LAST_N_DAYS,
@@ -110,13 +118,13 @@ public abstract class Soql implements Comparable {
         NEXT_N_FISCAL_YEARS
     }
 
-    private static final Soql.FieldCategory DEFAULT_FIELD_CATEGORY = Soql.FieldCategory.ACCESSIBLE;
-    private static final Soql.SortOrder DEFAULT_SORT_ORDER = Soql.SortOrder.ASCENDING;
+    private static final SOQL.FieldCategory DEFAULT_FIELD_CATEGORY = SOQL.FieldCategory.ACCESSIBLE;
+    private static final SOQL.SortOrder DEFAULT_SORT_ORDER = SOQL.SortOrder.ASCENDING;
     private static final Boolean DEFAULT_NULLS_SORT_ORDER_FIRST = true;
 
     private static Map<Integer, List<SObject>> cachedResultsByHashCode = new Map<Integer, List<SObject>>();
 
-    public static String getOperatorValue(Soql.Operator operator) {
+    public static String getOperatorValue(SOQL.Operator operator) {
         switch on operator {
             when EQUALS {
                 return '=';
@@ -163,8 +171,8 @@ public abstract class Soql implements Comparable {
     protected String query;
     protected Schema.SObjectType sobjectType;
     protected Schema.DescribeSObjectResult sobjectDescribe;
-    protected Map<Soql.QueryField, Soql.FieldCategory> includedQueryFieldsAndCategory;
-    protected Set<Soql.QueryField> excludedQueryFields;
+    protected Map<SOQL.QueryField, SOQL.FieldCategory> includedQueryFieldsAndCategory;
+    protected Set<SOQL.QueryField> excludedQueryFields;
     protected Scope scope;
     protected List<String> whereFilters;
     protected List<String> orderByFieldApiNames;
@@ -175,13 +183,13 @@ public abstract class Soql implements Comparable {
 
     protected Boolean cacheResults;
 
-    protected Soql(Schema.SObjectType sobjectType, Boolean sortQueryFields) {
+    protected SOQL(Schema.SObjectType sobjectType, Boolean sortQueryFields) {
         this.sobjectType = sobjectType;
         this.sortQueryFields = sortQueryFields;
 
         this.sobjectDescribe = this.sobjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED);
-        this.includedQueryFieldsAndCategory = new Map<Soql.QueryField, Soql.FieldCategory>();
-        this.excludedQueryFields = new Set<Soql.QueryField>();
+        this.includedQueryFieldsAndCategory = new Map<SOQL.QueryField, SOQL.FieldCategory>();
+        this.excludedQueryFields = new Set<SOQL.QueryField>();
         this.whereFilters = new List<String>();
         this.orderByFieldApiNames = new List<String>();
         this.cacheResults = false;
@@ -196,7 +204,7 @@ public abstract class Soql implements Comparable {
 
     public Integer compareTo(Object compareTo) {
         String currentSObjectApiName = String.valueOf(this.getSObjectType());
-        Soql soqlToCompareTo = (Soql) compareTo;
+        SOQL soqlToCompareTo = (SOQL) compareTo;
         String compareToSObjectApiName = String.valueOf(soqlToCompareTo.getSObjectType());
 
         if (currentSObjectApiName == compareToSObjectApiName) {
@@ -212,17 +220,17 @@ public abstract class Soql implements Comparable {
         this.cacheResults = true;
     }
 
-    protected void doAddFields(List<Soql.QueryField> queryFields, Soql.FieldCategory fieldCategory) {
+    protected void doAddFields(List<SOQL.QueryField> queryFields, SOQL.FieldCategory fieldCategory) {
         if (fieldCategory == null) {
             fieldCategory = DEFAULT_FIELD_CATEGORY;
         }
-        for (Soql.QueryField queryField : queryFields) {
+        for (SOQL.QueryField queryField : queryFields) {
             this.includedQueryFieldsAndCategory.put(queryField, fieldCategory);
         }
         this.doSetHasChanged();
     }
 
-    protected void doRemoveFields(List<Soql.QueryField> queryFields) {
+    protected void doRemoveFields(List<SOQL.QueryField> queryFields) {
         this.excludedQueryFields.addAll(queryFields);
     }
 
@@ -230,18 +238,18 @@ public abstract class Soql implements Comparable {
         this.scope = scope;
     }
 
-    protected void doFilterWhere(List<Soql.QueryFilter> filters) {
+    protected void doFilterWhere(List<SOQL.QueryFilter> filters) {
         if (filters == null || filters.isEmpty()) {
             return;
         }
 
-        for (Soql.QueryFilter filter : filters) {
+        for (SOQL.QueryFilter filter : filters) {
             this.whereFilters.add(filter.toString());
         }
         this.doSetHasChanged();
     }
 
-    protected void doOrFilterWhere(List<Soql.QueryFilter> filters) {
+    protected void doOrFilterWhere(List<SOQL.QueryFilter> filters) {
         if (filters == null || filters.isEmpty()) {
             return;
         }
@@ -249,18 +257,18 @@ public abstract class Soql implements Comparable {
         filters.sort();
 
         List<String> orFilterPieces = new List<String>();
-        for (Soql.QueryFilter filter : filters) {
+        for (SOQL.QueryFilter filter : filters) {
             orFilterPieces.add(filter.toString());
         }
         this.whereFilters.add('(' + String.join(orFilterPieces, ' OR ') + ')');
         this.doSetHasChanged();
     }
 
-    protected void doOrderBy(Soql.QueryField queryField, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    protected void doOrderBy(SOQL.QueryField queryField, SOQL.SortOrder sortOrder, Boolean sortNullsFirst) {
         this.doOrderBy(queryField.toString(), sortOrder, sortNullsFirst);
     }
 
-    protected void doOrderBy(String fieldPath, Soql.SortOrder sortOrder, Boolean sortNullsFirst) {
+    protected void doOrderBy(String fieldPath, SOQL.SortOrder sortOrder, Boolean sortNullsFirst) {
         if (sortOrder == null) {
             sortOrder = DEFAULT_SORT_ORDER;
         }
@@ -268,7 +276,7 @@ public abstract class Soql implements Comparable {
             sortNullsFirst = DEFAULT_NULLS_SORT_ORDER_FIRST;
         }
 
-        String sortOrderString = sortOrder == Soql.SortOrder.ASCENDING ? 'ASC' : 'DESC';
+        String sortOrderString = sortOrder == SOQL.SortOrder.ASCENDING ? 'ASC' : 'DESC';
         String nullsSortOrder = sortNullsFirst ? 'FIRST' : 'LAST';
         this.orderByFieldApiNames.add(fieldPath + ' ' + sortOrderString + ' NULLS ' + nullsSortOrder);
     }
@@ -294,18 +302,18 @@ public abstract class Soql implements Comparable {
         }
     }
 
-    protected List<String> doGetFieldsToQuery(Soql.QueryField queryField, Soql.FieldCategory fieldCat) {
+    protected List<String> doGetFieldsToQuery(SOQL.QueryField queryField, SOQL.FieldCategory fieldCat) {
         List<String> fieldsToReturn = new List<String>();
 
         if (fieldCat == null) {
             return fieldsToReturn;
-        } else if (fieldCat == Soql.FieldCategory.ACCESSIBLE && !queryField.getDescribe().isAccessible()) {
+        } else if (fieldCat == SOQL.FieldCategory.ACCESSIBLE && !queryField.getDescribe().isAccessible()) {
             return fieldsToReturn;
-        } else if (fieldCat == Soql.FieldCategory.UPDATEABLE && !queryField.getDescribe().isUpdateable()) {
+        } else if (fieldCat == SOQL.FieldCategory.UPDATEABLE && !queryField.getDescribe().isUpdateable()) {
             return fieldsToReturn;
-        } else if (fieldCat == Soql.FieldCategory.STANDARD && queryField.getDescribe().isCustom()) {
+        } else if (fieldCat == SOQL.FieldCategory.STANDARD && queryField.getDescribe().isCustom()) {
             return fieldsToReturn;
-        } else if (fieldCat == Soql.FieldCategory.CUSTOM && !queryField.getDescribe().isCustom()) {
+        } else if (fieldCat == SOQL.FieldCategory.CUSTOM && !queryField.getDescribe().isCustom()) {
             return fieldsToReturn;
         }
 
@@ -316,8 +324,8 @@ public abstract class Soql implements Comparable {
 
     protected String doGetQueryFieldString() {
         Set<String> distinctFieldApiNamesToQuery = new Set<String>();
-        for (Soql.QueryField queryField : this.includedQueryFieldsAndCategory.keySet()) {
-            Soql.FieldCategory fieldCategory = this.includedQueryFieldsAndCategory.get(queryField);
+        for (SOQL.QueryField queryField : this.includedQueryFieldsAndCategory.keySet()) {
+            SOQL.FieldCategory fieldCategory = this.includedQueryFieldsAndCategory.get(queryField);
 
             List<String> fieldsToQuery = this.doGetFieldsToQuery(queryField, fieldCategory);
             if (!fieldsToQuery.isEmpty()) {
@@ -326,7 +334,7 @@ public abstract class Soql implements Comparable {
         }
 
         // Remove an excluded field paths
-        for (Soql.QueryField excludedQueryField : this.excludedQueryFields) {
+        for (SOQL.QueryField excludedQueryField : this.excludedQueryFields) {
             distinctFieldApiNamesToQuery.remove(excludedQueryField.toString());
         }
 
@@ -378,11 +386,11 @@ public abstract class Soql implements Comparable {
     public class DateLiteral {
         private String dateLiteral;
 
-        public DateLiteral(Soql.FixedDateLiteral fixedDateLiteral) {
+        public DateLiteral(SOQL.FixedDateLiteral fixedDateLiteral) {
             this.dateLiteral = fixedDateLiteral.name();
         }
 
-        public DateLiteral(Soql.RelativeDateLiteral relativeDateLiteral, Integer n) {
+        public DateLiteral(SOQL.RelativeDateLiteral relativeDateLiteral, Integer n) {
             this.dateLiteral = relativeDateLiteral.name() + ':' + n;
         }
 
@@ -396,7 +404,7 @@ public abstract class Soql implements Comparable {
 
         public IsoCurrency(String isoCode, Decimal currencyAmount) {
             if (!UserInfo.isMultiCurrencyOrganization()) {
-                throw new SoqlException('IsoCurrency is only supported in multi-currency orgs');
+                throw new SOQLException('IsoCurrency is only supported in multi-currency orgs');
             }
             this.isoCurrency = isoCode + currencyAmount;
         }
@@ -424,19 +432,19 @@ public abstract class Soql implements Comparable {
             this.queryFieldPath = this.getQueryField(fieldChain);
         }
 
-        public QueryField(Soql.DateFunction dateFunction, Schema.SObjectField field) {
+        public QueryField(SOQL.DateFunction dateFunction, Schema.SObjectField field) {
             this(dateFunction, field, false);
         }
 
-        public QueryField(Soql.DateFunction dateFunction, Schema.SObjectField field, Boolean convertTimeZone) {
+        public QueryField(SOQL.DateFunction dateFunction, Schema.SObjectField field, Boolean convertTimeZone) {
             this(dateFunction, new List<Schema.SObjectField>{ field }, convertTimeZone);
         }
 
-        public QueryField(Soql.DateFunction dateFunction, List<Schema.SObjectField> fieldChain) {
+        public QueryField(SOQL.DateFunction dateFunction, List<Schema.SObjectField> fieldChain) {
             this(dateFunction, fieldChain, false);
         }
 
-        public QueryField(Soql.DateFunction dateFunction, List<Schema.SObjectField> fieldChain, Boolean convertTimeZone) {
+        public QueryField(SOQL.DateFunction dateFunction, List<Schema.SObjectField> fieldChain, Boolean convertTimeZone) {
             this.fieldDescribe = this.getLastFieldDescribe(fieldChain);
             this.queryFieldPath = this.getDateFunctionFieldPath(dateFunction, fieldChain, convertTimeZone);
         }
@@ -458,7 +466,7 @@ public abstract class Soql implements Comparable {
             return this.queryFieldPath;
         }
 
-        private String getDateFunctionFieldPath(Soql.DateFunction dateFunction, List<Schema.SObjectField> fieldChain, Boolean convertTimeZone) {
+        private String getDateFunctionFieldPath(SOQL.DateFunction dateFunction, List<Schema.SObjectField> fieldChain, Boolean convertTimeZone) {
             String fieldPath = !convertTimeZone ? this.getQueryField(fieldChain) : 'convertTimeZone(' + this.getQueryField(fieldChain) + ')';
 
             return dateFunction.name() + '(' + fieldPath + ')';
@@ -519,33 +527,33 @@ public abstract class Soql implements Comparable {
     }
 
     public class QueryFilter implements Comparable {
-        private Soql.QueryField queryField;
-        private Soql.Operator operator;
+        private SOQL.QueryField queryField;
+        private SOQL.Operator operator;
         private Object value;
         private String formattedValue;
         private String filterString;
 
-        public QueryFilter(Schema.SObjectField field, Soql.Operator operator, Object value) {
+        public QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
             this(new QueryField(field), operator, value);
         }
 
-        public QueryFilter(QueryField queryField, Soql.Operator operator, Object value) {
+        public QueryFilter(QueryField queryField, SOQL.Operator operator, Object value) {
             this.queryField = queryField;
             this.operator = operator;
             this.value = value;
             this.formattedValue = new QueryArgument(value).toString();
 
-            this.filterString = queryField + ' ' + Soql.getOperatorValue(operator) + ' ' + formattedValue;
+            this.filterString = queryField + ' ' + SOQL.getOperatorValue(operator) + ' ' + formattedValue;
         }
 
         public QueryFilter(Schema.SObjectType childSObjectType, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
-            this.operator = inOrNotIn ? Soql.Operator.IS_IN : Soql.Operator.IS_NOT_IN;
-            this.filterString = 'Id ' + Soql.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')';
+            this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
+            this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')';
         }
 
         public QueryFilter(Query childQuery, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
-            this.operator = inOrNotIn ? Soql.Operator.IS_IN : Soql.Operator.IS_NOT_IN;
-            this.filterString = 'Id ' + Soql.getOperatorValue(this.operator) + ' ' + childQuery.getSubquery(lookupFieldOnChildSObject);
+            this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
+            this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' ' + childQuery.getSubquery(lookupFieldOnChildSObject);
         }
 
         public Integer compareTo(Object compareTo) {
@@ -560,11 +568,11 @@ public abstract class Soql implements Comparable {
             }
         }
 
-        public Soql.QueryField getQueryField() {
+        public SOQL.QueryField getQueryField() {
             return this.queryField;
         }
 
-        public Soql.Operator getOperator() {
+        public SOQL.Operator getOperator() {
             return this.operator;
         }
 
@@ -581,7 +589,7 @@ public abstract class Soql implements Comparable {
         }
     }
 
-    public class SoqlException extends Exception {
+    public class SOQLException extends Exception {
     }
 
     private class QueryArgument {

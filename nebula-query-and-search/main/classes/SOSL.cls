@@ -4,17 +4,19 @@
  ******************************************************************************************************/
 
 @SuppressWarnings('PMD.ApexDoc')
-public abstract class Sosl {
+public abstract class SOSL {
     public enum ArticleReporting {
         TRACKING,
         VIEWSTAT
     }
+
     public enum DataCategoryLocation {
         AT,
         ABOVE,
         BELOW,
         ABOVE_OR_BELOW
     }
+
     public enum SearchGroup {
         ALL_FIELDS,
         NAME_FIELDS,
@@ -31,22 +33,22 @@ public abstract class Sosl {
     protected Set<Schema.SObjectType> sobjectTypes;
     protected Boolean cacheResults;
     protected Boolean hasChanged;
-    protected Sosl.ArticleReporting articleReporting;
+    protected SOSL.ArticleReporting articleReporting;
     protected List<String> withClauses;
     protected List<String> withDataCategoryClauses;
-    protected Sosl.SearchGroup searchGroup;
+    protected SOSL.SearchGroup searchGroup;
 
-    protected Sosl(String searchTerm, Query sobjectQuery) {
+    protected SOSL(String searchTerm, Query sobjectQuery) {
         this(searchTerm, new List<Query>{ sobjectQuery });
     }
 
-    protected Sosl(String searchTerm, List<Query> sobjectQueries) {
+    protected SOSL(String searchTerm, List<Query> sobjectQueries) {
         this.searchTerm = String.escapeSingleQuotes(searchTerm);
         this.sobjectQueries = sobjectQueries;
 
         this.cacheResults = false;
         this.hasChanged = false;
-        this.searchGroup = Sosl.SearchGroup.ALL_FIELDS;
+        this.searchGroup = SOSL.SearchGroup.ALL_FIELDS;
         this.withClauses = new List<String>();
         this.withDataCategoryClauses = new List<String>();
     }
@@ -79,7 +81,7 @@ public abstract class Sosl {
         if (this.cacheResults) {
             return this.getCachedResults();
         } else {
-            return Search.query(this.getSearch());
+            return System.Search.query(this.getSearch());
         }
     }
 
