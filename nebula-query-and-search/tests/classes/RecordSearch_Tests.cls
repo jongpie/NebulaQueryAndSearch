@@ -76,7 +76,7 @@ private class RecordSearch_Tests {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN EMAIL FIELDS RETURNING User(Id, Name)';
 
         RecordSearch userSearch = new RecordSearch(UserInfo.getUserEmail(), new Query(Schema.User.SObjectType));
-        userSearch.inSearchGroup(Sosl.SearchGroup.EMAIL_FIELDS);
+        userSearch.inSearchGroup(SOSL.SearchGroup.EMAIL_FIELDS);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
         List<User> userSearchResults = (List<User>) userSearch.getFirstResults();
@@ -104,7 +104,7 @@ private class RecordSearch_Tests {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)' + ' UPDATE TRACKING';
 
         RecordSearch userSearch = new RecordSearch(UserInfo.getUserEmail(), new Query(Schema.User.SObjectType));
-        userSearch.updateArticleReporting(Sosl.ArticleReporting.TRACKING);
+        userSearch.updateArticleReporting(SOSL.ArticleReporting.TRACKING);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
         List<User> userSearchResults = userSearch.getFirstResults();
@@ -121,7 +121,7 @@ private class RecordSearch_Tests {
         String expectedSearchQueryString = 'FIND \'' + UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING User(Id, Name)' + ' UPDATE VIEWSTAT';
 
         RecordSearch userSearch = new RecordSearch(UserInfo.getUserEmail(), new Query(Schema.User.SObjectType));
-        userSearch.updateArticleReporting(Sosl.ArticleReporting.VIEWSTAT);
+        userSearch.updateArticleReporting(SOSL.ArticleReporting.VIEWSTAT);
 
         System.assertEquals(expectedSearchQueryString, userSearch.getSearch());
         List<User> userSearchResults = userSearch.getFirstResults();

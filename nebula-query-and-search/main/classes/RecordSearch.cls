@@ -4,7 +4,7 @@
  ******************************************************************************************************/
 
 @SuppressWarnings('PMD.ApexDoc')
-public class RecordSearch extends Sosl {
+public class RecordSearch extends SOSL {
     public RecordSearch(String searchTerm, Query sobjectQuery) {
         super(searchTerm, sobjectQuery);
     }
@@ -13,7 +13,7 @@ public class RecordSearch extends Sosl {
         super(searchTerm, sobjectQueries);
     }
 
-    public RecordSearch inSearchGroup(Sosl.SearchGroup searchGroup) {
+    public RecordSearch inSearchGroup(SOSL.SearchGroup searchGroup) {
         if (searchGroup == null) {
             return this;
         }
@@ -24,7 +24,7 @@ public class RecordSearch extends Sosl {
 
     public RecordSearch withDataCategory(
         Schema.DataCategory dataCategory,
-        Sosl.DataCategoryLocation dataCategoryLocation,
+        SOSL.DataCategoryLocation dataCategoryLocation,
         Schema.DataCategory childDataCategory
     ) {
         return this.withDataCategory(dataCategory, dataCategoryLocation, new List<Schema.DataCategory>{ childDataCategory });
@@ -32,7 +32,7 @@ public class RecordSearch extends Sosl {
 
     public RecordSearch withDataCategory(
         Schema.DataCategory dataCategory,
-        Sosl.DataCategoryLocation dataCategoryLocation,
+        SOSL.DataCategoryLocation dataCategoryLocation,
         List<Schema.DataCategory> childDataCategories
     ) {
         List<String> childDataCategoryApiNames = new List<String>();
@@ -58,7 +58,7 @@ public class RecordSearch extends Sosl {
         return this.setHasChanged();
     }
 
-    public RecordSearch updateArticleReporting(Sosl.ArticleReporting articleReporting) {
+    public RecordSearch updateArticleReporting(SOSL.ArticleReporting articleReporting) {
         this.articleReporting = articleReporting;
         return this.setHasChanged();
     }

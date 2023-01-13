@@ -1,19 +1,9 @@
 {
     "namespace": "",
     "sfdcLoginUrl": "https://login.salesforce.com",
-    "sourceApiVersion": "56.0",
+    "sourceApiVersion": "57.0",
     "pushPackageDirectoriesSequentially": true,
     "packageDirectories": [
-        {
-            "package": "Nebula Query & Search (no namespace)",
-            "path": "nebula-query-and-search",
-            "definitionFile": "./config/scratch-orgs/base-scratch-def.json",
-            "versionNumber": "3.2.0.0",
-            "versionName": "New unlocked package release",
-            "versionDescription": "Initial release of new unlocked package",
-            "releaseNotesUrl": "https://github.com/jongpie/NebulaQueryAndSearch/releases",
-            "default": true
-        },
         {
             "package": "Nebula Query & Search (Nebula namespace)",
             "path": "nebula-query-and-search",
@@ -23,6 +13,16 @@
             "versionDescription": "Initial release of new unlocked package",
             "releaseNotesUrl": "https://github.com/jongpie/NebulaQueryAndSearch/releases",
             "default": false
+        },
+        {
+            "package": "Nebula Query & Search (no namespace)",
+            "path": "nebula-query-and-search",
+            "definitionFile": "./config/scratch-orgs/base-scratch-def.json",
+            "versionNumber": "3.2.0.0",
+            "versionName": "New unlocked package release",
+            "versionDescription": "Initial release of new unlocked package",
+            "releaseNotesUrl": "https://github.com/jongpie/NebulaQueryAndSearch/releases",
+            "default": true
         }
     ],
     "plugins": {
@@ -31,7 +31,7 @@
         }
     },
     "packageAliases": {
-        "Nebula Query & Search (no namespace)": "0Ho5Y000000blOESAY",
-        "Nebula Query & Search (Nebula namespace)": "0Ho5Y000000fxvvSAA"
+        "Nebula Query & Search (Nebula namespace)": "0Ho5Y000000fxvvSAA",
+        "Nebula Query & Search (no namespace)": "0Ho5Y000000blOESAY"
     }
 }

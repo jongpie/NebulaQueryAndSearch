@@ -26,7 +26,7 @@ private class AggregateQuery_Tests {
 
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
             .groupByField(Schema.Opportunity.Type)
-            .filterWhere(new Soql.QueryFilter(Schema.Opportunity.AccountId, Soql.Operator.NOT_EQUAL_TO, null));
+            .filterWhere(new SOQL.QueryFilter(Schema.Opportunity.AccountId, SOQL.Operator.NOT_EQUAL_TO, null));
 
         Test.startTest();
 
@@ -42,14 +42,14 @@ private class AggregateQuery_Tests {
 
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
             .groupByField(Schema.Account.Type)
-            .filterWhere(new Soql.QueryFilter(Schema.Account.ParentId, Soql.Operator.NOT_EQUAL_TO, null))
+            .filterWhere(new SOQL.QueryFilter(Schema.Account.ParentId, SOQL.Operator.NOT_EQUAL_TO, null))
             .orFilterWhere(
-                new List<Soql.QueryFilter>{
-                    new Soql.QueryFilter(Schema.Account.Type, Soql.Operator.EQUALS, null),
-                    new Soql.QueryFilter(Schema.Account.AccountNumber, Soql.Operator.EQUALS, null)
+                new List<SOQL.QueryFilter>{
+                    new SOQL.QueryFilter(Schema.Account.Type, SOQL.Operator.EQUALS, null),
+                    new SOQL.QueryFilter(Schema.Account.AccountNumber, SOQL.Operator.EQUALS, null)
                 }
             )
-            .addAggregate(Soql.Aggregate.COUNT, Schema.Account.Id);
+            .addAggregate(SOQL.Aggregate.COUNT, Schema.Account.Id);
 
         System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
         List<AggregateResult> results = AggregateQuery.getResults();
@@ -79,8 +79,8 @@ private class AggregateQuery_Tests {
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
             .groupByField(Schema.Opportunity.Type)
             .groupByField(Schema.Opportunity.StageName)
-            .addAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
-            .usingGroupingDimension(Soql.GroupingDimension.CUBE);
+            .addAggregate(SOQL.Aggregate.SUM, Schema.Opportunity.Amount)
+            .usingGroupingDimension(SOQL.GroupingDimension.CUBE);
 
         Test.startTest();
 
@@ -97,8 +97,8 @@ private class AggregateQuery_Tests {
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
             .groupByField(Schema.Opportunity.Type)
             .groupByField(Schema.Opportunity.StageName)
-            .addAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
-            .usingGroupingDimension(Soql.GroupingDimension.ROLLUP);
+            .addAggregate(SOQL.Aggregate.SUM, Schema.Opportunity.Amount)
+            .usingGroupingDimension(SOQL.GroupingDimension.ROLLUP);
 
         Test.startTest();
 
@@ -114,8 +114,8 @@ private class AggregateQuery_Tests {
 
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
             .groupByField(Account.Name)
-            .addAggregate(Soql.Aggregate.COUNT, Account.Id)
-            .havingAggregate(Soql.Aggregate.COUNT, Account.Id, Soql.Operator.GREATER_THAN, 2);
+            .addAggregate(SOQL.Aggregate.COUNT, Account.Id)
+            .havingAggregate(SOQL.Aggregate.COUNT, Account.Id, SOQL.Operator.GREATER_THAN, 2);
 
         Test.startTest();
 
@@ -130,8 +130,8 @@ private class AggregateQuery_Tests {
         String expectedQueryString = 'SELECT CALENDAR_MONTH(CloseDate), COUNT(Id) COUNT__Id FROM Opportunity GROUP BY CALENDAR_MONTH(CloseDate)';
 
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
-            .groupByField(new Soql.QueryField(Soql.DateFunction.CALENDAR_MONTH, Schema.Opportunity.CloseDate))
-            .addAggregate(Soql.Aggregate.COUNT, Opportunity.Id);
+            .groupByField(new SOQL.QueryField(SOQL.DateFunction.CALENDAR_MONTH, Schema.Opportunity.CloseDate))
+            .addAggregate(SOQL.Aggregate.COUNT, Opportunity.Id);
 
         Test.startTest();
 
@@ -156,28 +156,28 @@ private class AggregateQuery_Tests {
             ' OFFSET 0';
 
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
-            .addAggregate(Soql.Aggregate.MAX, Schema.Opportunity.CreatedDate)
-            .addAggregate(Soql.Aggregate.AVG, Schema.Opportunity.Amount)
-            .addAggregate(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.OwnerId)
-            .addAggregate(Soql.Aggregate.MIN, Schema.Opportunity.CreatedDate)
-            .groupByField(new Soql.QueryField(new List<Schema.SObjectField>{ Schema.Opportunity.AccountId, Schema.Account.Type }))
-            .addAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
+            .addAggregate(SOQL.Aggregate.MAX, Schema.Opportunity.CreatedDate)
+            .addAggregate(SOQL.Aggregate.AVG, Schema.Opportunity.Amount)
+            .addAggregate(SOQL.Aggregate.COUNT_DISTINCT, Schema.Opportunity.OwnerId)
+            .addAggregate(SOQL.Aggregate.MIN, Schema.Opportunity.CreatedDate)
+            .groupByField(new SOQL.QueryField(new List<Schema.SObjectField>{ Schema.Opportunity.AccountId, Schema.Account.Type }))
+            .addAggregate(SOQL.Aggregate.SUM, Schema.Opportunity.Amount)
             .groupByField(Schema.Opportunity.StageName)
-            .addAggregate(Soql.Aggregate.COUNT, Schema.Opportunity.AccountId)
-            .addAggregate(Soql.Aggregate.COUNT_DISTINCT, Schema.Opportunity.AccountId)
+            .addAggregate(SOQL.Aggregate.COUNT, Schema.Opportunity.AccountId)
+            .addAggregate(SOQL.Aggregate.COUNT_DISTINCT, Schema.Opportunity.AccountId)
             .addAggregate(
-                Soql.Aggregate.COUNT_DISTINCT,
-                new Soql.QueryField(new List<Schema.SObjectField>{ Schema.Opportunity.AccountId, Schema.Account.Type })
+                SOQL.Aggregate.COUNT_DISTINCT,
+                new SOQL.QueryField(new List<Schema.SObjectField>{ Schema.Opportunity.AccountId, Schema.Account.Type })
             )
-            .orderByField(new Soql.QueryField(new List<Schema.SObjectField>{ Schema.Opportunity.AccountId, Schema.Account.Type }))
+            .orderByField(new SOQL.QueryField(new List<Schema.SObjectField>{ Schema.Opportunity.AccountId, Schema.Account.Type }))
             .orderByField(Schema.Opportunity.StageName)
-            .orderByAggregate(Soql.Aggregate.SUM, Schema.Opportunity.Amount)
-            .orderByAggregate(Soql.Aggregate.MIN, Schema.Opportunity.CloseDate, Soql.SortOrder.DESCENDING)
+            .orderByAggregate(SOQL.Aggregate.SUM, Schema.Opportunity.Amount)
+            .orderByAggregate(SOQL.Aggregate.MIN, Schema.Opportunity.CloseDate, SOQL.SortOrder.DESCENDING)
             .orderByAggregate(
-                Soql.Aggregate.MAX,
-                new Soql.QueryField(new List<Schema.SObjectField>{ Schema.Opportunity.AccountId, Schema.Account.LastActivityDate })
+                SOQL.Aggregate.MAX,
+                new SOQL.QueryField(new List<Schema.SObjectField>{ Schema.Opportunity.AccountId, Schema.Account.LastActivityDate })
             )
-            .filterWhere(Schema.Opportunity.AccountId, Soql.Operator.NOT_EQUAL_TO, null)
+            .filterWhere(Schema.Opportunity.AccountId, SOQL.Operator.NOT_EQUAL_TO, null)
             .limitTo(100)
             .offsetBy(0);
 
