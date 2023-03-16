@@ -14,23 +14,23 @@ A dynamic SOQL query & SOSL search library for Salesforce Apex
 
 ## Features
 
--   Provides chainable builder methods for dyanmically building SOQL queries & SOSL searches in Apex
--   Easily add fields to a query based on field level security
--   Easily add fields from a field set
--   Automatically adds the parent name field for any lookup/master-detail fields
--   Adds translations for picklist fields & record types by calling includeLabels()
--   Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
--   Leverage query scope to filter results
--   Enable query & search caching by simple calling cacheResults()
--   Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
+- Provides chainable builder methods for dyanmically building SOQL queries & SOSL searches in Apex
+- Easily add fields to a query based on field level security
+- Easily add fields from a field set
+- Automatically adds the parent name field for any lookup/master-detail fields
+- Adds translations for picklist fields & record types by calling includeLabels()
+- Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
+- Leverage query scope to filter results
+- Enable query & search caching by simple calling cacheResults()
+- Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
 
 ## Overview
 
 There are 3 main builder classes
 
 | &nbsp;      | Query                        | AggregateQuery                               | RecordSearch                                        |
-| ----------- | ---------------------------- | -------------------------------------------- | --------------------------------------------------- | --- |
-| Super Class | SOQL.cls (Queries)           | SOQL.cls (Queries)                           | SOSL.cls (Searches)                                 | -   |
+| ----------- | ---------------------------- | -------------------------------------------- | --------------------------------------------------- |
+| Super Class | SOQL.cls (Queries)           | SOQL.cls (Queries)                           | SOSL.cls (Searches)                                 |
 | Action      | Queries an SObject           | Queries an SObject                           | Searches 1 or more SObjects                         |
 | Returns     | `SObject` or `List<SObject>` | `AggregateResult` or `List<AggregateResult>` | `SObject`, `List<SObject>` or `List<List<SObject>>` |
 
