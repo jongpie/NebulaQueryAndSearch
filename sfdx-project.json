@@ -32,6 +32,8 @@
   ],
   "packageAliases": {
     "Nebula Query & Search (Nebula namespace)": "0Ho5Y000000fxvvSAA",
-    "Nebula Query & Search (no namespace)": "0Ho5Y000000blOESAY"
+    "Nebula Query & Search (Nebula namespace)@3.2.0": "04t5Y0000015nECQAY",
+    "Nebula Query & Search (no namespace)": "0Ho5Y000000blOESAY",
+    "Nebula Query & Search (no namespace)@3.2.0": "04t5Y0000015nE7QAI"
   }
 }

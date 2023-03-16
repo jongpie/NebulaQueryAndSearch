@@ -4,13 +4,25 @@ A dynamic SOQL query & SOSL search library for Salesforce Apex
 
 ## Unlocked Package - `Nebula` namespace - v3.2.0
 
-[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=TODO1)
-[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=TODO1)
+[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t5Y0000015nECQAY)
+[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5Y0000015nECQAY)
+
+Install with SFDX:
+
+```shell
+sfdx package install --apex-compile package --wait 20 --security-type AdminsOnly --package 04t5Y0000015nECQAY
+```
 
 ## Unlocked Package - no namespace - v3.2.0
 
-[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=TODO2)
-[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=TODO2)
+[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t5Y0000015nE7QAI)
+[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5Y0000015nE7QAI)
+
+Install with SFDX:
+
+```shell
+sfdx package install --apex-compile package --wait 20 --security-type AdminsOnly --package 04t5Y0000015nE7QAI
+```
 
 ## Features
 

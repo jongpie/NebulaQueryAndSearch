@@ -1,6 +1,6 @@
 module.exports = {
   'sfdx-project.json': () => {
-    return `npm run package:aliases:sort`;
+    return [`npm run package:aliases:sort`, `npx prettier --write sfdx-project.json`];
   },
   '*.cls': () => {
     return [`npm run scan`, `npm run docs:generate`];
