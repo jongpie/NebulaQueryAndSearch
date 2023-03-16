@@ -1,6 +1,6 @@
 # Nebula Query & Search for Salesforce Apex
 
-A dynamic SOQL query & SOSL search library for for Salesforce Apex
+A dynamic SOQL query & SOSL search library for Salesforce Apex
 
 ## Unlocked Package - `Nebula` namespace - v3.2.0
 
@@ -14,15 +14,15 @@ A dynamic SOQL query & SOSL search library for for Salesforce Apex
 
 ## Features
 
-- Provides chainable builder methods for dyanmically building queries & searches in APex
-- Easily add fields to a query based on field level security
-- Easily add fields from a field set
-- Automatically adds the parent name field for any lookup/master-detail fields
-- Adds translations for picklist fields & record types by calling includeLabels()
-- Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
-- Leverage query scope to filter results
-- Enable query & search caching by simple calling cacheResults()
-- Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
+-   Provides chainable builder methods for dyanmically building SOQL queries & SOSL searches in Apex
+-   Easily add fields to a query based on field level security
+-   Easily add fields from a field set
+-   Automatically adds the parent name field for any lookup/master-detail fields
+-   Adds translations for picklist fields & record types by calling includeLabels()
+-   Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
+-   Leverage query scope to filter results
+-   Enable query & search caching by simple calling cacheResults()
+-   Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
 
 ## Overview
 

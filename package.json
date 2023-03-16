@@ -1,7 +1,27 @@
 {
     "name": "nebula-query-and-search",
     "version": "3.2.0",
-    "description": "A dynamic SOQL query & SOSL search library for for Salesforce Apex",
+    "description": "A dynamic SOQL query & SOSL search library for Salesforce Apex",
+    "devDependencies": {
+        "@cparra/apexdocs": "^2.14.0",
+        "@jayree/sfdx-plugin-prettier": "^1.2.28",
+        "@jongpie/sfdx-bummer-plugin": "^0.0.18",
+        "@prettier/plugin-xml": "^2.0.1",
+        "@salesforce/sfdx-scanner": "^3.9.0",
+        "husky": "^7.0.4",
+        "lint-staged": "^12.3.7",
+        "prettier": "^2.6.0",
+        "prettier-plugin-apex": "^1.10.0",
+        "sfdx-cli": "^7.190.2"
+    },
+    "keywords": [
+        "apex",
+        "query",
+        "search",
+        "SOQL",
+        "SOSL",
+        "salesforce"
+    ],
     "scripts": {
         "docs:generate": "rm ./docs/apex/**.md || true && apexdocs-generate --sourceDir nebula-query-and-search --scope global --targetDir ./docs/apex/ && git add ./docs/apex/",
         "package:aliases:sort": "sfdx bummer:package:aliases:sort",
@@ -16,13 +36,5 @@
         "test:coverage": "npm run test -- --codecoverage --detailed-coverage",
         "test:suite": "sfdx apex run test --suite-names QueryAndSearch --wait 30 --result-format human --output-dir ./test-coverage/apex",
         "test:suite:coverage": "npm run test:suite -- --codecoverage --detailed-coverage"
-    },
-    "devDependencies": {
-        "@cparra/apexdocs": "^2.13.0",
-        "@prettier/plugin-xml": "^2.0.1",
-        "husky": "^7.0.4",
-        "lint-staged": "^12.3.7",
-        "prettier": "^2.6.0",
-        "prettier-plugin-apex": "^1.10.0"
     }
 }
