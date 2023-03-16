@@ -3,7 +3,7 @@
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
- /**
+/**
  * @group SOQL Queries
  * @description Handles generating & executing aggregate queries
  * @see SOQL

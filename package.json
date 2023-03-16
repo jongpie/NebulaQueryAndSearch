@@ -12,7 +12,10 @@
         "postinstall": "husky install",
         "precommit": "lint-staged",
         "scan": "sfdx scanner:run --pmdconfig ./config/pmd-ruleset.xml --target ./nebula-query-and-search/ --engine pmd --severity-threshold 3",
-        "test": "sfdx force:apex:test:run --verbose --testlevel RunLocalTests --wait 30 --resultformat human --codecoverage --detailedcoverage --outputdir ./test-coverage/apex"
+        "test": "sfdx apex run test --testlevel RunLocalTests --wait 30 --result-format human --output-dir ./test-coverage/apex",
+        "test:coverage": "npm run test -- --codecoverage --detailed-coverage",
+        "test:suite": "sfdx apex run test --suite-names QueryAndSearch --wait 30 --result-format human --output-dir ./test-coverage/apex",
+        "test:suite:coverage": "npm run test:suite -- --codecoverage --detailed-coverage"
     },
     "devDependencies": {
         "@cparra/apexdocs": "^2.13.0",

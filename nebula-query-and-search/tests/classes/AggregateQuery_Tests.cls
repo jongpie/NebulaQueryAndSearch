@@ -10,14 +10,14 @@
 private class AggregateQuery_Tests {
     @IsTest
     static void it_should_be_usable_after_construction() {
-        // Query builders should be usable as soon as it's constructed - it should be able to execute a query with some default values
+        String expectedQueryString = 'SELECT COUNT(Id) COUNT__Id FROM Opportunity';
+
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType);
 
-        Test.startTest();
-
-        AggregateResult result = (AggregateResult) AggregateQuery.getFirstResult();
-
-        Test.stopTest();
+        System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+        List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+        List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
@@ -28,17 +28,15 @@ private class AggregateQuery_Tests {
             .groupByField(Schema.Opportunity.Type)
             .filterWhere(new SOQL.QueryFilter(Schema.Opportunity.AccountId, SOQL.Operator.NOT_EQUAL_TO, null));
 
-        Test.startTest();
-
-        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
-        List<AggregateResult> results = AggregateQuery.getResults();
-
-        Test.stopTest();
+        System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+        List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+        List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
     static void it_should_return_results_when_filtering_with_an_or_statement() {
-        String expectedQueryString = 'SELECT Type, COUNT(Id) COUNT__Id FROM Account WHERE (AccountNumber = null OR Type = null) AND ParentId != null GROUP BY Type';
+        String expectedQueryString = 'SELECT Type, COUNT(Id) COUNT__Id FROM Account WHERE (AnnualRevenue = null OR Type = null) AND ParentId != null GROUP BY Type';
 
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
             .groupByField(Schema.Account.Type)
@@ -46,30 +44,28 @@ private class AggregateQuery_Tests {
             .orFilterWhere(
                 new List<SOQL.QueryFilter>{
                     new SOQL.QueryFilter(Schema.Account.Type, SOQL.Operator.EQUALS, null),
-                    new SOQL.QueryFilter(Schema.Account.AccountNumber, SOQL.Operator.EQUALS, null)
+                    new SOQL.QueryFilter(Schema.Account.AnnualRevenue, SOQL.Operator.EQUALS, null)
                 }
             )
             .addAggregate(SOQL.Aggregate.COUNT, Schema.Account.Id);
 
-        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
-        List<AggregateResult> results = AggregateQuery.getResults();
+        System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+        List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+        List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
     static void it_should_cache_results() {
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType);
-        AggregateQuery.cacheResults();
-
-        Test.startTest();
-
+        aggregateQuery.cacheResults();
         System.assertEquals(0, Limits.getQueries());
+
         for (Integer i = 0; i < 3; i++) {
-            AggregateQuery.getResults();
+            aggregateQuery.getResults();
         }
 
         System.assertEquals(1, Limits.getQueries());
-
-        Test.stopTest();
     }
 
     @IsTest
@@ -82,12 +78,10 @@ private class AggregateQuery_Tests {
             .addAggregate(SOQL.Aggregate.SUM, Schema.Opportunity.Amount)
             .usingGroupingDimension(SOQL.GroupingDimension.CUBE);
 
-        Test.startTest();
-
-        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
-        List<AggregateResult> results = AggregateQuery.getResults();
-
-        Test.stopTest();
+        System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+        List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+        List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
@@ -100,12 +94,10 @@ private class AggregateQuery_Tests {
             .addAggregate(SOQL.Aggregate.SUM, Schema.Opportunity.Amount)
             .usingGroupingDimension(SOQL.GroupingDimension.ROLLUP);
 
-        Test.startTest();
-
-        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
-        List<AggregateResult> results = AggregateQuery.getResults();
-
-        Test.stopTest();
+        System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+        List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+        List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
@@ -113,16 +105,14 @@ private class AggregateQuery_Tests {
         String expectedQueryString = 'SELECT Name, COUNT(Id) COUNT__Id FROM Account GROUP BY Name HAVING COUNT(Id) > 2';
 
         AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
-            .groupByField(Account.Name)
-            .addAggregate(SOQL.Aggregate.COUNT, Account.Id)
-            .havingAggregate(SOQL.Aggregate.COUNT, Account.Id, SOQL.Operator.GREATER_THAN, 2);
+            .groupByField(Schema.Account.Name)
+            .addAggregate(SOQL.Aggregate.COUNT, Schema.Account.Id)
+            .havingAggregate(SOQL.Aggregate.COUNT, Schema.Account.Id, SOQL.Operator.GREATER_THAN, 2);
 
-        Test.startTest();
-
-        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
-        List<AggregateResult> results = AggregateQuery.getResults();
-
-        Test.stopTest();
+        System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+        List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+        List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
@@ -133,16 +123,14 @@ private class AggregateQuery_Tests {
             .groupByField(new SOQL.QueryField(SOQL.DateFunction.CALENDAR_MONTH, Schema.Opportunity.CloseDate))
             .addAggregate(SOQL.Aggregate.COUNT, Opportunity.Id);
 
-        Test.startTest();
-
-        System.assertEquals(expectedQueryString, AggregateQuery.getQuery());
-        List<AggregateResult> results = AggregateQuery.getResults();
-
-        Test.stopTest();
+        System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+        List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+        List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
-    static void it_should_build_an_ridiculous_query_string() {
+    static void it_should_build_a_ridiculous_query_string() {
         String expectedQueryString =
             'SELECT Account.Type, StageName, AVG(Amount) AVG__Amount, COUNT(AccountId) COUNT__AccountId,' +
             ' COUNT_DISTINCT(AccountId) COUNT_DISTINCT__AccountId, COUNT_DISTINCT(OwnerId) COUNT_DISTINCT__OwnerId, COUNT_DISTINCT(Type) COUNT_DISTINCT__Type,' +
@@ -181,15 +169,9 @@ private class AggregateQuery_Tests {
             .limitTo(100)
             .offsetBy(0);
 
-        Test.startTest();
-
-        String returnedQueryString = AggregateQuery.getQuery();
-
-        Test.stopTest();
-
-        System.assertEquals(expectedQueryString, returnedQueryString);
-
-        // Verify that the query can be executed
-        List<AggregateResult> results = Database.query(returnedQueryString);
+        System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+        List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+        List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 }

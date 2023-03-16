@@ -21,7 +21,6 @@ private class Query_Tests {
     @IsTest
     static void it_should_return_results_for_an_advanced_query() {
         Datetime now = System.now();
-
         String expectedQueryString =
             'SELECT Alias, Email, Id, IsActive, Profile.Name, ProfileId' +
             ' FROM User USING SCOPE MINE' +
@@ -36,7 +35,6 @@ private class Query_Tests {
             '\'' +
             ' ORDER BY Profile.CreatedBy.LastModifiedDate ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST' +
             ' LIMIT 100 OFFSET 1 FOR VIEW';
-
         List<SObjectField> fieldsToQuery = new List<SObjectField>{ Schema.User.IsActive, Schema.User.Alias };
 
         Query userQuery = new Query(Schema.User.SObjectType)
@@ -62,21 +60,23 @@ private class Query_Tests {
             .forView();
 
         System.assertEquals(expectedQueryString, userQuery.getQuery());
-        List<User> users = userQuery.getResults();
+        List<User> expectedResults = Database.query(expectedQueryString);
+        List<User> returnedResults = userQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
     static void it_should_return_results_and_include_grandparent_query_field() {
-        String expectedQueryString = 'SELECT Id, Name, Parent.Owner.Name FROM Account';
-
-        List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{ Schema.Account.ParentId, Schema.Account.OwnerId, Schema.User.Name };
+        String expectedQueryString = 'SELECT Id, Name, Profile.UserLicense.LicenseDefinitionKey FROM User LIMIT 1';
+        List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{ Schema.User.ProfileId, Schema.Profile.UserLicenseId, Schema.UserLicense.LicenseDefinitionKey };
         SOQL.QueryField queryField = new SOQL.QueryField(fieldChain);
 
-        Query accountQuery = new Query(Schema.Account.SObjectType);
-        accountQuery.addField(queryField);
+        Query userQuery = new Query(Schema.User.SObjectType).addField(queryField).limitTo(1);
 
-        System.assertEquals(expectedQueryString, accountQuery.getQuery());
-        List<Account> accounts = accountQuery.getResults();
+        System.assertEquals(expectedQueryString, userQuery.getQuery());
+        List<User> expectedResults = Database.query(expectedQueryString);
+        List<User> returnedResults = userQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
@@ -141,7 +141,9 @@ private class Query_Tests {
         Query leadQuery = new Query(Schema.Lead.SObjectType).addField(new SOQL.QueryField(Schema.Lead.OwnerId));
 
         System.assertEquals(expectedQueryString, leadQuery.getQuery());
-        List<Lead> leads = leadQuery.getResults();
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
@@ -160,18 +162,67 @@ private class Query_Tests {
 
     @IsTest
     static void it_should_return_results_when_filtering_with_an_or_statement() {
-        String expectedQueryString = 'SELECT Id, Name FROM Account WHERE ParentId != null AND (AccountNumber = null OR Type = null)';
+        String expectedQueryString = 'SELECT Id, Name FROM Account WHERE ParentId != null AND (AnnualRevenue = null OR Type = null)';
 
         Query accountQuery = new Query(Schema.Account.SObjectType)
             .addField(Schema.Account.AnnualRevenue)
             .orFilterWhere(
                 new List<SOQL.QueryFilter>{
                     new SOQL.QueryFilter(Schema.Account.Type, SOQL.Operator.EQUALS, null),
-                    new SOQL.QueryFilter(Schema.Account.AccountNumber, SOQL.Operator.EQUALS, null)
+                    new SOQL.QueryFilter(Schema.Account.AnnualRevenue, SOQL.Operator.EQUALS, null)
                 }
             )
             .filterWhere(new SOQL.QueryFilter(Schema.Account.ParentId, SOQL.Operator.NOT_EQUAL_TO, null));
+
         List<Account> accounts = accountQuery.getResults();
+    }
+
+    @IsTest
+    static void it_includes_order_by_statement_for_single_field() {
+        String expectedQueryString = 'SELECT Id, Name FROM Lead ORDER BY CreatedDate ASC NULLS FIRST';
+
+        Query leadQuery = new Query(Schema.Lead.SObjectType).orderByField(Schema.Lead.CreatedDate);
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+
+    @IsTest
+    static void it_marks_query_for_reference() {
+        String expectedQueryString = 'SELECT Id, Name FROM Lead FOR REFERENCE';
+
+        Query leadQuery = new Query(Schema.Lead.SObjectType).forReference();
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+
+    @IsTest
+    static void it_marks_query_for_update() {
+        String expectedQueryString = 'SELECT Id, Name FROM Lead FOR UPDATE';
+
+        Query leadQuery = new Query(Schema.Lead.SObjectType).forUpdate();
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+
+    @IsTest
+    static void it_marks_query_for_view() {
+        String expectedQueryString = 'SELECT Id, Name FROM Lead FOR VIEW';
+
+        Query leadQuery = new Query(Schema.Lead.SObjectType).forView();
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
     }
 
     @IsTest
