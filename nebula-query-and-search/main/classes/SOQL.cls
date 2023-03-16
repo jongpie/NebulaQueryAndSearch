@@ -10,10 +10,10 @@
  * @see AggregateQuery
  */
 @SuppressWarnings(
-    'PMD.ApexDoc, PMD.ApexSharingViolations, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart'
+    'PMD.ApexDoc, PMD.ApexSharingViolations, PMD.AvoidGlobalModifier, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart'
 )
-public abstract class SOQL implements Comparable {
-    public enum Aggregate {
+global abstract class SOQL implements Comparable {
+    global enum Aggregate {
         AVG,
         COUNT,
         COUNT_DISTINCT,
@@ -22,12 +22,12 @@ public abstract class SOQL implements Comparable {
         SUM
     }
 
-    public enum GroupingDimension {
+    global enum GroupingDimension {
         CUBE,
         ROLLUP
     }
 
-    public enum FieldCategory {
+    global enum FieldCategory {
         ACCESSIBLE,
         UPDATEABLE,
         STANDARD,
@@ -35,7 +35,7 @@ public abstract class SOQL implements Comparable {
         IGNORE_FLS
     }
 
-    public enum Operator {
+    global enum Operator {
         EQUALS,
         NOT_EQUAL_TO,
         GREATER_THAN,
@@ -50,7 +50,7 @@ public abstract class SOQL implements Comparable {
         IS_NOT_LIKE
     }
 
-    public enum Scope {
+    global enum Scope {
         EVERYTHING,
         DELEGATED,
         TEAM,
@@ -59,12 +59,12 @@ public abstract class SOQL implements Comparable {
         MY_TEAM_TERRITORY
     }
 
-    public enum SortOrder {
+    global enum SortOrder {
         ASCENDING,
         DESCENDING
     }
 
-    public enum DateFunction {
+    global enum DateFunction {
         HOUR_IN_DAY,
         DAY_ONLY,
         DAY_IN_MONTH,
@@ -80,7 +80,7 @@ public abstract class SOQL implements Comparable {
         CALENDAR_YEAR
     }
 
-    public enum FixedDateLiteral {
+    global enum FixedDateLiteral {
         YESTERDAY,
         TODAY,
         TOMORROW,
@@ -106,7 +106,7 @@ public abstract class SOQL implements Comparable {
         NEXT_FISCAL_YEAR
     }
 
-    public enum RelativeDateLiteral {
+    global enum RelativeDateLiteral {
         N_DAYS_AGO,
         LAST_N_DAYS,
         NEXT_N_DAYS,
@@ -202,11 +202,12 @@ public abstract class SOQL implements Comparable {
         this.hasChanged = false;
     }
 
-    public Schema.SObjectType getSObjectType() {
+    global Schema.SObjectType getSObjectType() {
         return this.sobjectType;
     }
 
-    public abstract String getQuery();
+    // TODO decide if this should be global
+    global abstract String getQuery();
 
     public Integer compareTo(Object compareTo) {
         String currentSObjectApiName = String.valueOf(this.getSObjectType());
@@ -420,54 +421,57 @@ public abstract class SOQL implements Comparable {
         }
     }
 
-    public class QueryField {
+    global class QueryField {
         private final String queryFieldPath;
         private final Schema.DescribeFieldResult fieldDescribe;
 
-        public QueryField(Schema.SObjectType sobjectType, String queryFieldPath) {
+        global QueryField(Schema.SObjectType sobjectType, String queryFieldPath) {
             this.fieldDescribe = this.getLastFieldDescribe(sobjectType, queryFieldPath);
             this.queryFieldPath = queryFieldPath;
         }
 
-        public QueryField(Schema.SObjectField field) {
+        global QueryField(Schema.SObjectField field) {
             this(new List<Schema.SObjectField>{ field });
         }
 
-        public QueryField(List<Schema.SObjectField> fieldChain) {
+        global QueryField(List<Schema.SObjectField> fieldChain) {
             this.fieldDescribe = this.getLastFieldDescribe(fieldChain);
             this.queryFieldPath = this.getQueryField(fieldChain);
         }
 
-        public QueryField(SOQL.DateFunction dateFunction, Schema.SObjectField field) {
+        global QueryField(SOQL.DateFunction dateFunction, Schema.SObjectField field) {
             this(dateFunction, field, false);
         }
 
-        public QueryField(SOQL.DateFunction dateFunction, Schema.SObjectField field, Boolean convertTimeZone) {
+        global QueryField(SOQL.DateFunction dateFunction, Schema.SObjectField field, Boolean convertTimeZone) {
             this(dateFunction, new List<Schema.SObjectField>{ field }, convertTimeZone);
         }
 
-        public QueryField(SOQL.DateFunction dateFunction, List<Schema.SObjectField> fieldChain) {
+        global QueryField(SOQL.DateFunction dateFunction, List<Schema.SObjectField> fieldChain) {
             this(dateFunction, fieldChain, false);
         }
 
-        public QueryField(SOQL.DateFunction dateFunction, List<Schema.SObjectField> fieldChain, Boolean convertTimeZone) {
+        global QueryField(SOQL.DateFunction dateFunction, List<Schema.SObjectField> fieldChain, Boolean convertTimeZone) {
             this.fieldDescribe = this.getLastFieldDescribe(fieldChain);
             this.queryFieldPath = this.getDateFunctionFieldPath(dateFunction, fieldChain, convertTimeZone);
         }
         //https://help.salesforce.com/articleView?id=custom_field_geolocate_overview.htm&type=5
-        public QueryField(List<Schema.SObjectField> fieldChain, Decimal latitude, Decimal longitude) {
+        global QueryField(List<Schema.SObjectField> fieldChain, Decimal latitude, Decimal longitude) {
             this.fieldDescribe = this.getLastFieldDescribe(fieldChain);
             //this.queryFieldPath = 'DISTANCE(' + this.getQueryField(fieldChain), GEOLOCATION(10,10), :units)
         }
 
+        // TODO decide if this should be global
         public override String toString() {
             return this.queryFieldPath;
         }
 
+        // TODO decide if this should be global
         public Schema.DescribeFieldResult getDescribe() {
             return this.fieldDescribe;
         }
 
+        // TODO decide if this should be global
         public String getFieldPath() {
             return this.queryFieldPath;
         }
@@ -532,18 +536,18 @@ public abstract class SOQL implements Comparable {
         }
     }
 
-    public class QueryFilter implements Comparable {
+    global class QueryFilter implements Comparable {
         private SOQL.QueryField queryField;
         private SOQL.Operator operator;
         private Object value;
         private String formattedValue;
         private String filterString;
 
-        public QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
+        global QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
             this(new QueryField(field), operator, value);
         }
 
-        public QueryFilter(QueryField queryField, SOQL.Operator operator, Object value) {
+        global QueryFilter(QueryField queryField, SOQL.Operator operator, Object value) {
             this.queryField = queryField;
             this.operator = operator;
             this.value = value;
@@ -552,17 +556,17 @@ public abstract class SOQL implements Comparable {
             this.filterString = queryField + ' ' + SOQL.getOperatorValue(operator) + ' ' + formattedValue;
         }
 
-        public QueryFilter(Schema.SObjectType childSObjectType, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
+        global QueryFilter(Schema.SObjectType childSObjectType, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
             this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
             this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')';
         }
 
-        public QueryFilter(Query childQuery, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
+        global QueryFilter(Query childQuery, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
             this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
             this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' ' + childQuery.getSubquery(lookupFieldOnChildSObject);
         }
 
-        public Integer compareTo(Object compareTo) {
+        global Integer compareTo(Object compareTo) {
             QueryFilter compareToQueryFilter = (QueryFilter) compareTo;
 
             if (this.toString() == compareToQueryFilter.toString()) {
@@ -574,27 +578,30 @@ public abstract class SOQL implements Comparable {
             }
         }
 
-        public SOQL.QueryField getQueryField() {
+        global SOQL.QueryField getQueryField() {
             return this.queryField;
         }
 
-        public SOQL.Operator getOperator() {
+        global SOQL.Operator getOperator() {
             return this.operator;
         }
 
-        public Object getValue() {
+        global Object getValue() {
             return this.value;
         }
 
+        // TODO decide if this should be global
         public Object getFormattedValue() {
             return this.formattedValue;
         }
 
+        // TODO decide if this should be global
         public override String toString() {
             return this.filterString;
         }
     }
 
+    // TODO decide if this should be global (or deleted)
     public class SOQLException extends Exception {
     }
 

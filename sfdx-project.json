@@ -1,8 +1,13 @@
 {
+    "name": "Nebula Query & Search",
     "namespace": "",
     "sfdcLoginUrl": "https://login.salesforce.com",
     "sourceApiVersion": "57.0",
-    "pushPackageDirectoriesSequentially": true,
+    "plugins": {
+        "sfdx-plugin-prettier": {
+            "enabled": true
+        }
+    },
     "packageDirectories": [
         {
             "package": "Nebula Query & Search (Nebula namespace)",
@@ -25,11 +30,6 @@
             "default": true
         }
     ],
-    "plugins": {
-        "sfdx-plugin-prettier": {
-            "enabled": true
-        }
-    },
     "packageAliases": {
         "Nebula Query & Search (Nebula namespace)": "0Ho5Y000000fxvvSAA",
         "Nebula Query & Search (no namespace)": "0Ho5Y000000blOESAY"

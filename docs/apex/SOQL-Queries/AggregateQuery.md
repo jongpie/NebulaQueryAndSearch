@@ -36,9 +36,6 @@ AggregateQuery
 ### `groupByFields(List<Schema.SObjectField> fields)`
 ### `groupByFields(List<SOQL.QueryField> queryFields)`
 ### `groupByFieldSet(Schema fieldSet)`
-### `groupingField(Schema field)`
-### `groupingField(SOQL queryField)`
-### `groupingFields(List<SOQL.QueryField> queryFields)`
 ### `usingGroupingDimension(SOQL groupingDimension)`
 ### `addAggregate(SOQL aggregateFunction, Schema field)`
 ### `addAggregate(SOQL aggregateFunction, Schema field, String fieldAlias)`
@@ -65,69 +62,9 @@ AggregateQuery
 ### `orderByAggregate(SOQL aggregateFunction, SOQL queryField, SOQL sortOrder, Boolean sortNullsFirst)`
 ### `limitTo(Integer numberOfRecords)`
 ### `offsetBy(Integer offset)`
-### `cacheQuery(SOQL cache)`
 ### `cacheResults()`
-### `cacheResults(SOQL cache, String key)`
-### `override getQuery()`
-
-`SUPPRESSWARNINGS`
-### `getResultCount()`
-
-`SUPPRESSWARNINGS`
-### `getFirstResult()`
-### `getResults()`
-### `getResultProxies()`
-### `static getOperatorValue(SOQL operator)`
-
-*Inherited*
-
 ### `getSObjectType()`
 
 *Inherited*
-
-### `getQueryLocator()`
-
-*Inherited*
-
-### `compareTo(Object compareTo)`
-
-*Inherited*
-
----
-## Classes
-### AggregateResultFieldProxy
-#### Constructors
-##### `AggregateResultFieldProxy(String fieldPath, String fieldAlias, Object value)`
----
-#### Fields
-
-##### `fieldAlias` → `String`
-
-
-##### `fieldPath` → `String`
-
-
-##### `value` → `Object`
-
-
----
-
-### AggregateResultProxy
-#### Constructors
-##### `AggregateResultProxy(Schema result)`
----
-#### Fields
-
-##### `fields` → `List&lt;AggregateResultFieldProxy&gt;`
-
-
-##### `result` → `Schema`
-
-
----
-#### Methods
-##### `addField(AggregateResultFieldProxy resultFieldProxy)`
-##### `getFields()`
----
 
 ---

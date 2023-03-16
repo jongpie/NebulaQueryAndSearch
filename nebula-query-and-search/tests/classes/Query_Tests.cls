@@ -68,7 +68,11 @@ private class Query_Tests {
     @IsTest
     static void it_should_return_results_and_include_grandparent_query_field() {
         String expectedQueryString = 'SELECT Id, Name, Profile.UserLicense.LicenseDefinitionKey FROM User LIMIT 1';
-        List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{ Schema.User.ProfileId, Schema.Profile.UserLicenseId, Schema.UserLicense.LicenseDefinitionKey };
+        List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{
+            Schema.User.ProfileId,
+            Schema.Profile.UserLicenseId,
+            Schema.UserLicense.LicenseDefinitionKey
+        };
         SOQL.QueryField queryField = new SOQL.QueryField(fieldChain);
 
         Query userQuery = new Query(Schema.User.SObjectType).addField(queryField).limitTo(1);

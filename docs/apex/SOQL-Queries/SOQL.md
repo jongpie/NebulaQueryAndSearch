@@ -26,11 +26,8 @@ Handles common functionality needed for writing SOQL queries
 **See** [AggregateQuery](./AggregateQuery.md)
 
 ## Methods
-### `static getOperatorValue(SOQL operator)`
 ### `getSObjectType()`
 ### `getQuery()`
-### `getQueryLocator()`
-### `compareTo(Object compareTo)`
 ---
 ## Enums
 ### Aggregate
@@ -53,23 +50,6 @@ Handles common functionality needed for writing SOQL queries
 
 ---
 ## Classes
-### DateLiteral
-#### Constructors
-##### `DateLiteral(SOQL fixedDateLiteral)`
-##### `DateLiteral(SOQL relativeDateLiteral, Integer n)`
----
-#### Methods
-##### `override toString()`
----
-
-### IsoCurrency
-#### Constructors
-##### `IsoCurrency(String isoCode, Decimal currencyAmount)`
----
-#### Methods
-##### `override toString()`
----
-
 ### QueryField
 #### Constructors
 ##### `QueryField(Schema sobjectType, String queryFieldPath)`
@@ -80,13 +60,6 @@ Handles common functionality needed for writing SOQL queries
 ##### `QueryField(SOQL dateFunction, List&lt;Schema.SObjectField&gt; fieldChain)`
 ##### `QueryField(SOQL dateFunction, List&lt;Schema.SObjectField&gt; fieldChain, Boolean convertTimeZone)`
 ##### `QueryField(List&lt;Schema.SObjectField&gt; fieldChain, Decimal latitude, Decimal longitude)`
----
-#### Methods
-##### `override toString()`
-##### `getDescribe()`
-##### `getAlias()`
-##### `getAliasedFieldPath()`
-##### `getFieldPath()`
 ---
 
 ### QueryFilter
@@ -106,24 +79,6 @@ Handles common functionality needed for writing SOQL queries
 ##### `getQueryField()`
 ##### `getOperator()`
 ##### `getValue()`
-##### `getFormattedValue()`
-##### `override toString()`
 ---
 
-### SOQLException
-
-**Inheritance**
-
-SOQLException
-
-
 ---
-## Interfaces
-### Cacheable
-#### Methods
-##### `contains(String key)`
-##### `get(String key)`
-##### `put(String key, Object value)`
-##### `remove(String key)`
----
-

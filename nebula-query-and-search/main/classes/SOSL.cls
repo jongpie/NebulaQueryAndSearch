@@ -3,27 +3,27 @@
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
- /**
+/**
  * @group SOSL Searches
  * @description Handles common functionality needed for writing SOSL searches
  * @see SOSL
  * @see Query
  */
-@SuppressWarnings('PMD.ApexDoc')
-public abstract class SOSL {
-    public enum ArticleReporting {
+@SuppressWarnings('PMD.ApexDoc, PMD.AvoidGlobalModifier')
+global abstract class SOSL {
+    global enum ArticleReporting {
         TRACKING,
         VIEWSTAT
     }
 
-    public enum DataCategoryLocation {
+    global enum DataCategoryLocation {
         AT,
         ABOVE,
         BELOW,
         ABOVE_OR_BELOW
     }
 
-    public enum SearchGroup {
+    global enum SearchGroup {
         ALL_FIELDS,
         NAME_FIELDS,
         EMAIL_FIELDS,
@@ -71,7 +71,8 @@ public abstract class SOSL {
         return this.sobjectTypes;
     }
 
-    public abstract String getSearch();
+    // TODO decide if this should be global
+    global abstract String getSearch();
 
     protected SObject doGetFirstResult() {
         List<List<SObject>> results = this.doGetResults();

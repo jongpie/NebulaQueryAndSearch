@@ -42,10 +42,6 @@ Query
 ### `addFields(List<SOQL.QueryField> queryFields, SOQL fieldCategory)`
 ### `addFieldSet(Schema fieldSet)`
 ### `addFieldSet(Schema fieldSet, SOQL fieldCategory)`
-### `addParentField(Schema parentLookupField, Schema parentField)`
-### `addParentField(List<Schema.SObjectField> parentRelationshipFieldChain, Schema parentField)`
-### `addParentFields(Schema parentLookupField, List<Schema.SObjectField> parentFields)`
-### `addParentFields(List<Schema.SObjectField> parentRelationshipFieldChain, List<Schema.SObjectField> parentFields)`
 ### `addPolymorphicFields(Schema polymorphicRelationshipField)`
 ### `addPolymorphicFields(Schema polymorphicRelationshipField, Map<Schema.SObjectType,List<Schema.SObjectField>> fieldsBySObjectType)`
 ### `addPolymorphicFields(Schema polymorphicRelationshipField, Map<Schema.SObjectType,List<SOQL.QueryField>> queryFieldsBySObjectType)`
@@ -76,38 +72,8 @@ Query
 ### `forReference()`
 ### `forUpdate()`
 ### `forView()`
-### `updateTracking()`
-### `withDataCategory(Schema dataCategory, SOSL dataCategoryLocation, Schema childDataCategory)`
-### `withDataCategory(Schema dataCategory, SOSL dataCategoryLocation, List<Schema.DataCategory> childDataCategories)`
 ### `cacheResults()`
-### `getCountQuery()`
-### `override getQuery()`
-
-`SUPPRESSWARNINGS`
-### `getRelatedRecordsQuery(Schema childToParentRelationshipField)`
-
-`SUPPRESSWARNINGS`
-### `getSubquery(Schema childToParentRelationshipField)`
-
-`SUPPRESSWARNINGS`
-### `getSearchQuery()`
-
-`SUPPRESSWARNINGS`
-### `getFirstResult()`
-### `getResults()`
-### `static getOperatorValue(SOQL operator)`
-
-*Inherited*
-
 ### `getSObjectType()`
-
-*Inherited*
-
-### `getQueryLocator()`
-
-*Inherited*
-
-### `compareTo(Object compareTo)`
 
 *Inherited*
 

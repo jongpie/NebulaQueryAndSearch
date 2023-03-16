@@ -10,9 +10,9 @@
  * @see AggregateQuery
  */
 @SuppressWarnings(
-    'PMD.ApexDoc, PMD.CognitiveComplexity, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessivePublicCount, PMD.StdCyclomaticComplexity'
+    'PMD.ApexDoc, PMD.AvoidGlobalModifier, PMD.CognitiveComplexity, PMD.CyclomaticComplexity, PMD.EagerlyLoadedDescribeSObjectResult, PMD.ExcessivePublicCount, PMD.StdCyclomaticComplexity'
 )
-public class Query extends SOQL {
+global class Query extends SOQL {
     private String displayFieldApiName;
     private List<String> polymorphicFieldStatements;
     private List<String> childRelationshipQueries;
@@ -22,7 +22,7 @@ public class Query extends SOQL {
     private Boolean includeLabels;
     private Boolean includeFormattedValues;
 
-    public Query(Schema.SObjectType sobjectType) {
+    global Query(Schema.SObjectType sobjectType) {
         super(sobjectType, true);
 
         this.displayFieldApiName = this.getDisplayFieldApiName(this.sobjectType);
@@ -37,27 +37,27 @@ public class Query extends SOQL {
         this.addDefaultFields();
     }
 
-    public Query addField(Schema.SObjectField field) {
+    global Query addField(Schema.SObjectField field) {
         return this.addField(field, null);
     }
 
-    public Query addField(Schema.SObjectField field, SOQL.FieldCategory fieldCategory) {
+    global Query addField(Schema.SObjectField field, SOQL.FieldCategory fieldCategory) {
         return this.addFields(new List<Schema.SObjectField>{ field }, fieldCategory);
     }
 
-    public Query addField(SOQL.QueryField queryField) {
+    global Query addField(SOQL.QueryField queryField) {
         return this.addField(queryField, null);
     }
 
-    public Query addField(SOQL.QueryField queryField, SOQL.FieldCategory fieldCategory) {
+    global Query addField(SOQL.QueryField queryField, SOQL.FieldCategory fieldCategory) {
         return this.addFields(new List<SOQL.QueryField>{ queryField }, fieldCategory);
     }
 
-    public Query addFields(List<Schema.SObjectField> fields) {
+    global Query addFields(List<Schema.SObjectField> fields) {
         return this.addFields(fields, null);
     }
 
-    public Query addFields(List<Schema.SObjectField> fields, SOQL.FieldCategory fieldCategory) {
+    global Query addFields(List<Schema.SObjectField> fields, SOQL.FieldCategory fieldCategory) {
         List<SOQL.QueryField> queryFields = new List<SOQL.QueryField>();
         for (Schema.SObjectField field : fields) {
             queryFields.add(new SOQL.QueryField(field));
@@ -65,11 +65,11 @@ public class Query extends SOQL {
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public Query addFields(List<SOQL.QueryField> queryFields) {
+    global Query addFields(List<SOQL.QueryField> queryFields) {
         return this.addFields(queryFields, null);
     }
 
-    public Query addFields(SOQL.FieldCategory fieldCategory) {
+    global Query addFields(SOQL.FieldCategory fieldCategory) {
         List<SOQL.QueryField> queryFields = new List<SOQL.QueryField>();
         for (Schema.SObjectField field : this.sobjectDescribe.fields.getMap().values()) {
             queryFields.add(new SOQL.QueryField(field));
@@ -77,16 +77,16 @@ public class Query extends SOQL {
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public Query addFields(List<SOQL.QueryField> queryFields, SOQL.FieldCategory fieldCategory) {
+    global Query addFields(List<SOQL.QueryField> queryFields, SOQL.FieldCategory fieldCategory) {
         super.doAddFields(queryFields, fieldCategory);
         return this.setHasChanged();
     }
 
-    public Query addFieldSet(Schema.FieldSet fieldSet) {
+    global Query addFieldSet(Schema.FieldSet fieldSet) {
         return this.addFieldSet(fieldSet, null);
     }
 
-    public Query addFieldSet(Schema.FieldSet fieldSet, SOQL.FieldCategory fieldCategory) {
+    global Query addFieldSet(Schema.FieldSet fieldSet, SOQL.FieldCategory fieldCategory) {
         List<SOQL.QueryField> queryFields = new List<SOQL.QueryField>();
         for (Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
             queryFields.add(new SOQL.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
@@ -94,11 +94,11 @@ public class Query extends SOQL {
         return this.addFields(queryFields, fieldCategory);
     }
 
-    public Query addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField) {
+    global Query addPolymorphicFields(Schema.SObjectField polymorphicRelationshipField) {
         return addPolymorphicFields(polymorphicRelationshipField, new Map<Schema.SObjectType, List<Schema.SObjectField>>());
     }
 
-    public Query addPolymorphicFields(
+    global Query addPolymorphicFields(
         Schema.SObjectField polymorphicRelationshipField,
         Map<Schema.SObjectType, List<Schema.SObjectField>> fieldsBySObjectType
     ) {
@@ -114,7 +114,7 @@ public class Query extends SOQL {
     }
 
     @SuppressWarnings('PMD.StdCyclomaticComplexity')
-    public Query addPolymorphicFields(
+    global Query addPolymorphicFields(
         Schema.SObjectField polymorphicRelationshipField,
         Map<Schema.SObjectType, List<SOQL.QueryField>> queryFieldsBySObjectType
     ) {
@@ -154,25 +154,25 @@ public class Query extends SOQL {
         return this.setHasChanged();
     }
 
-    public Query includeLabels() {
+    global Query includeLabels() {
         this.includeLabels = true;
         return this.setHasChanged();
     }
 
-    public Query includeFormattedValues() {
+    global Query includeFormattedValues() {
         this.includeFormattedValues = true;
         return this.setHasChanged();
     }
 
-    public Query removeField(Schema.SObjectField field) {
+    global Query removeField(Schema.SObjectField field) {
         return this.removeFields(new List<Schema.SObjectField>{ field });
     }
 
-    public Query removeField(SOQL.QueryField queryField) {
+    global Query removeField(SOQL.QueryField queryField) {
         return this.removeFields(new List<SOQL.QueryField>{ queryField });
     }
 
-    public Query removeFields(Schema.FieldSet fieldSet) {
+    global Query removeFields(Schema.FieldSet fieldSet) {
         List<SOQL.QueryField> queryFields = new List<SOQL.QueryField>();
         for (Schema.FieldSetMember fieldSetMember : fieldSet.getFields()) {
             queryFields.add(new SOQL.QueryField(this.getSObjectType(), fieldSetMember.getFieldPath()));
@@ -180,7 +180,7 @@ public class Query extends SOQL {
         return this.removeFields(queryFields);
     }
 
-    public Query removeFields(List<Schema.SObjectField> fields) {
+    global Query removeFields(List<Schema.SObjectField> fields) {
         List<SOQL.QueryField> queryFields = new List<SOQL.QueryField>();
         for (Schema.SObjectField field : fields) {
             queryFields.add(new SOQL.QueryField(field));
@@ -188,120 +188,121 @@ public class Query extends SOQL {
         return this.removeFields(queryFields);
     }
 
-    public Query removeFields(List<SOQL.QueryField> queryFields) {
+    global Query removeFields(List<SOQL.QueryField> queryFields) {
         super.doRemoveFields(queryFields);
         return this.setHasChanged();
     }
 
-    public Query includeRelatedRecords(Schema.SObjectField childToParentRelationshipField, Query relatedSObjectQuery) {
+    global Query includeRelatedRecords(Schema.SObjectField childToParentRelationshipField, Query relatedSObjectQuery) {
         this.childRelationshipQueries.add(relatedSObjectQuery.getRelatedRecordsQuery(childToParentRelationshipField));
         return this.setHasChanged();
     }
 
-    public Query usingScope(Scope scope) {
+    global Query usingScope(Scope scope) {
         super.doUsingScope(scope);
         return this.setHasChanged();
     }
 
-    public Query filterWhere(Schema.SObjectField field, SOQL.Operator operator, Object value) {
+    global Query filterWhere(Schema.SObjectField field, SOQL.Operator operator, Object value) {
         return this.filterWhere(new SOQL.QueryField(field), operator, value);
     }
 
-    public Query filterWhere(SOQL.QueryField queryField, SOQL.Operator operator, Object value) {
+    global Query filterWhere(SOQL.QueryField queryField, SOQL.Operator operator, Object value) {
         return this.filterWhere(new SOQL.QueryFilter(queryField, operator, value));
     }
 
-    public Query filterWhere(SOQL.QueryFilter filter) {
+    global Query filterWhere(SOQL.QueryFilter filter) {
         return this.filterWhere(new List<SOQL.QueryFilter>{ filter });
     }
 
-    public Query filterWhere(List<SOQL.QueryFilter> filters) {
+    global Query filterWhere(List<SOQL.QueryFilter> filters) {
         super.doFilterWhere(filters);
         return this.setHasChanged();
     }
 
-    public Query orFilterWhere(List<SOQL.QueryFilter> filters) {
+    global Query orFilterWhere(List<SOQL.QueryFilter> filters) {
         super.doOrFilterWhere(filters);
         return this.setHasChanged();
     }
 
-    //public Query filterWhereInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
+    //global Query filterWhereInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
     //this.whereFilters.add('Id IN (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')');
     //return this.setHasChanged();
     //}
     //
-    //public Query filterWhereInSubquery(Query childQuery, Schema.SObjectField lookupFieldOnChildSObject) {
+    //global Query filterWhereInSubquery(Query childQuery, Schema.SObjectField lookupFieldOnChildSObject) {
     //String subqueryString = childQuery.getSubquery(lookupFieldOnChildSObject);
     //this.whereFilters.add('Id IN ' + subqueryString);
     //return this.setHasChanged();
     //}
     //
-    //public Query filterWhereNotInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
+    //global Query filterWhereNotInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
     //this.whereFilters.add('Id NOT IN (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')');
     //return this.setHasChanged();
     //}
     //
-    //public Query filterWhereNotInSubquery(Query childQuery, Schema.SObjectField lookupFieldOnChildSObject) {
+    //global Query filterWhereNotInSubquery(Query childQuery, Schema.SObjectField lookupFieldOnChildSObject) {
     //String subqueryString = childQuery.getSubquery(lookupFieldOnChildSObject);
     //this.whereFilters.add('Id NOT IN ' + subqueryString);
     //return this.setHasChanged();
     //}
 
-    public Query orderByField(Schema.SObjectField field) {
+    global Query orderByField(Schema.SObjectField field) {
         return this.orderByField(new SOQL.QueryField(field));
     }
 
-    public Query orderByField(SOQL.QueryField queryField) {
+    global Query orderByField(SOQL.QueryField queryField) {
         return this.orderByField(queryField, null);
     }
 
-    public Query orderByField(Schema.SObjectField field, SOQL.SortOrder sortOrder) {
+    global Query orderByField(Schema.SObjectField field, SOQL.SortOrder sortOrder) {
         return this.orderByField(field, sortOrder, null);
     }
 
-    public Query orderByField(SOQL.QueryField queryField, SOQL.SortOrder sortOrder) {
+    global Query orderByField(SOQL.QueryField queryField, SOQL.SortOrder sortOrder) {
         return this.orderByField(queryField, sortOrder, null);
     }
 
-    public Query orderByField(Schema.SObjectField field, SOQL.SortOrder sortOrder, Boolean sortNullsFirst) {
+    global Query orderByField(Schema.SObjectField field, SOQL.SortOrder sortOrder, Boolean sortNullsFirst) {
         return this.orderByField(new SOQL.QueryField(field), sortOrder, sortNullsFirst);
     }
 
-    public Query orderByField(SOQL.QueryField queryField, SOQL.SortOrder sortOrder, Boolean sortNullsFirst) {
+    global Query orderByField(SOQL.QueryField queryField, SOQL.SortOrder sortOrder, Boolean sortNullsFirst) {
         super.doOrderBy(queryField, sortOrder, sortNullsFirst);
         return this.setHasChanged();
     }
 
-    public Query limitTo(Integer numberOfRecords) {
+    global Query limitTo(Integer numberOfRecords) {
         super.doLimitTo(numberOfRecords);
         return this.setHasChanged();
     }
 
-    public Query offsetBy(Integer offset) {
+    global Query offsetBy(Integer offset) {
         super.doOffsetBy(offset);
         return this.setHasChanged();
     }
 
-    public Query forReference() {
+    global Query forReference() {
         this.forReference = true;
         return this.setHasChanged();
     }
 
-    public Query forUpdate() {
+    global Query forUpdate() {
         this.forUpdate = true;
         return this.setHasChanged();
     }
 
-    public Query forView() {
+    global Query forView() {
         this.forView = true;
         return this.setHasChanged();
     }
 
-    public Query cacheResults() {
+    global Query cacheResults() {
         super.doCacheResults();
         return this;
     }
 
+    // TODO decide if this should be global
     @SuppressWarnings('PMD.AvoidDebugStatements')
     public override String getQuery() {
         if (this.query != null && !this.hasChanged) {

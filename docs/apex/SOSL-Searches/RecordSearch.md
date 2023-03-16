@@ -40,14 +40,7 @@ RecordSearch
 ### `withSpellCorrection()`
 ### `updateArticleReporting(SOSL articleReporting)`
 ### `cacheResults()`
-### `override getSearch()`
-
-`SUPPRESSWARNINGS`
 ### `getFirstResult()`
 ### `getFirstResults()`
 ### `getResults()`
-### `getSObjectTypes()`
-
-*Inherited*
-
 ---

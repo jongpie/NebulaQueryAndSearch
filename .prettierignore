@@ -7,5 +7,5 @@
 .sf/
 .sfdx/
 .husky/
-coverage/
 node_modules/
+test-coverage/
