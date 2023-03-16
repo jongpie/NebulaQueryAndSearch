@@ -3,6 +3,12 @@
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
+/**
+ * @group SOSL Searches
+ * @description Handles generating & executing SObject SOSL searches
+ * @see SOSL
+ * @see Query
+ */
 @SuppressWarnings('PMD.ApexDoc')
 public class RecordSearch extends SOSL {
     public RecordSearch(String searchTerm, Query sobjectQuery) {

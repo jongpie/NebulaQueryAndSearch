@@ -3,6 +3,12 @@
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
+ /**
+ * @group SOQL Queries
+ * @description Handles generating & executing aggregate queries
+ * @see SOQL
+ * @see Query
+ */
 @SuppressWarnings(
     'PMD.ApexDoc, PMD.ApexSharingViolations, PMD.CyclomaticComplexity, PMD.ExcessiveParameterList, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart'
 )

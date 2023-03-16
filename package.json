@@ -3,6 +3,7 @@
     "version": "3.2.0",
     "description": "A dynamic SOQL query & SOSL search library for for Salesforce Apex",
     "scripts": {
+        "docs:generate": "rm ./docs/apex/**.md || true && apexdocs-generate --sourceDir nebula-query-and-search --scope global public --targetDir ./docs/apex/ && git add ./docs/apex/",
         "package:aliases:sort": "sfdx bummer:package:aliases:sort",
         "package:version:create:nonamespace": "sfdx force:package:version:create --json --package \"Nebula Query & Search (no namespace)\" --skipancestorcheck --codecoverage --installationkeybypass --wait 30",
         "package:version:create:withnamespace": "sfdx force:package:version:create --json --package \"Nebula Query & Search (Nebula namespace)\" --skipancestorcheck --codecoverage --installationkeybypass --wait 30",
@@ -14,6 +15,7 @@
         "test": "sfdx force:apex:test:run --verbose --testlevel RunLocalTests --wait 30 --resultformat human --codecoverage --detailedcoverage --outputdir ./test-coverage/apex"
     },
     "devDependencies": {
+        "@cparra/apexdocs": "^2.13.0",
         "@prettier/plugin-xml": "^2.0.1",
         "husky": "^7.0.4",
         "lint-staged": "^12.3.7",
@@ -23,6 +25,9 @@
     "lint-staged": {
         "**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}": [
             "prettier --write"
+        ],
+        "**/*.cls": [
+            "npm run docs:generate"
         ]
     }
 }

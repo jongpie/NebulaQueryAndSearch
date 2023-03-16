@@ -3,6 +3,12 @@
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
+ /**
+ * @group SOSL Searches
+ * @description Handles common functionality needed for writing SOSL searches
+ * @see SOSL
+ * @see Query
+ */
 @SuppressWarnings('PMD.ApexDoc')
 public abstract class SOSL {
     public enum ArticleReporting {
