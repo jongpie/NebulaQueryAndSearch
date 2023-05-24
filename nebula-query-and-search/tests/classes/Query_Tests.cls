@@ -265,4 +265,28 @@ private class Query_Tests {
 
     Test.stopTest();
   }
+
+  @IsTest
+  static void it_allows_deeply_nested_conditionals() {
+    String expected = 'SELECT Id FROM Contact WHERE LastName = :bindVar0 OR LastName = :bindVar1 OR (FirstName = :bindVar2 AND (LastName != :bindVar3 OR LastName != :bindVar4))';
+
+    Query actual = new Query(Schema.Contact.SObjectType)
+      .filterWhere(Schema.Contact.LastName, Soql.Operator.EQUALS, ':bindVar0')
+      .orFilterWhere(new SOQL.QueryFilter(Schema.Contact.LastName, SOQL.Operator.EQUALS, ':bindVar1'))
+      .orFilterWhere(
+        new SOQL.NestedQueryFilter(
+          SOQL.FilterConjunction.AND_FILTER,
+          new List<SOQL.QueryFilter>{
+            new SOQL.QueryFilter(Schema.Contact.FirstName, SOQL.Operator.EQUALS, ':bindVar2'),
+            new SOQL.NestedQueryFilter(
+              SOQL.FilterConjunction.OR_FILTER,
+              new List<SOQL.QueryFilter>{
+                new SOQL.QueryFilter(Schema.Contact.LastName, SOQL.Operator.NOT_EQUAL_TO, ':bindVar3'),
+                new SOQL.QueryFilter(Schema.Contact.LastName, SOQL.Operator.NOT_EQUAL_TO, ':bindVar4')
+              }
+            )
+          }
+        )
+      );
+  }
 }
