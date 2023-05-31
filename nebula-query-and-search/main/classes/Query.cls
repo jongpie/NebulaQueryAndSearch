@@ -212,6 +212,10 @@ global class Query extends SOQL {
     return this.setHasChanged();
   }
 
+  global Query orFilterWhere(SOQL.QueryFilter filter) {
+    return this.orFilterWhere(new List<SOQL.QueryFilter>{ filter });
+  }
+
   global Query orFilterWhere(List<SOQL.QueryFilter> filters) {
     super.doOrFilterWhere(filters);
     return this.setHasChanged();
