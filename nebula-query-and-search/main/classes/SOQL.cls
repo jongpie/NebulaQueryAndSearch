@@ -124,11 +124,6 @@ global abstract class SOQL implements Comparable {
     NEXT_N_FISCAL_YEARS
   }
 
-  global enum FilterConjunction {
-    AND_FILTER,
-    OR_FILTER
-  }
-
   private static final SOQL.FieldCategory DEFAULT_FIELD_CATEGORY = SOQL.FieldCategory.ACCESSIBLE;
   private static final SOQL.SortOrder DEFAULT_SORT_ORDER = SOQL.SortOrder.ASCENDING;
   private static final Boolean DEFAULT_NULLS_SORT_ORDER_FIRST = true;
@@ -528,7 +523,7 @@ global abstract class SOQL implements Comparable {
       List<String> queryFieldPieces = new List<String>();
       for (Integer i = 0; i < fields.size(); i++) {
         SObjectField field = fields[i];
-        // If any field in the chain is not accessible, then the user cant access the data, so return null
+        // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
         if (!field.getDescribe().isAccessible()) {
           return null;
         } else if (i == lastFieldIndex) {
@@ -541,47 +536,12 @@ global abstract class SOQL implements Comparable {
     }
   }
 
-  global class NestedQueryFilter extends QueryFilter {
-    private final FilterConjunction filterConjunction;
-    private final List<QueryFilter> innerFilters;
-
-    global NestedQueryFilter(FilterConjunction filterConjunction, List<QueryFilter> innerFilters) {
-      this.filterConjunction = filterConjunction;
-      this.innerFilters = innerFilters;
-    }
-
-    public override String toString() {
-      String builtConditional = '';
-      if (this.innerFilters.isEmpty() == false) {
-        switch on this.filterConjunction {
-          when AND_FILTER {
-            builtConditional = 'AND ';
-          }
-          when OR_FILTER {
-            builtConditional = 'OR ';
-          }
-        }
-        builtConditional += '(';
-        List<String> conditionalAdditions = new List<String>();
-        for (QueryFilter innerFilter : this.innerFilters) {
-          conditionalAdditions.add(innerFilter.toString());
-        }
-        builtConditional += String.join(conditionalAdditions, ' ') + ')';
-      }
-      return builtConditional;
-    }
-  }
-
-  global virtual class QueryFilter implements Comparable {
+  global class QueryFilter implements Comparable {
     private SOQL.QueryField queryField;
     private SOQL.Operator operator;
     private Object value;
     private String formattedValue;
     private String filterString;
-
-    @SuppressWarnings('PMD.EmptyStatementBlock')
-    protected QueryFilter() {
-    }
 
     global QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
       this(new QueryField(field), operator, value);
@@ -608,7 +568,14 @@ global abstract class SOQL implements Comparable {
 
     global Integer compareTo(Object compareTo) {
       QueryFilter compareToQueryFilter = (QueryFilter) compareTo;
-      return this.toString().compareTo(compareToQueryFilter.toString());
+
+      if (this.toString() == compareToQueryFilter.toString()) {
+        return 0;
+      } else if (this.toString() > compareToQueryFilter.toString()) {
+        return 1;
+      } else {
+        return -1;
+      }
     }
 
     global SOQL.QueryField getQueryField() {
@@ -629,7 +596,7 @@ global abstract class SOQL implements Comparable {
     }
 
     // TODO decide if this should be global
-    public virtual override String toString() {
+    public override String toString() {
       return this.filterString;
     }
   }
