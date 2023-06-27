@@ -166,7 +166,8 @@ global class AggregateQuery extends SOQL {
     return this.setHasChanged();
   }
 
-  global AggregateQuery cacheResults() {
+  // TODO decide if this should be global
+  public AggregateQuery cacheResults() {
     super.doCacheResults();
     return this;
   }
@@ -205,8 +206,9 @@ global class AggregateQuery extends SOQL {
     return this.query;
   }
 
+  // TODO consider renaming to getCountResult()
   @SuppressWarnings('PMD.ApexSOQLInjection')
-  public Integer getResultCount() {
+  global Integer getResultCount() {
     String countQuery =
       'SELECT COUNT()' +
       ' FROM ' +
@@ -221,11 +223,11 @@ global class AggregateQuery extends SOQL {
     return Database.countQuery(countQuery);
   }
 
-  public AggregateResult getFirstResult() {
+  global AggregateResult getFirstResult() {
     return (AggregateResult) super.doGetFirstResult();
   }
 
-  public List<AggregateResult> getResults() {
+  global List<AggregateResult> getResults() {
     return (List<AggregateResult>) super.doGetResults();
   }
 

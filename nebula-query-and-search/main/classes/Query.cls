@@ -289,7 +289,8 @@ global class Query extends SOQL {
     return this.setHasChanged();
   }
 
-  global Query cacheResults() {
+  // TODO decide if this should be global
+  public Query cacheResults() {
     super.doCacheResults();
     return this;
   }
@@ -394,11 +395,11 @@ global class Query extends SOQL {
     return searchQuery;
   }
 
-  public SObject getFirstResult() {
+  global SObject getFirstResult() {
     return super.doGetFirstResult();
   }
 
-  public List<SObject> getResults() {
+  global List<SObject> getResults() {
     return super.doGetResults();
   }
 
