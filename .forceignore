@@ -4,9 +4,8 @@
 
 package.xml
 
-# LWC configuration files
-**/jsconfig.json
-**/.eslintrc.json
+# Project repo files
+**.md
 
-# LWC Jest
-**/__tests__/**
+# Metadata
+**.profile-meta.xml

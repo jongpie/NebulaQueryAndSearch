@@ -1,33 +1,65 @@
 # Nebula Query & Search for Salesforce Apex
-[![Travis CI](https://img.shields.io/travis/jongpie/NebulaQueryAndSearch/master.svg)](https://travis-ci.org/jongpie/NebulaQueryAndSearch)
 
-<a href="https://githubsfdeploy.herokuapp.com" target="_blank">
-    <img alt="Deploy to Salesforce" src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
-</a>
+A dynamic SOQL query & SOSL search library for Salesforce Apex
 
-A dynamic SOQL query & SOSL search library for for Salesforce Apex<br /><br />
+## Unlocked Package - no namespace - v3.1.1
+
+[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsMOQA0)
+[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsMOQA0)
+
+Install with SF CLI:
+
+```shell
+sf package install --apex-compile package --wait 20 --security-type AdminsOnly --package 04t5Y000001TsMOQA0
+```
+
+Install with SFDX CLI:
+
+```shell
+sfdx force:package:install --apexcompile package --wait 20 --securitytype AdminsOnly --package 04t5Y000001TsMOQA0
+```
+
+## Unlocked Package - `Nebula` namespace - v3.1.1
+
+[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsMTQA0)
+[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsMTQA0)
+
+Install with SF CLI:
+
+```shell
+sf package install --apex-compile package --wait 20 --security-type AdminsOnly --package 04t5Y000001TsMTQA0
+```
+
+Install with SFDX CLI:
+
+```shell
+sfdx force:package:install --apexcompile package --wait 20 --securitytype AdminsOnly --package 04t5Y000001TsMTQA0
+```
 
 ## Features
-* Provides chainable builder methods for dyanmically building queries & searches in APex
-* Easily add fields to a query based on field level security
-* Easily add fields from a field set
-* Automatically adds the parent name field for any lookup/master-detail fields
-* Adds translations for picklist fields & record types by calling includeLabels()
-* Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
-* Leverage query scope to filter results
-* Enable query & search caching by simple calling cacheResults()
-* Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
+
+- Provides chainable builder methods for dyanmically building SOQL queries & SOSL searches in Apex
+- Easily add fields to a query based on field level security
+- Easily add fields from a field set
+- Automatically adds the parent name field for any lookup/master-detail fields
+- Adds translations for picklist fields & record types by calling includeLabels()
+- Adds localized formatting for number, date, datetime, time, or currency fields by calling includeFormattedValues()
+- Leverage query scope to filter results
+- Enable query & search caching by simple calling cacheResults()
+- Reuse your dynamic SOQL queries to quickly build dynamic SOSL searches
 
 ## Overview
+
 There are 3 main builder classes
 
- &nbsp; | Query | AggregateQuery | RecordSearch
-------- | --------------------|-----------------------|--------------
-Super Class | Soql.cls (Queries) | Soql.cls (Queries) | Sosl.cls (Searches) | -
-Action | Queries an SObject | Queries an SObject | Searches 1 or more SObjects
-Returns | `SObject` or `List<SObject>` | `AggregateResult` or `List<AggregateResult>` | `SObject`, `List<SObject>` or `List<List<SObject>>`
+| &nbsp;      | Query                        | AggregateQuery                               | RecordSearch                                        |
+| ----------- | ---------------------------- | -------------------------------------------- | --------------------------------------------------- |
+| Super Class | SOQL.cls (Queries)           | SOQL.cls (Queries)                           | SOSL.cls (Searches)                                 |
+| Action      | Queries an SObject           | Queries an SObject                           | Searches 1 or more SObjects                         |
+| Returns     | `SObject` or `List<SObject>` | `AggregateResult` or `List<AggregateResult>` | `SObject`, `List<SObject>` or `List<List<SObject>>` |
 
 ## SOQL SObject Query Examples
+
 **Basic Usage:** Query an object & return the object's ID and display name field (typically the 'Name' field, but some objects use other fields, like Task.Subject and Case.CaseNumber). Since no filters have been added, this query would also return all accounts.
 
 ```
@@ -39,15 +71,15 @@ List<Account> accounts = new Query(Schema.Account.SObjectType).getResults();
 ```
 Query accountQuery = new Query(Schema.Account.SObjectType) // Query the account object
     .addField(Schema.Account.ParentId)                                                 // Include the ParentId field, using SObjectField. The current user must have at least read access to the field
-    .addField(Schema.Account.Type, Soql.FieldCategory.UPDATEABLE)                      // Include the Type field if the current user has access to update it
-    .addFields(Soql.FieldCategory.CUSTOM)                                              // Include all custom fields - only fields that are accessible to the user are included
+    .addField(Schema.Account.Type, SOQL.FieldCategory.UPDATEABLE)                      // Include the Type field if the current user has access to update it
+    .addFields(SOQL.FieldCategory.CUSTOM)                                              // Include all custom fields - only fields that are accessible to the user are included
     .addFieldSet(Schema.Account.MyFieldSet)                                            // Include all fields in a field set that are accessible to the user
     .removeField(Schema.Account.My_Custom_Field__c)                                    // remove a custom field
-    .usingScope(Soql.Scope.MINE)                                                       // Set the query scope
-    .filterWhere(Schema.Account.CreatedDate, '=', new Soql.DateLiteral('LAST_WEEK'))   // Filter on the created date, using a date literal
+    .usingScope(SOQL.Scope.MINE)                                                       // Set the query scope
+    .filterWhere(Schema.Account.CreatedDate, '=', new SOQL.DateLiteral('LAST_WEEK'))   // Filter on the created date, using a date literal
     .orderBy(Schema.Account.Type)                                                      // Order by a field API name - sort order/nulls defaults to 'Type ASC NULLS FIRST'
-    .orderBy(Account.Name, Soql.SortOrder.ASCENDING)                                   // Order by, using SObjectField & sort order
-    .orderBy(Account.AnnualRevenue, Soql.SortOrder.DESCENDING, false)                  // Order by, using SObjectField, sort order and nulls sort order
+    .orderBy(Account.Name, SOQL.SortOrder.ASCENDING)                                   // Order by, using SObjectField & sort order
+    .orderBy(Account.AnnualRevenue, SOQL.SortOrder.DESCENDING, false)                  // Order by, using SObjectField, sort order and nulls sort order
     .limitTo(100)                                                                      // Limit the results to 100 records
     .includeLabels()                                                                   // Include labels/translations for any picklist fields or record types. These are aliased using the convention 'FieldName__c_Label'
     .includeFormattedValues()                                                          // Include formatted values for any number, date, time, or currency fields
@@ -71,9 +103,10 @@ System.debug(accountQuery.getQuery());
 ```
 
 ## SOSL Search Examples
+
 **Basic Usage:** Search a single object
 
-```
+```java
 Query userQuery = new Query(Schema.User.SObjectType); // Create an instance of Query for an SObject - you can include additional fields, filters, etc
 RecordSearch userSearch      = new RecordSearch('my search term', userQuery);   // Create a new RecordSearch instance with a search term & instance of Query
 List<User> userSearchResults  = userSearch.getFirstResults();                     // RecordSearch returns a list of lists of sobjects - getFirstResults() returns the first list
@@ -87,7 +120,7 @@ System.debug(userSearch.getSearch());
 
 **Advanced Usage:** Search several objects
 
-```
+```java
 Query accountQuery  = new Query(Schema.Account.SObjectType);                  // Create an instance of Query for the Account object
 Query contactQuery  = new Query(Schema.Contact.SObjectType);                  // Create an instance of Query for the Contact object
 Query leadQuery     = new Query(Schema.Lead.SObjectType);                     // Create an instance of Query for the Lead object
