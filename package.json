@@ -4,15 +4,15 @@
   "description": "A dynamic SOQL query & SOSL search library for Salesforce Apex",
   "devDependencies": {
     "@cparra/apexdocs": "^2.14.0",
-    "@jayree/sfdx-plugin-prettier": "^1.2.28",
+    "@jayree/sfdx-plugin-prettier": "^1.3.8",
     "@jongpie/sfdx-bummer-plugin": "^0.0.18",
     "@prettier/plugin-xml": "^2.0.1",
+    "@salesforce/cli": "^1.8.26",
     "@salesforce/sfdx-scanner": "^3.9.0",
     "husky": "^7.0.4",
     "lint-staged": "^12.3.7",
     "prettier": "^2.6.0",
-    "prettier-plugin-apex": "^1.10.0",
-    "sfdx-cli": "^7.190.2"
+    "prettier-plugin-apex": "^1.10.0"
   },
   "keywords": [
     "apex",
@@ -24,17 +24,20 @@
   ],
   "scripts": {
     "docs:generate": "rm ./docs/apex/**/**.md && npx apexdocs-generate --sourceDir nebula-query-and-search --scope global --targetDir ./docs/apex/ && git add ./docs/apex/",
-    "package:aliases:sort": "sfdx bummer:package:aliases:sort",
-    "package:version:create:nonamespace": "sfdx force:package:version:create --json --package \"Nebula Query & Search (no namespace)\" --skipancestorcheck --codecoverage --installationkeybypass --wait 30",
-    "package:version:create:withnamespace": "sfdx force:package:version:create --json --package \"Nebula Query & Search (Nebula namespace)\" --skipancestorcheck --codecoverage --installationkeybypass --wait 30",
+    "package:aliases:sort": "npx sfdx bummer:package:aliases:sort",
+    "package:version:create:no-namespace": "npx sfdx package version create --json --package \"Nebula Query & Search (no namespace)\" --skip-ancestor-check --code-coverage --installation-key-bypass --wait 30",
+    "package:version:create:with-namespace": "find . -type f -name *.testSuite-meta.xml -delete && npx sfdx package version create --json --package \"Nebula Query & Search (Nebula namespace)\" --skip-ancestor-check --code-coverage --installation-key-bypass --wait 30 && git checkout -- *.testSuite-meta.xml",
     "prettier:verify": "npx prettier --list-different \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "prettier:write": "npx prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "postinstall": "husky install",
     "precommit": "lint-staged",
-    "scan": "sfdx scanner:run --pmdconfig ./config/pmd-ruleset.xml --target ./nebula-query-and-search/ --engine pmd --severity-threshold 3",
-    "test": "sfdx apex run test --testlevel RunLocalTests --wait 30 --result-format human --output-dir ./test-coverage/apex",
-    "test:coverage": "npm run test -- --codecoverage --detailed-coverage",
-    "test:suite": "sfdx apex run test --suite-names QueryAndSearch --wait 30 --result-format human --output-dir ./test-coverage/apex",
-    "test:suite:coverage": "npm run test:suite -- --codecoverage --detailed-coverage"
+    "scan": "npx sf scanner:run --pmdconfig ./config/pmd-ruleset.xml --target ./nebula-query-and-search/ --engine pmd --severity-threshold 3",
+    "test": "npx sf apex run test --testlevel RunLocalTests --wait 30 --result-format human --output-dir ./test-coverage/apex",
+    "test:coverage": "npm run test -- --code-coverage --detailed-coverage",
+    "test:suite": "npx sf apex run test --suite-names QueryAndSearch --wait 30 --result-format human --output-dir ./test-coverage/apex",
+    "test:suite:coverage": "npm run test:suite -- --code-coverage --detailed-coverage"
+  },
+  "dependencies": {
+    "sfdx-cli": "^7.205.6"
   }
 }
