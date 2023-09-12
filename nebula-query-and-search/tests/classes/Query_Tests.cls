@@ -19,6 +19,18 @@ private class Query_Tests {
   }
 
   @IsTest
+  static void it_should_correctly_represent_sets_in_query_filters() {
+    String expectedName = 'someName';
+    String expectedQueryString = 'SELECT Id, Name FROM Account WHERE Name IN (\'' + expectedName + '\')';
+
+    String actualQuery = new Query(Schema.Account.SObjectType)
+      .filterWhere(Schema.Account.Name, SOQL.Operator.IS_IN, new Set<String>{ expectedName })
+      .getQuery();
+
+    System.Assert.areEqual(expectedQueryString, actualQuery);
+  }
+
+  @IsTest
   static void it_should_return_results_for_an_advanced_query() {
     Datetime now = System.now();
     String expectedQueryString =

@@ -619,10 +619,8 @@ global abstract class SOQL implements Comparable {
     private String formatObjectForQueryString(Object valueToFormat) {
       if (valueToFormat == null) {
         return null;
-      } else if (valueToFormat instanceof List<Object>) {
-        return this.convertListToQueryString((List<Object>) valueToFormat);
-      } else if (valueToFormat instanceof Set<Object>) {
-        return this.convertSetToQueryString(valueToFormat);
+      } else if (valueToFormat instanceof Iterable<Object>) {
+        return this.convertListToQueryString((Iterable<Object>) valueToFormat);
       } else if (valueToFormat instanceof Map<Object, Object>) {
         return this.convertMapToQueryString(valueToFormat);
       } else if (valueToFormat instanceof Date) {
@@ -653,9 +651,11 @@ global abstract class SOQL implements Comparable {
       return input;
     }
 
-    private String convertListToQueryString(List<Object> valueList) {
+    private String convertListToQueryString(Iterable<Object> valueIterable) {
       List<String> parsedValueList = new List<String>();
-      for (Object value : valueList) {
+      Iterator<Object> valueIterator = valueIterable.iterator();
+      while (valueIterator.hasNext()) {
+        Object value = valueIterator.next();
         parsedValueList.add(this.formatObjectForQueryString(value));
       }
       return '(' + String.join(parsedValueList, ', ') + ')';
