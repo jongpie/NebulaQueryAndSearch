@@ -1,6 +1,6 @@
 {
   "name": "nebula-query-and-search",
-  "version": "3.2.0",
+  "version": "3.1.2",
   "description": "A dynamic SOQL query & SOSL search library for Salesforce Apex",
   "devDependencies": {
     "@cparra/apexdocs": "^2.14.0",

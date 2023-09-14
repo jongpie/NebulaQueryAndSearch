@@ -13,7 +13,7 @@
       "package": "Nebula Query & Search (Nebula namespace)",
       "path": "nebula-query-and-search",
       "definitionFile": "./config/scratch-orgs/base-scratch-def.json",
-      "versionNumber": "3.1.1.0",
+      "versionNumber": "3.1.2.0",
       "versionName": "Fixes Set handling in Query.filterWhere()",
       "versionDescription": "Fixed an bug in `Query.filterWhere()` when filtering on `Set<T>` that would previously result in an invalid query being generated",
       "releaseNotesUrl": "https://github.com/jongpie/NebulaQueryAndSearch/releases",
@@ -23,7 +23,7 @@
       "package": "Nebula Query & Search (no namespace)",
       "path": "nebula-query-and-search",
       "definitionFile": "./config/scratch-orgs/base-scratch-def.json",
-      "versionNumber": "3.1.1.0",
+      "versionNumber": "3.1.2.0",
       "versionName": "Fixes Set handling in Query.filterWhere()",
       "versionDescription": "Fixed an bug in `Query.filterWhere()` when filtering on `Set<T>` that would previously result in an invalid query being generated",
       "releaseNotesUrl": "https://github.com/jongpie/NebulaQueryAndSearch/releases",
@@ -33,7 +33,9 @@
   "packageAliases": {
     "Nebula Query & Search (Nebula namespace)": "0Ho5Y000000fxvvSAA",
     "Nebula Query & Search (Nebula namespace)@3.1.1": "04t5Y000001TsMTQA0",
+    "Nebula Query & Search (Nebula namespace)@3.1.2": "04t5Y000001TsbVQAS",
     "Nebula Query & Search (no namespace)": "0Ho5Y000000blOESAY",
-    "Nebula Query & Search (no namespace)@3.1.1": "04t5Y000001TsMOQA0"
+    "Nebula Query & Search (no namespace)@3.1.1": "04t5Y000001TsMOQA0",
+    "Nebula Query & Search (no namespace)@3.1.2": "04t5Y000001TsbQQAS"
   }
 }
