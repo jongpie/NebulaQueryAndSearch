@@ -43,11 +43,11 @@ private class Query_Tests {
       ' AND LastModifiedDate <= ' +
       now.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time') +
       ' AND Profile.Id != \'' +
-      UserInfo.getProfileId() +
+      System.UserInfo.getProfileId() +
       '\'' +
       ' ORDER BY Profile.CreatedBy.LastModifiedDate ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST' +
       ' LIMIT 100 OFFSET 1 FOR VIEW';
-    List<SObjectField> fieldsToQuery = new List<SObjectField>{ Schema.User.IsActive, Schema.User.Alias };
+    List<Schema.SObjectField> fieldsToQuery = new List<Schema.SObjectField>{ Schema.User.IsActive, Schema.User.Alias };
 
     Query userQuery = new Query(Schema.User.SObjectType)
       .addFields(fieldsToQuery)
@@ -59,7 +59,7 @@ private class Query_Tests {
       .includeFormattedValues()
       .usingScope(SOQL.Scope.MINE)
       .filterWhere(Schema.User.IsActive, SOQL.Operator.EQUALS, true)
-      .filterWhere(new SOQL.QueryField(Schema.User.SObjectType, 'Profile.Id'), SOQL.Operator.NOT_EQUAL_TO, UserInfo.getProfileId())
+      .filterWhere(new SOQL.QueryField(Schema.User.SObjectType, 'Profile.Id'), SOQL.Operator.NOT_EQUAL_TO, System.UserInfo.getProfileId())
       .filterWhere(Schema.User.LastModifiedDate, SOQL.Operator.LESS_THAN_OR_EQUAL_TO, now)
       .filterWhere(Schema.User.LastLoginDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, new SOQL.DateLiteral(SOQL.RelativeDateLiteral.LAST_N_DAYS, 3))
       .filterWhere(Schema.User.CreatedDate, SOQL.Operator.LESS_THAN_OR_EQUAL_TO, new SOQL.DateLiteral(SOQL.FixedDateLiteral.LAST_WEEK))
@@ -130,7 +130,7 @@ private class Query_Tests {
       ' END' +
       ' FROM Task';
 
-    Test.startTest();
+    System.Test.startTest();
 
     Map<Schema.SObjectType, List<Schema.SObjectField>> fieldsBySObjectType = new Map<Schema.SObjectType, List<Schema.SObjectField>>();
 
@@ -145,7 +145,7 @@ private class Query_Tests {
     // Query the task object
     Query taskQuery = new Query(Schema.Task.SObjectType).addPolymorphicFields(Schema.Task.WhoId, fieldsBySObjectType);
 
-    Test.stopTest();
+    System.Test.stopTest();
 
     System.assertEquals(expectedQuery, taskQuery.getQuery());
   }
@@ -244,7 +244,7 @@ private class Query_Tests {
   @IsTest
   static void it_should_return_results_when_filtering_with_iso_currency() {
     // If multi-currency isn't enabled, then we cannot use IsoCurrency, so skip running this test
-    if (!UserInfo.isMultiCurrencyOrganization()) {
+    if (!System.UserInfo.isMultiCurrencyOrganization()) {
       return;
     }
 
@@ -261,20 +261,20 @@ private class Query_Tests {
     Query userQuery = new Query(Schema.User.SObjectType).limitTo(1);
 
     // First, verify that caching is not enabled by default
-    System.assertEquals(0, Limits.getQueries());
+    System.assertEquals(0, System.Limits.getQueries());
     for (Integer i = 0; i < loops; i++) {
       userQuery.getResults();
     }
-    System.assertEquals(loops, Limits.getQueries());
+    System.assertEquals(loops, System.Limits.getQueries());
 
-    Test.startTest();
+    System.Test.startTest();
 
     userQuery.cacheResults();
     for (Integer i = 0; i < loops; i++) {
       userQuery.getResults();
     }
-    System.assertEquals(1, Limits.getQueries());
+    System.assertEquals(1, System.Limits.getQueries());
 
-    Test.stopTest();
+    System.Test.stopTest();
   }
 }

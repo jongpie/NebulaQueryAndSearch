@@ -332,7 +332,7 @@ global class Query extends SOQL {
     // If additional builder methods are later called, the builder methods will set hasChanged = true
     this.hasChanged = false;
 
-    System.debug(LoggingLevel.FINEST, this.query);
+    System.debug(System.LoggingLevel.FINEST, this.query);
     return this.query;
   }
 
@@ -361,7 +361,7 @@ global class Query extends SOQL {
       super.doGetLimitCountString() +
       ')';
 
-    System.debug(LoggingLevel.FINEST, childQuery);
+    System.debug(System.LoggingLevel.FINEST, childQuery);
     return childQuery;
   }
 
@@ -378,7 +378,7 @@ global class Query extends SOQL {
       super.doGetLimitCountString() +
       ')';
 
-    System.debug(LoggingLevel.FINEST, subquery);
+    System.debug(System.LoggingLevel.FINEST, subquery);
     return subquery;
   }
 
@@ -391,7 +391,7 @@ global class Query extends SOQL {
 
     String searchQuery = this.getSObjectType() + sobjectTypeOptions;
 
-    System.debug(LoggingLevel.FINEST, searchQuery);
+    System.debug(System.LoggingLevel.FINEST, searchQuery);
     return searchQuery;
   }
 

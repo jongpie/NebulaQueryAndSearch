@@ -410,7 +410,7 @@ global abstract class SOQL implements Comparable {
     private final String isoCurrency;
 
     public IsoCurrency(String isoCode, Decimal currencyAmount) {
-      if (!UserInfo.isMultiCurrencyOrganization()) {
+      if (!System.UserInfo.isMultiCurrencyOrganization()) {
         throw new SOQLException('IsoCurrency is only supported in multi-currency orgs');
       }
       this.isoCurrency = isoCode + currencyAmount;
@@ -522,7 +522,7 @@ global abstract class SOQL implements Comparable {
       Integer lastFieldIndex = fields.size() - 1;
       List<String> queryFieldPieces = new List<String>();
       for (Integer i = 0; i < fields.size(); i++) {
-        SObjectField field = fields[i];
+        Schema.SObjectField field = fields[i];
         // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
         if (!field.getDescribe().isAccessible()) {
           return null;
