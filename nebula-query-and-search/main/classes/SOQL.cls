@@ -620,7 +620,7 @@ global abstract class SOQL implements Comparable {
       if (valueToFormat == null) {
         return null;
       } else if (valueToFormat instanceof Iterable<Object>) {
-        return this.convertListToQueryString((Iterable<Object>) valueToFormat);
+        return this.convertIterableToQueryString((Iterable<Object>) valueToFormat);
       } else if (valueToFormat instanceof Map<Object, Object>) {
         return this.convertMapToQueryString(valueToFormat);
       } else if (valueToFormat instanceof Date) {
@@ -651,7 +651,7 @@ global abstract class SOQL implements Comparable {
       return input;
     }
 
-    private String convertListToQueryString(Iterable<Object> valueIterable) {
+    private String convertIterableToQueryString(Iterable<Object> valueIterable) {
       List<String> parsedValueList = new List<String>();
       Iterator<Object> valueIterator = valueIterable.iterator();
       while (valueIterator.hasNext()) {
@@ -661,18 +661,9 @@ global abstract class SOQL implements Comparable {
       return '(' + String.join(parsedValueList, ', ') + ')';
     }
 
-    private String convertSetToQueryString(Object valueSet) {
-      String unformattedString = String.valueOf(valueSet).replace('{', '').replace('}', '');
-      List<String> parsedValueList = new List<String>();
-      for (String collectionItem : unformattedString.split(',')) {
-        parsedValueList.add(this.formatObjectForQueryString(collectionItem));
-      }
-      return '(' + String.join(parsedValueList, ', ') + ')';
-    }
-
     private String convertMapToQueryString(Object valueMap) {
       Map<String, Object> untypedMap = (Map<String, Object>) Json.deserializeUntyped(Json.serialize(valueMap));
-      return this.convertSetToQueryString(untypedMap.keySet());
+      return this.convertIterableToQueryString(untypedMap.keySet());
     }
   }
 }
