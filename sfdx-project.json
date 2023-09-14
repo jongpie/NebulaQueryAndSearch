@@ -2,7 +2,7 @@
   "name": "Nebula Query & Search",
   "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "57.0",
+  "sourceApiVersion": "58.0",
   "plugins": {
     "sfdx-plugin-prettier": {
       "enabled": true
@@ -14,8 +14,8 @@
       "path": "nebula-query-and-search",
       "definitionFile": "./config/scratch-orgs/base-scratch-def.json",
       "versionNumber": "3.1.1.0",
-      "versionName": "New unlocked package release",
-      "versionDescription": "Initial release of new unlocked package",
+      "versionName": "Fixes Set handling in Query.filterWhere()",
+      "versionDescription": "Fixed an bug in `Query.filterWhere()` when filtering on `Set<T>` that would previously result in an invalid query being generated",
       "releaseNotesUrl": "https://github.com/jongpie/NebulaQueryAndSearch/releases",
       "default": false
     },
@@ -24,8 +24,8 @@
       "path": "nebula-query-and-search",
       "definitionFile": "./config/scratch-orgs/base-scratch-def.json",
       "versionNumber": "3.1.1.0",
-      "versionName": "New unlocked package release",
-      "versionDescription": "Initial release of new unlocked package",
+      "versionName": "Fixes Set handling in Query.filterWhere()",
+      "versionDescription": "Fixed an bug in `Query.filterWhere()` when filtering on `Set<T>` that would previously result in an invalid query being generated",
       "releaseNotesUrl": "https://github.com/jongpie/NebulaQueryAndSearch/releases",
       "default": true
     }
