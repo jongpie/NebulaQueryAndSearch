@@ -59,13 +59,13 @@ private class AggregateQuery_Tests {
   static void it_should_cache_results() {
     AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType);
     aggregateQuery.cacheResults();
-    System.assertEquals(0, Limits.getQueries());
+    System.assertEquals(0, System.Limits.getQueries());
 
     for (Integer i = 0; i < 3; i++) {
       aggregateQuery.getResults();
     }
 
-    System.assertEquals(1, Limits.getQueries());
+    System.assertEquals(1, System.Limits.getQueries());
   }
 
   @IsTest

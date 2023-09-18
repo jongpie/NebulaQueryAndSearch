@@ -2,38 +2,38 @@
 
 A dynamic SOQL query & SOSL search library for Salesforce Apex
 
-## Unlocked Package - no namespace - v3.1.1
+## Unlocked Package - no namespace - v3.1.2
 
-[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsMOQA0)
-[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsMOQA0)
+[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsbQQAS)
+[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsbQQAS)
 
 Install with SF CLI:
 
 ```shell
-sf package install --apex-compile package --wait 20 --security-type AdminsOnly --package 04t5Y000001TsMOQA0
+sf package install --apex-compile package --wait 20 --security-type AdminsOnly --package 04t5Y000001TsbQQAS
 ```
 
 Install with SFDX CLI:
 
 ```shell
-sfdx force:package:install --apexcompile package --wait 20 --securitytype AdminsOnly --package 04t5Y000001TsMOQA0
+sfdx force:package:install --apexcompile package --wait 20 --securitytype AdminsOnly --package 04t5Y000001TsbQQAS
 ```
 
-## Unlocked Package - `Nebula` namespace - v3.1.1
+## Unlocked Package - `Nebula` namespace - v3.1.2
 
-[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsMTQA0)
-[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsMTQA0)
+[![Install Unlocked Package in a Sandbox](./images/btn-install-unlocked-package-sandbox.png)](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsbVQAS)
+[![Install Unlocked Package in Production](./images/btn-install-unlocked-package-production.png)](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5Y000001TsbVQAS)
 
 Install with SF CLI:
 
 ```shell
-sf package install --apex-compile package --wait 20 --security-type AdminsOnly --package 04t5Y000001TsMTQA0
+sf package install --apex-compile package --wait 20 --security-type AdminsOnly --package 04t5Y000001TsbVQAS
 ```
 
 Install with SFDX CLI:
 
 ```shell
-sfdx force:package:install --apexcompile package --wait 20 --securitytype AdminsOnly --package 04t5Y000001TsMTQA0
+sfdx force:package:install --apexcompile package --wait 20 --securitytype AdminsOnly --package 04t5Y000001TsbVQAS
 ```
 
 ## Features

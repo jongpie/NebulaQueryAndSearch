@@ -94,7 +94,7 @@ global class RecordSearch extends SOSL {
     // If additional builder methods are later called, the builder methods will set hasChanged = true
     this.hasChanged = false;
 
-    System.debug(LoggingLevel.FINEST, this.searchQuery);
+    System.debug(System.LoggingLevel.FINEST, this.searchQuery);
     return this.searchQuery;
   }
 

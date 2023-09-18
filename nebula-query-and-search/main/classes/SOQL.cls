@@ -410,7 +410,7 @@ global abstract class SOQL implements Comparable {
     private final String isoCurrency;
 
     public IsoCurrency(String isoCode, Decimal currencyAmount) {
-      if (!UserInfo.isMultiCurrencyOrganization()) {
+      if (!System.UserInfo.isMultiCurrencyOrganization()) {
         throw new SOQLException('IsoCurrency is only supported in multi-currency orgs');
       }
       this.isoCurrency = isoCode + currencyAmount;
@@ -522,7 +522,7 @@ global abstract class SOQL implements Comparable {
       Integer lastFieldIndex = fields.size() - 1;
       List<String> queryFieldPieces = new List<String>();
       for (Integer i = 0; i < fields.size(); i++) {
-        SObjectField field = fields[i];
+        Schema.SObjectField field = fields[i];
         // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
         if (!field.getDescribe().isAccessible()) {
           return null;
@@ -619,10 +619,8 @@ global abstract class SOQL implements Comparable {
     private String formatObjectForQueryString(Object valueToFormat) {
       if (valueToFormat == null) {
         return null;
-      } else if (valueToFormat instanceof List<Object>) {
-        return this.convertListToQueryString((List<Object>) valueToFormat);
-      } else if (valueToFormat instanceof Set<Object>) {
-        return this.convertSetToQueryString(valueToFormat);
+      } else if (valueToFormat instanceof Iterable<Object>) {
+        return this.convertIterableToQueryString((Iterable<Object>) valueToFormat);
       } else if (valueToFormat instanceof Map<Object, Object>) {
         return this.convertMapToQueryString(valueToFormat);
       } else if (valueToFormat instanceof Date) {
@@ -653,26 +651,19 @@ global abstract class SOQL implements Comparable {
       return input;
     }
 
-    private String convertListToQueryString(List<Object> valueList) {
+    private String convertIterableToQueryString(Iterable<Object> valueIterable) {
       List<String> parsedValueList = new List<String>();
-      for (Object value : valueList) {
+      Iterator<Object> valueIterator = valueIterable.iterator();
+      while (valueIterator.hasNext()) {
+        Object value = valueIterator.next();
         parsedValueList.add(this.formatObjectForQueryString(value));
-      }
-      return '(' + String.join(parsedValueList, ', ') + ')';
-    }
-
-    private String convertSetToQueryString(Object valueSet) {
-      String unformattedString = String.valueOf(valueSet).replace('{', '').replace('}', '');
-      List<String> parsedValueList = new List<String>();
-      for (String collectionItem : unformattedString.split(',')) {
-        parsedValueList.add(this.formatObjectForQueryString(collectionItem));
       }
       return '(' + String.join(parsedValueList, ', ') + ')';
     }
 
     private String convertMapToQueryString(Object valueMap) {
       Map<String, Object> untypedMap = (Map<String, Object>) Json.deserializeUntyped(Json.serialize(valueMap));
-      return this.convertSetToQueryString(untypedMap.keySet());
+      return this.convertIterableToQueryString(untypedMap.keySet());
     }
   }
 }

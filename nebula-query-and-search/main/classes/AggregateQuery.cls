@@ -202,7 +202,7 @@ global class AggregateQuery extends SOQL {
       super.doGetLimitCountString() +
       super.doGetOffetString();
 
-    System.debug(LoggingLevel.FINEST, this.query);
+    System.debug(System.LoggingLevel.FINEST, this.query);
     return this.query;
   }
 
