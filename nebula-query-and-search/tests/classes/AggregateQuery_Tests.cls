@@ -130,6 +130,52 @@ private class AggregateQuery_Tests {
   }
 
   @IsTest
+  static void it_should_run_with_system_mode() {
+    String expectedQueryString = 'SELECT COUNT(Id) COUNT__Id FROM Opportunity';
+
+    AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
+      .addAggregate(SOQL.Aggregate.COUNT, Opportunity.Id)
+      .withAccessLevel(System.AccessLevel.SYSTEM_MODE);
+
+    System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+    List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+    List<Schema.AggregateResult> returnedResults;
+    Exception caughtException;
+    System.runAs(minimumAccessUser()) {
+        try {
+            returnedResults = aggregateQuery.getResults();
+        } catch (Exception e) {
+            caughtException = e;
+        }
+    }
+    System.Assert.isNull(caughtException, 'Query should not throw exception when run in System Mode');
+    System.Assert.areEqual(expectedResults, returnedResults);
+  }
+
+  @IsTest
+  static void it_should_run_with_user_mode() {
+    String expectedQueryString = 'SELECT COUNT(Id) COUNT__Id FROM Opportunity';
+
+    AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType)
+      .addAggregate(SOQL.Aggregate.COUNT, Opportunity.Id)
+      .withAccessLevel(System.AccessLevel.USER_MODE);
+
+    System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+    List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
+    List<Schema.AggregateResult> returnedResults;
+    Exception caughtException;
+    System.runAs(minimumAccessUser()) {
+        try {
+            returnedResults = aggregateQuery.getResults();
+        } catch (Exception e) {
+            caughtException = e;
+        }
+    }
+    System.Assert.isInstanceOfType(caughtException, System.QueryException.class, 'Query should throw exception when run in User Mode');
+    System.Assert.isTrue(caughtException.getMessage().contains('sObject type \'Opportunity\' is not supported'), 'Query should throw exception when run in User Mode');
+  }
+
+  @IsTest
   static void it_should_build_a_ridiculous_query_string() {
     String expectedQueryString =
       'SELECT Account.Type, StageName, AVG(Amount) AVG__Amount, COUNT(AccountId) COUNT__AccountId,' +
@@ -167,5 +213,19 @@ private class AggregateQuery_Tests {
     List<Schema.AggregateResult> expectedResults = Database.query(expectedQueryString);
     List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
     System.Assert.areEqual(expectedResults, returnedResults);
+  }
+
+  static User minimumAccessUser() {
+    return new User(
+      Alias = 'newUser',
+      Email = 'newuser@testorg.com',
+      EmailEncodingKey = 'UTF-8',
+      LastName = 'Testing',
+      LanguageLocaleKey = 'en_US',
+      LocaleSidKey = 'en_US',
+      ProfileId = [SELECT Id FROM Profile WHERE Name = 'Minimum Access - Salesforce'].Id,
+      TimeZoneSidKey = 'GMT',
+      UserName = 'newuser@testorg.com'
+    );
   }
 }

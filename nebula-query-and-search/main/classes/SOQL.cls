@@ -181,6 +181,7 @@ global abstract class SOQL implements Comparable {
   protected Set<SOQL.QueryField> excludedQueryFields;
   protected Scope scope;
   protected List<String> whereFilters;
+  protected System.AccessLevel accessLevel;
   protected List<String> orderByFieldApiNames;
   protected Integer limitCount;
   protected Integer offset;
@@ -198,6 +199,7 @@ global abstract class SOQL implements Comparable {
     this.excludedQueryFields = new Set<SOQL.QueryField>();
     this.whereFilters = new List<String>();
     this.orderByFieldApiNames = new List<String>();
+    this.accessLevel = System.AccessLevel.SYSTEM_MODE;
     this.cacheResults = false;
     this.hasChanged = false;
   }
@@ -271,6 +273,10 @@ global abstract class SOQL implements Comparable {
     this.doSetHasChanged();
   }
 
+  protected void doWithAccessLevel(System.AccessLevel accessLevel) {
+    this.accessLevel = accessLevel;
+  }
+
   protected void doOrderBy(SOQL.QueryField queryField, SOQL.SortOrder sortOrder, Boolean sortNullsFirst) {
     this.doOrderBy(queryField.toString(), sortOrder, sortNullsFirst);
   }
@@ -305,7 +311,7 @@ global abstract class SOQL implements Comparable {
     if (this.cacheResults) {
       return this.getCachedResults();
     } else {
-      return Database.query(this.getQuery());
+      return Database.query(this.getQuery(), this.doGetAccessLevel());
     }
   }
 
@@ -361,6 +367,10 @@ global abstract class SOQL implements Comparable {
     return this.whereFilters.isEmpty() ? '' : ' WHERE ' + String.join(this.whereFilters, ' AND ');
   }
 
+  protected System.AccessLevel doGetAccessLevel() {
+    return this.accessLevel ?? System.AccessLevel.SYSTEM_MODE;
+  }
+
   protected String doGetOrderByString() {
     return this.orderByFieldApiNames.isEmpty() ? '' : ' ORDER BY ' + String.join(this.orderByFieldApiNames, ', ');
   }
@@ -383,7 +393,10 @@ global abstract class SOQL implements Comparable {
 
     Boolean isCached = cachedResultsByHashCode.containsKey(hashCode);
     if (!isCached) {
-      cachedResultsByHashCode.put(hashCode, Database.query(query));
+      cachedResultsByHashCode.put(
+        hashCode,
+        Database.query(query, this.doGetAccessLevel())
+      );
     }
 
     // Always return a deep clone so the original cached version is never modified

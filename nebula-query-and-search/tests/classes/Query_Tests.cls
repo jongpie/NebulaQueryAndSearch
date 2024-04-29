@@ -194,6 +194,52 @@ private class Query_Tests {
   }
 
   @IsTest
+  static void it_should_run_with_system_mode() {
+    String expectedQueryString = 'SELECT Id, Name FROM Account LIMIT 1';
+
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .limitTo(1)
+      .withAccessLevel(System.AccessLevel.SYSTEM_MODE);
+
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+    List<Account> expectedResults = Database.query(expectedQueryString);
+    List<Account> returnedResults;
+    Exception caughtException;
+    System.runAs(minimumAccessUser()) {
+        try {
+            returnedResults = accountQuery.getResults();
+        } catch (Exception e) {
+            caughtException = e;
+        }
+    }
+    System.Assert.isNull(caughtException, 'Query should not throw exception when run in System Mode');
+    System.Assert.areEqual(expectedResults, returnedResults);
+  }
+
+  @IsTest
+  static void it_should_run_with_user_mode() {
+    String expectedQueryString = 'SELECT Id, Name FROM Account LIMIT 1';
+
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .limitTo(1)
+      .withAccessLevel(System.AccessLevel.USER_MODE);
+
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+    List<Account> expectedResults = Database.query(expectedQueryString);
+    List<Account> returnedResults;
+    Exception caughtException;
+    System.runAs(minimumAccessUser()) {
+        try {
+            returnedResults = accountQuery.getResults();
+        } catch (Exception e) {
+            caughtException = e;
+        }
+    }
+    System.Assert.isInstanceOfType(caughtException, System.QueryException.class, 'Query should throw exception when run in User Mode');
+    System.Assert.isTrue(caughtException.getMessage().contains('sObject type \'Account\' is not supported'), 'Query should throw exception when run in User Mode');
+  }
+
+  @IsTest
   static void it_includes_order_by_statement_for_single_field() {
     String expectedQueryString = 'SELECT Id, Name FROM Lead ORDER BY CreatedDate ASC NULLS FIRST';
 
@@ -276,5 +322,19 @@ private class Query_Tests {
     System.assertEquals(1, System.Limits.getQueries());
 
     System.Test.stopTest();
+  }
+
+  static User minimumAccessUser() {
+    return new User(
+      Alias = 'newUser',
+      Email = 'newuser@testorg.com',
+      EmailEncodingKey = 'UTF-8',
+      LastName = 'Testing',
+      LanguageLocaleKey = 'en_US',
+      LocaleSidKey = 'en_US',
+      ProfileId = [SELECT Id FROM Profile WHERE Name = 'Minimum Access - Salesforce'].Id,
+      TimeZoneSidKey = 'GMT',
+      UserName = 'newuser@testorg.com'
+    );
   }
 }

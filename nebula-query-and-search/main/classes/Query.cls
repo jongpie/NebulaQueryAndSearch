@@ -239,6 +239,11 @@ global class Query extends SOQL {
   //return this.setHasChanged();
   //}
 
+  global Query withAccessLevel(System.AccessLevel mode) {
+    super.doWithAccessLevel(mode);
+    return this.setHasChanged();
+  }
+
   global Query orderByField(Schema.SObjectField field) {
     return this.orderByField(new SOQL.QueryField(field));
   }

@@ -106,6 +106,11 @@ global class AggregateQuery extends SOQL {
     return this.setHasChanged();
   }
 
+  global AggregateQuery withAccessLevel(System.AccessLevel mode) {
+    super.doWithAccessLevel(mode);
+    return this.setHasChanged();
+  }
+
   global AggregateQuery orderByField(Schema.SObjectField field) {
     return this.orderByField(field, null);
   }
@@ -220,7 +225,7 @@ global class AggregateQuery extends SOQL {
       super.doGetOrderByString() +
       super.doGetLimitCountString() +
       super.doGetOffetString();
-    return Database.countQuery(countQuery);
+    return Database.countQuery(countQuery, this.doGetAccessLevel());
   }
 
   global AggregateResult getFirstResult() {
