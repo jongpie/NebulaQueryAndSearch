@@ -16,6 +16,7 @@ global class AggregateQuery extends SOQL {
   private SOQL.GroupingDimension groupingDimension;
   private List<AggregateField> aggregateFields;
   private List<String> havingConditions;
+  private String countQuery;
 
   global AggregateQuery(Schema.SObjectType sobjectType) {
     super(sobjectType, false);
@@ -79,8 +80,29 @@ global class AggregateQuery extends SOQL {
     return this.havingAggregate(aggregateFunction, new SOQL.QueryField(field), operator, value);
   }
 
+  global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, Schema.SObjectField field, SOQL.Operator operator, Object value, String bindWithKey) {
+    return this.havingAggregate(aggregateFunction, new SOQL.QueryField(field), operator, value, bindWithKey);
+  }
+
   global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value) {
-    this.havingConditions.add(aggregateFunction.name() + '(' + queryField + ') ' + SOQL.getOperatorValue(operator) + ' ' + value);
+    return this.havingAggregate(aggregateFunction, queryField, operator, value, null);
+  }
+
+  global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindWithKey) {
+    this.havingConditions.add(
+      String.format(
+        '{0}({1}) {2} {3}',
+        new List<String> {
+          aggregateFunction.name(),
+          queryField.toString(),
+          SOQL.getOperatorValue(operator),
+          (String.isNotBlank(bindWithKey) ? ':' + bindWithKey : new QueryArgument(value).toString())
+        }
+      )
+    );
+    if (String.isNotBlank(bindWithKey)) {
+      this.bindsMap.put(bindWithKey, value);
+    }
     return this.setHasChanged();
   }
 
@@ -88,8 +110,16 @@ global class AggregateQuery extends SOQL {
     return this.filterWhere(new SOQL.QueryField(field), operator, value);
   }
 
+  global AggregateQuery filterWhere(Schema.SObjectField field, SOQL.Operator operator, Object value, String bindWithKey) {
+    return this.filterWhere(new SOQL.QueryField(field), operator, value, bindWithKey);
+  }
+
   global AggregateQuery filterWhere(SOQL.QueryField queryField, SOQL.Operator operator, Object value) {
     return this.filterWhere(new SOQL.QueryFilter(queryField, operator, value));
+  }
+
+  global AggregateQuery filterWhere(SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindWithKey) {
+    return this.filterWhere(new SOQL.QueryFilter(queryField, operator, value, bindWithKey));
   }
 
   global AggregateQuery filterWhere(SOQL.QueryFilter filter) {
@@ -171,6 +201,26 @@ global class AggregateQuery extends SOQL {
     return this.setHasChanged();
   }
 
+  global AggregateQuery setBind(String key, Object value) {
+    super.doSetBind(key, value);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery setBinds(Map<String, Object> binds) {
+    super.doSetBinds(binds);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery removeBind(String key) {
+    super.doRemoveBind(key);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery clearBinds() {
+    super.doClearBinds();
+    return this.setHasChanged();
+  }
+
   // TODO decide if this should be global
   public AggregateQuery cacheResults() {
     super.doCacheResults();
@@ -211,10 +261,12 @@ global class AggregateQuery extends SOQL {
     return this.query;
   }
 
-  // TODO consider renaming to getCountResult()
-  @SuppressWarnings('PMD.ApexSOQLInjection')
-  global Integer getResultCount() {
-    String countQuery =
+  global String getCountQuery() {
+    if (this.countQuery != null && !this.hasChanged) {
+      return this.countQuery;
+    }
+
+    this.countQuery =
       'SELECT COUNT()' +
       ' FROM ' +
       this.sobjectType +
@@ -225,7 +277,19 @@ global class AggregateQuery extends SOQL {
       super.doGetOrderByString() +
       super.doGetLimitCountString() +
       super.doGetOffetString();
-    return Database.countQuery(countQuery, this.doGetAccessLevel());
+
+    System.debug(System.LoggingLevel.FINEST, this.countQuery);
+    return this.countQuery;
+  }
+
+  // TODO consider renaming to getCountResult()
+  @SuppressWarnings('PMD.ApexSOQLInjection')
+  global Integer getResultCount() {
+    return Database.countQueryWithBinds(
+      this.getCountQuery(),
+      this.doGetBindsMap(),
+      this.doGetAccessLevel()
+    );
   }
 
   global AggregateResult getFirstResult() {

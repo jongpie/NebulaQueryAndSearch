@@ -187,7 +187,7 @@ global abstract class SOQL implements Comparable {
   protected Integer offset;
   protected Boolean hasChanged;
   protected Boolean sortQueryFields;
-
+  protected Map<String, Object> bindsMap;
   protected Boolean cacheResults;
 
   protected SOQL(Schema.SObjectType sobjectType, Boolean sortQueryFields) {
@@ -200,6 +200,7 @@ global abstract class SOQL implements Comparable {
     this.whereFilters = new List<String>();
     this.orderByFieldApiNames = new List<String>();
     this.accessLevel = System.AccessLevel.SYSTEM_MODE;
+    this.bindsMap = new Map<String, Object>();
     this.cacheResults = false;
     this.hasChanged = false;
   }
@@ -248,12 +249,15 @@ global abstract class SOQL implements Comparable {
   }
 
   protected void doFilterWhere(List<SOQL.QueryFilter> filters) {
-    if (filters == null || filters.isEmpty()) {
+    if (filters?.isEmpty() != false) {
       return;
     }
 
     for (SOQL.QueryFilter filter : filters) {
       this.whereFilters.add(filter.toString());
+      if (String.isNotBlank(filter.bindKey)) {
+        this.bindsMap.put(filter.bindKey, filter.value);
+      }
     }
     this.doSetHasChanged();
   }
@@ -302,6 +306,22 @@ global abstract class SOQL implements Comparable {
     this.offset = offset;
   }
 
+  protected void doSetBind(String key, Object value) {
+    this.bindsMap.put(key, value);
+  }
+
+  protected void doSetBinds(Map<String, Object> binds) {
+    this.bindsMap.putAll(binds);
+  }
+
+  protected void doRemoveBind(String key) {
+    this.bindsMap.remove(key);
+  }
+
+  protected void doClearBinds() {
+    this.bindsMap.clear();
+  }
+
   protected SObject doGetFirstResult() {
     List<SObject> results = this.doGetResults();
     return results == null || results.isEmpty() ? null : results[0];
@@ -311,7 +331,11 @@ global abstract class SOQL implements Comparable {
     if (this.cacheResults) {
       return this.getCachedResults();
     } else {
-      return Database.query(this.getQuery(), this.doGetAccessLevel());
+      return Database.queryWithBinds(
+        this.getQuery(),
+        this.doGetBindsMap(),
+        this.doGetAccessLevel()
+      );
     }
   }
 
@@ -383,6 +407,10 @@ global abstract class SOQL implements Comparable {
     return this.offset == null ? '' : ' OFFSET ' + this.offset;
   }
 
+  protected Map<String, Object> doGetBindsMap() {
+    return this.bindsMap ?? new Map<String, Object>();
+  }
+
   private void doSetHasChanged() {
     this.hasChanged = true;
   }
@@ -395,7 +423,11 @@ global abstract class SOQL implements Comparable {
     if (!isCached) {
       cachedResultsByHashCode.put(
         hashCode,
-        Database.query(query, this.doGetAccessLevel())
+        Database.queryWithBinds(
+          this.getQuery(),
+          this.doGetBindsMap(),
+          this.doGetAccessLevel()
+        )
       );
     }
 
@@ -555,16 +587,26 @@ global abstract class SOQL implements Comparable {
     private Object value;
     private String formattedValue;
     private String filterString;
+    private String bindKey;
 
     global QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
       this(new QueryField(field), operator, value);
     }
 
+    global QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value, String bindKey) {
+      this(new QueryField(field), operator, value, bindKey);
+    }
+
     global QueryFilter(QueryField queryField, SOQL.Operator operator, Object value) {
+      this(queryField, operator, value, null);
+    }
+
+    global QueryFilter(QueryField queryField, SOQL.Operator operator, Object value, String bindKey) {
       this.queryField = queryField;
       this.operator = operator;
       this.value = value;
-      this.formattedValue = new QueryArgument(value).toString();
+      this.formattedValue = (String.isNotBlank(bindKey) ? ':' + bindKey : new QueryArgument(value).toString());
+      this.bindKey = bindKey;
 
       this.filterString = queryField + ' ' + SOQL.getOperatorValue(operator) + ' ' + formattedValue;
     }
@@ -618,7 +660,7 @@ global abstract class SOQL implements Comparable {
   public class SOQLException extends Exception {
   }
 
-  private class QueryArgument {
+  public class QueryArgument {
     private String value;
 
     public QueryArgument(Object valueToFormat) {

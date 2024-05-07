@@ -8,6 +8,35 @@
 )
 @IsTest(IsParallel=true)
 private class Query_Tests {
+
+  @IsTest
+  static void it_should_construct_a_query_without_binds()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT Id, Name FROM Account WHERE CreatedDate >= THIS_MONTH';
+
+    // TEST
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, new SOQL.DateLiteral(SOQL.FixedDateLiteral.THIS_MONTH)));
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+  }
+
+  @IsTest
+  static void it_should_construct_a_query_with_binds()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT Id, Name FROM Account WHERE CreatedDate >= :dateFilter';
+
+    // TEST
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'dateFilter'));
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+  }
+
   @IsTest
   static void it_should_return_results_for_a_simple_query() {
     String expectedQueryString = 'SELECT Id, Name FROM Account';
@@ -194,6 +223,29 @@ private class Query_Tests {
   }
 
   @IsTest
+  static void it_should_return_results_when_filtering_with_binds()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT Id, Name FROM Account WHERE CreatedDate >= :createdDateFilter';
+    List<Account> expectedResults = Database.queryWithBinds(
+      expectedQueryString,
+      new Map<String, Object> {
+        'createdDateFilter' => Date.today()
+      },
+      System.AccessLevel.SYSTEM_MODE
+    );
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today(), 'createdDateFilter'));
+
+    // TEST
+    List<Account> returnedResults = accountQuery.getResults();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+    System.Assert.areEqual(expectedResults, returnedResults);
+  }
+
+  @IsTest
   static void it_should_run_with_system_mode() {
     String expectedQueryString = 'SELECT Id, Name FROM Account LIMIT 1';
 
@@ -322,6 +374,123 @@ private class Query_Tests {
     System.assertEquals(1, System.Limits.getQueries());
 
     System.Test.stopTest();
+  }
+
+  @IsTest
+  static void it_will_set_a_bind_variable()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= :dateFilter ORDER BY CreatedDate ASC NULLS FIRST LIMIT 1';
+    List<Account> expectedResults = Database.queryWithBinds(
+      expectedQueryString,
+      new Map<String, Object> {
+        'dateFilter' => Date.today().addDays(-1)
+      },
+      System.AccessLevel.SYSTEM_MODE
+    );
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .addField(Schema.Account.CreatedDate)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'dateFilter'))
+      .orderByField(Schema.Account.CreatedDate, SOQL.SortOrder.ASCENDING)
+      .limitTo(1);
+
+    // TEST
+    accountQuery.setBind('dateFilter', Date.today().addDays(-1));
+    List<Account> returnedResults = accountQuery.getResults();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+    System.Assert.areEqual(expectedResults, returnedResults);
+    if (!returnedResults.isEmpty())
+    {
+      System.Assert.isFalse(returnedResults[0].CreatedDate < Date.today().addDays(-1));
+    }
+  }
+
+  @IsTest
+  static void it_will_set_multiple_bind_variables()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate < :maxDateFilter AND CreatedDate >= :minDateFilter ORDER BY CreatedDate ASC NULLS FIRST LIMIT 1';
+    List<Account> expectedResults = Database.queryWithBinds(
+      expectedQueryString,
+      new Map<String, Object> {
+        'minDateFilter' => Date.today().addDays(-7),
+        'maxDateFilter' => Date.today()
+      },
+      System.AccessLevel.SYSTEM_MODE
+    );
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .addField(Schema.Account.CreatedDate)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'minDateFilter'))
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.LESS_THAN, Date.today().addDays(-1), 'maxDateFilter'))
+      .orderByField(Schema.Account.CreatedDate, SOQL.SortOrder.ASCENDING)
+      .limitTo(1);
+
+    // TEST
+    accountQuery.setBind('minDateFilter', Date.today().addDays(-7));
+    accountQuery.setBind('maxDateFilter', Date.today());
+    List<Account> returnedResults = accountQuery.getResults();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+    System.Assert.areEqual(expectedResults, returnedResults);
+    if (!returnedResults.isEmpty())
+    {
+      System.Assert.isFalse(returnedResults[0].CreatedDate < Date.today().addDays(-7));
+      System.Assert.isFalse(returnedResults[0].CreatedDate >= Date.today());
+    }
+  }
+
+  @IsTest
+  static void it_will_remove_a_bind_variable()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= :dateFilter';
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .addField(Schema.Account.CreatedDate)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'dateFilter'));
+
+    // TEST
+    accountQuery.removeBind('dateFilter');
+    Exception caughtException;
+    try {
+      List<Account> returnedResults = accountQuery.getResults();
+    }
+    catch (Exception e) {
+      caughtException = e;
+    }
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+    System.Assert.isInstanceOfType(caughtException, QueryException.class);
+    System.Assert.areEqual('Key \'dateFilter\' does not exist in the bindMap', caughtException.getMessage());
+  }
+
+  @IsTest
+  static void it_will_clear_all_bind_variables()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate < :maxDateFilter AND CreatedDate >= :minDateFilter';
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .addField(Schema.Account.CreatedDate)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'minDateFilter'))
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.LESS_THAN, Date.today().addDays(-1), 'maxDateFilter'));
+
+    // TEST
+    accountQuery.clearBinds();
+    Exception caughtException;
+    try {
+      List<Account> returnedResults = accountQuery.getResults();
+    }
+    catch (Exception e) {
+      caughtException = e;
+    }
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+    System.Assert.isInstanceOfType(caughtException, QueryException.class);
+    System.Assert.areEqual('Key \'maxDateFilter\' does not exist in the bindMap', caughtException.getMessage());
   }
 
   static User minimumAccessUser() {
