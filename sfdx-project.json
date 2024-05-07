@@ -2,7 +2,7 @@
   "name": "Nebula Query & Search",
   "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "58.0",
+  "sourceApiVersion": "60.0",
   "plugins": {
     "sfdx-plugin-prettier": {
       "enabled": true
