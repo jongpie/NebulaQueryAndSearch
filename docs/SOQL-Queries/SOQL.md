@@ -5,6 +5,10 @@ layout: default
 
 `SUPPRESSWARNINGS`
 
+`APIVERSION: 57`
+
+`STATUS: ACTIVE`
+
 Handles common functionality needed for writing SOQL queries
 
 
@@ -22,8 +26,11 @@ Handles common functionality needed for writing SOQL queries
 **See** [AggregateQuery](./AggregateQuery.md)
 
 ## Methods
+### `static getOperatorValue(SOQL operator)`
 ### `getSObjectType()`
 ### `getQuery()`
+### `getQueryLocator()`
+### `compareTo(Object compareTo)`
 ---
 ## Enums
 ### Aggregate
@@ -31,8 +38,6 @@ Handles common functionality needed for writing SOQL queries
 ### DateFunction
 
 ### FieldCategory
-
-### FilterConjunction
 
 ### FixedDateLiteral
 
@@ -48,14 +53,21 @@ Handles common functionality needed for writing SOQL queries
 
 ---
 ## Classes
-### NestedQueryFilter
-
-**Inheritance**
-
-NestedQueryFilter
-
+### DateLiteral
 #### Constructors
-##### `NestedQueryFilter(FilterConjunction filterConjunction, List&lt;QueryFilter&gt; innerFilters)`
+##### `DateLiteral(SOQL fixedDateLiteral)`
+##### `DateLiteral(SOQL relativeDateLiteral, Integer n)`
+---
+#### Methods
+##### `override toString()`
+---
+
+### IsoCurrency
+#### Constructors
+##### `IsoCurrency(String isoCode, Decimal currencyAmount)`
+---
+#### Methods
+##### `override toString()`
 ---
 
 ### QueryField
@@ -68,6 +80,13 @@ NestedQueryFilter
 ##### `QueryField(SOQL dateFunction, List&lt;Schema.SObjectField&gt; fieldChain)`
 ##### `QueryField(SOQL dateFunction, List&lt;Schema.SObjectField&gt; fieldChain, Boolean convertTimeZone)`
 ##### `QueryField(List&lt;Schema.SObjectField&gt; fieldChain, Decimal latitude, Decimal longitude)`
+---
+#### Methods
+##### `override toString()`
+##### `getDescribe()`
+##### `getAlias()`
+##### `getAliasedFieldPath()`
+##### `getFieldPath()`
 ---
 
 ### QueryFilter
@@ -87,6 +106,24 @@ NestedQueryFilter
 ##### `getQueryField()`
 ##### `getOperator()`
 ##### `getValue()`
+##### `getFormattedValue()`
+##### `override toString()`
 ---
 
+### SOQLException
+
+**Inheritance**
+
+SOQLException
+
+
 ---
+## Interfaces
+### Cacheable
+#### Methods
+##### `contains(String key)`
+##### `get(String key)`
+##### `put(String key, Object value)`
+##### `remove(String key)`
+---
+

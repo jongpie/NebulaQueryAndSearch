@@ -1,5 +1,6 @@
 /*******************************************************************************************************
  * This file is part of the Nebula Query & Search project, released under the MIT License.             *
+ * Copyright (c) 2018, Jonathan Gillespie. All rights reserved.                                        *
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
@@ -122,6 +123,11 @@ global abstract class SOQL implements Comparable {
     NEXT_N_YEARS,
     LAST_N_FISCAL_YEARS,
     NEXT_N_FISCAL_YEARS
+  }
+
+  global enum FilterConjunction {
+    AND_FILTER,
+    OR_FILTER
   }
 
   private static final SOQL.FieldCategory DEFAULT_FIELD_CATEGORY = SOQL.FieldCategory.ACCESSIBLE;
@@ -298,7 +304,7 @@ global abstract class SOQL implements Comparable {
 
   protected SObject doGetFirstResult() {
     List<SObject> results = this.doGetResults();
-    return results == null || results.isEmpty() ? null : results.get(0);
+    return results == null || results.isEmpty() ? null : results[0];
   }
 
   protected List<SObject> doGetResults() {
@@ -352,7 +358,7 @@ global abstract class SOQL implements Comparable {
     return String.join(fieldApiNamesToQuery, ', ');
   }
 
-  protected String getUsingScopeClause() {
+  protected String dogetUsingScopeClause() {
     return this.scope == null ? '' : ' USING SCOPE ' + this.scope.name();
   }
 
@@ -365,7 +371,7 @@ global abstract class SOQL implements Comparable {
     return this.orderByFieldApiNames.isEmpty() ? '' : ' ORDER BY ' + String.join(this.orderByFieldApiNames, ', ');
   }
 
-  protected String getLimitClause() {
+  protected String doGetLimitCountString() {
     return this.limitCount == null ? '' : ' LIMIT ' + this.limitCount;
   }
 
@@ -421,7 +427,6 @@ global abstract class SOQL implements Comparable {
     }
   }
 
-  // Fields
   global class QueryField {
     private final String queryFieldPath;
     private final Schema.DescribeFieldResult fieldDescribe;
@@ -524,7 +529,7 @@ global abstract class SOQL implements Comparable {
       List<String> queryFieldPieces = new List<String>();
       for (Integer i = 0; i < fields.size(); i++) {
         SObjectField field = fields[i];
-        // If any field in the chain is not accessible, then the user cant access the data, so return an empty list
+        // If any field in the chain is not accessible, then the user cant access the data, so return null
         if (!field.getDescribe().isAccessible()) {
           return null;
         } else if (i == lastFieldIndex) {
@@ -537,293 +542,264 @@ global abstract class SOQL implements Comparable {
     }
   }
 
-  global class AggregateField {
-    private String aggregateFieldPath;
-    private SOQL.Aggregate aggregateFunction;
-    private SOQL.QueryField queryField;
-    private String fieldAlias;
+  global class NestedQueryFilter extends QueryFilter {
+    private final FilterConjunction filterConjunction;
+    private final List<QueryFilter> innerFilters;
 
-    global AggregateField(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, String fieldAlias) {
-      this.aggregateFunction = aggregateFunction;
-      this.queryField = queryField;
-      this.fieldAlias = fieldAlias;
-    }
-
-    public String getAlias() {
-      if (String.isEmpty(this.fieldAlias) == true) {
-        this.fieldAlias = this.aggregateFunction.name() + '__' + this.queryField.getDescribe().getName();
-      }
-      // String.escapeSingleQuotes(fieldAlias)
-      return this.fieldAlias;
-    }
-
-    public String getFieldPath() {
-      if (String.isBlank(this.aggregateFieldPath) == true) {
-        this.aggregateFieldPath = this.aggregateFunction.name() + '(' + this.queryField.getFieldPath() + ')';
-      }
-      return this.aggregateFieldPath;
-    }
-
-    public String getAliasedFieldPath() {
-      return 'GROUPING(' + this.queryField.getFieldPath() + ') ' + this.getAlias();
+    global NestedQueryFilter(FilterConjunction filterConjunction, List<QueryFilter> innerFilters) {
+      this.filterConjunction = filterConjunction;
+      this.innerFilters = innerFilters;
     }
 
     public override String toString() {
-      return this.getAliasedFieldPath();
-    }
-  }
-
-  public class GroupByField {
-    private String alias;
-    private SOQL.QueryField queryField;
-
-    public GroupByField(SOQL.QueryField queryField) {
-      this.queryField = queryField;
-    }
-
-    public String getAlias() {
-      return this.queryField.getFieldPath().replace('.', '_');
-    }
-
-    public String getFieldPath() {
-      return this.queryField.getFieldPath();
-    }
-
-    public String getAliasedFieldPath() {
-      return this.queryField.getFieldPath() + ' ' + this.getAlias();
-    }
-  }
-
-  public class GroupBySubtotalField {
-    private String alias;
-    private SOQL.QueryField queryField;
-
-    public GroupBySubtotalField(SOQL.QueryField queryField) {
-      this.queryField = queryField;
+      String builtConditional = '';
+      if (this.innerFilters.isEmpty() == false) {
+        switch on this.filterConjunction {
+          when AND_FILTER {
+            builtConditional = 'AND ';
+          }
+          when OR_FILTER {
+            builtConditional = 'OR ';
+          }
+        }
+        builtConditional += '(';
+        List<String> conditionalAdditions = new List<String>();
+        for (QueryFilter innerFilter : this.innerFilters) {
+          conditionalAdditions.add(innerFilter.toString());
+        }
+        builtConditional += String.join(conditionalAdditions, ' ') + ')';
+      }
+      return builtConditional;
     }
 
-    public String getAlias() {
-      return this.queryField.getFieldPath().replace('.', '_') + '__Grouping';
-    }
+    // TODO cleanup, duplicated from AggregateQuery (and this class might be the better place for theme)
+    public class AggregateField extends SOQL.QueryField {
+      private String aggregateFieldPath;
+      private SOQL.Aggregate aggregateFunction;
+      private String fieldAlias;
 
-    public String getAliasedFieldPath() {
-      return 'GROUPING(' + this.queryField.getFieldPath() + ') ' + this.getAlias();
-    }
-  }
+      public AggregateField(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, String fieldAlias) {
+        super(queryField.getFieldPath(), queryField.getDescribe());
+        this.aggregateFunction = aggregateFunction;
+        this.fieldAlias = fieldAlias;
+      }
 
-  // Filters
-  global class QueryFilter implements Comparable {
-    private SOQL.QueryField queryField;
-    private SOQL.Operator operator;
-    private Object value;
-    private String formattedValue;
-    private String filterString;
+      public override String getAlias() {
+        if (String.isEmpty(this.fieldAlias) == true) {
+          this.fieldAlias = this.aggregateFunction.name() + '__' + this.getDescribe().getName();
+        }
+        // String.escapeSingleQuotes(fieldAlias)
+        return this.fieldAlias;
+      }
 
-    global QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
-      this(new QueryField(field), operator, value);
-    }
+      public override String getFieldPath() {
+        if (String.isBlank(this.aggregateFieldPath) == true) {
+          this.aggregateFieldPath = this.aggregateFunction.name() + '(' + super.getFieldPath() + ')';
+        }
+        return this.aggregateFieldPath;
+      }
 
-    global QueryFilter(QueryField queryField, SOQL.Operator operator, Object value) {
-      this.queryField = queryField;
-      this.operator = operator;
-      this.value = value;
-      this.formattedValue = new QueryArgument(value).toString();
-
-      this.filterString = queryField + ' ' + SOQL.getOperatorValue(operator) + ' ' + formattedValue;
-    }
-
-    global QueryFilter(Schema.SObjectType childSObjectType, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
-      this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
-      this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')';
-    }
-
-    global QueryFilter(Query childQuery, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
-      this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
-      this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' ' + childQuery.getSubquery(lookupFieldOnChildSObject);
-    }
-
-    global Integer compareTo(Object compareTo) {
-      QueryFilter compareToQueryFilter = (QueryFilter) compareTo;
-
-      if (this.toString() == compareToQueryFilter.toString()) {
-        return 0;
-      } else if (this.toString() > compareToQueryFilter.toString()) {
-        return 1;
-      } else {
-        return -1;
+      public override String toString() {
+        return this.getAliasedFieldPath();
       }
     }
 
-    global SOQL.QueryField getQueryField() {
-      return this.queryField;
-    }
+    public class GroupByField extends SOQL.QueryField {
+      private String alias;
 
-    global SOQL.Operator getOperator() {
-      return this.operator;
-    }
+      public GroupByField(SOQL.QueryField queryField) {
+        super(queryField.getFieldPath(), queryField.getDescribe());
+      }
 
-    global Object getValue() {
-      return this.value;
-    }
-
-    // TODO decide if this should be global
-    public Object getFormattedValue() {
-      return this.formattedValue;
-    }
-
-    // TODO decide if this should be global
-    public override String toString() {
-      return this.filterString;
-    }
-  }
-
-  // Records
-  global class SObjectRecord {
-    private final List<SObjectRecordField> fields = new List<SObjectRecordField>();
-    private final SObject record;
-
-    global SObjectRecord(SObject record) {
-      this.record = record.clone();
-    }
-
-    public List<SObjectRecordField> getFields() {
-      // for (SOQL.QueryField queryField : this.includedQueryFieldsAndCategory.keySet()) {
-      //   this.fields.add(new SObjectRecordField(queryField, this.record.get(queryField.getFieldPath())));
-      // }
-    }
-  }
-
-  global class SObjectRecordField {
-    private final SOQL.QueryField queryField;
-    private final Object value;
-
-    public SObjectRecordField(SOQL.QueryField queryField, Object value) {
-      this.queryField = queryField;
-      this.value = value;
-    }
-
-    public SOQL.QueryField getField() {
-      return this.queryField;
-    }
-
-    public Object getValue() {
-      return this.value;
-    }
-  }
-
-  global class AggregateRecord {
-    private final List<AggregateRecordField> fields = new List<AggregateRecordField>();
-    private final Schema.AggregateResult result;
-
-    global AggregateRecord(Schema.AggregateResult result) {
-      this.result = result.clone();
-    }
-
-    // TODO remove as public?
-    public void addField(AggregateRecordField resultField) {
-      this.fields.add(resultField);
-    }
-
-    // TODO remove as public?
-    public void addField(GroupByField groupByField) {
-      Object value = this.result.get(groupByField.getAlias());
-      AggregateRecordField aggregateRecordField = new AggregateRecordField(groupByField, value);
-      this.addField(aggregateRecordField);
-    }
-
-    public List<AggregateRecordField> getFields() {
-      return this.fields;
-    }
-  }
-
-  public class AggregateRecordField {
-    public String fieldAlias;
-    public String fieldPath;
-    public Object value;
-
-    public AggregateRecordField(GroupByField groupByField, Object value) {
-      this(groupByField.getFieldPath(), groupByField.getAlias(), value);
-    }
-
-    public AggregateRecordField(String fieldPath, String fieldAlias, Object value) {
-      this.fieldPath = fieldPath;
-      this.fieldAlias = fieldAlias;
-      this.value = value;
-    }
-  }
-
-  // TODO decide if this should be global (or deleted)
-  public class SOQLException extends Exception {
-  }
-
-  private class QueryArgument {
-    private String value;
-
-    public QueryArgument(Object valueToFormat) {
-      this.value = this.formatObjectForQueryString(valueToFormat);
-    }
-
-    public override String toString() {
-      return this.value;
-    }
-
-    private String formatObjectForQueryString(Object valueToFormat) {
-      if (valueToFormat == null) {
-        return null;
-      } else if (valueToFormat instanceof List<Object>) {
-        return this.convertListToQueryString((List<Object>) valueToFormat);
-      } else if (valueToFormat instanceof Set<Object>) {
-        return this.convertSetToQueryString(valueToFormat);
-      } else if (valueToFormat instanceof Map<Object, Object>) {
-        return this.convertMapToQueryString(valueToFormat);
-      } else if (valueToFormat instanceof Date) {
-        return String.valueOf((Date) valueToFormat).left(10);
-      } else if (valueToFormat instanceof Datetime) {
-        Datetime datetimeValue = (Datetime) valueToFormat;
-        return datetimeValue.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time');
-      } else if (valueToFormat instanceof SObject) {
-        return this.wrapInSingleQuotes(((SObject) valueToFormat).Id);
-      } else if (valueToFormat instanceof String) {
-        // Escape single quotes to prevent SOQL/SOSL injection
-        String unformattedString = (String) valueToFormat;
-        String stringArgument = String.escapeSingleQuotes(unformattedString.trim());
-        return this.wrapInSingleQuotes(stringArgument);
-      } else {
-        return String.valueOf(valueToFormat);
+      public override String getAlias() {
+        return this.getFieldPath().replace('.', '_');
       }
     }
 
-    private String wrapInSingleQuotes(String input) {
-      input = input.trim();
-      if (input.left(1) != '\'') {
-        input = '\'' + input;
+    public class GroupingField extends SOQL.QueryField {
+      private String alias;
+
+      public GroupingField(SOQL.QueryField queryField) {
+        super(queryField.getFieldPath(), queryField.getDescribe());
       }
-      if (input.right(1) != '\'') {
-        input = input + '\'';
+
+      public override String getAlias() {
+        return this.getFieldPath().replace('.', '_') + '__Grouping';
       }
-      return input;
+
+      public override String getAliasedFieldPath() {
+        return 'GROUPING(' + super.getFieldPath() + ') ' + this.getAlias();
+      }
     }
 
-    private String convertListToQueryString(List<Object> valueList) {
-      List<String> parsedValueList = new List<String>();
-      for (Object value : valueList) {
-        parsedValueList.add(this.formatObjectForQueryString(value));
+    global virtual class QueryFilter implements Comparable {
+      private SOQL.QueryField queryField;
+      private SOQL.Operator operator;
+      private Object value;
+      private String formattedValue;
+      private String filterString;
+
+      @SuppressWarnings('PMD.EmptyStatementBlock')
+      protected QueryFilter() {
       }
-      return '(' + String.join(parsedValueList, ', ') + ')';
+
+      global QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
+        this(new QueryField(field), operator, value);
+      }
+
+      global QueryFilter(QueryField queryField, SOQL.Operator operator, Object value) {
+        this.queryField = queryField;
+        this.operator = operator;
+        this.value = value;
+        this.formattedValue = new QueryArgument(value).toString();
+
+        this.filterString = queryField + ' ' + SOQL.getOperatorValue(operator) + ' ' + formattedValue;
+      }
+
+      global QueryFilter(Schema.SObjectType childSObjectType, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
+        this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
+        this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')';
+      }
+
+      global QueryFilter(Query childQuery, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
+        this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
+        this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' ' + childQuery.getSubquery(lookupFieldOnChildSObject);
+      }
+
+      global Integer compareTo(Object compareTo) {
+        QueryFilter compareToQueryFilter = (QueryFilter) compareTo;
+        return this.toString().compareTo(compareToQueryFilter.toString());
+      }
+
+      global SOQL.QueryField getQueryField() {
+        return this.queryField;
+      }
+
+      global SOQL.Operator getOperator() {
+        return this.operator;
+      }
+
+      global Object getValue() {
+        return this.value;
+      }
+
+      // TODO decide if this should be global
+      public Object getFormattedValue() {
+        return this.formattedValue;
+      }
+
+      // TODO remove duplicate in AggregateQuery
+      // TODO finalize name
+      // TODO decide between public properties or public methods
+      public class AggregateResult {
+        public final List<AggregateResultField> fields = new List<AggregateResultField>();
+        public final Schema.AggregateResult result;
+
+        public AggregateResult(Schema.AggregateResult result) {
+          this.result = result;
+        }
+
+        public void addField(AggregateResultField resultFieldProxy) {
+          this.fields.add(resultFieldProxy);
+        }
+
+        public List<AggregateResultField> getFields() {
+          return this.fields;
+        }
+      }
+
+      // TODO decide between public properties or public methods
+      public class AggregateResultField {
+        public String fieldAlias;
+        public String fieldPath;
+        public Object value;
+
+        public AggregateResultFieldProxy(String fieldPath, String fieldAlias, Object value) {
+          this.fieldPath = fieldPath;
+          this.fieldAlias = fieldAlias;
+          this.value = value;
+        }
+      }
+
+      // TODO decide if this should be global
+      public virtual override String toString() {
+        return this.filterString;
+      }
     }
 
-    private String convertSetToQueryString(Object valueSet) {
-      String unformattedString = String.valueOf(valueSet).replace('{', '').replace('}', '');
-      List<String> parsedValueList = new List<String>();
-      for (String collectionItem : unformattedString.split(',')) {
-        parsedValueList.add(this.formatObjectForQueryString(collectionItem));
-      }
-      return '(' + String.join(parsedValueList, ', ') + ')';
+    // TODO decide if this should be global (or deleted)
+    public class SOQLException extends Exception {
     }
 
-    private String convertMapToQueryString(Object valueMap) {
-      Map<String, Object> untypedMap = (Map<String, Object>) Json.deserializeUntyped(Json.serialize(valueMap));
-      return this.convertSetToQueryString(untypedMap.keySet());
+    private class QueryArgument {
+      private String value;
+
+      public QueryArgument(Object valueToFormat) {
+        this.value = this.formatObjectForQueryString(valueToFormat);
+      }
+
+      public override String toString() {
+        return this.value;
+      }
+
+      private String formatObjectForQueryString(Object valueToFormat) {
+        if (valueToFormat == null) {
+          return null;
+        } else if (valueToFormat instanceof List<Object>) {
+          return this.convertListToQueryString((List<Object>) valueToFormat);
+        } else if (valueToFormat instanceof Set<Object>) {
+          return this.convertSetToQueryString(valueToFormat);
+        } else if (valueToFormat instanceof Map<Object, Object>) {
+          return this.convertMapToQueryString(valueToFormat);
+        } else if (valueToFormat instanceof Date) {
+          return String.valueOf((Date) valueToFormat).left(10);
+        } else if (valueToFormat instanceof Datetime) {
+          Datetime datetimeValue = (Datetime) valueToFormat;
+          return datetimeValue.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time');
+        } else if (valueToFormat instanceof SObject) {
+          return this.wrapInSingleQuotes(((SObject) valueToFormat).Id);
+        } else if (valueToFormat instanceof String) {
+          // Escape single quotes to prevent SOQL/SOSL injection
+          String unformattedString = (String) valueToFormat;
+          String stringArgument = String.escapeSingleQuotes(unformattedString.trim());
+          return this.wrapInSingleQuotes(stringArgument);
+        } else {
+          return String.valueOf(valueToFormat);
+        }
+      }
+
+      private String wrapInSingleQuotes(String input) {
+        input = input.trim();
+        if (input.left(1) != '\'') {
+          input = '\'' + input;
+        }
+        if (input.right(1) != '\'') {
+          input = input + '\'';
+        }
+        return input;
+      }
+
+      private String convertListToQueryString(List<Object> valueList) {
+        List<String> parsedValueList = new List<String>();
+        for (Object value : valueList) {
+          parsedValueList.add(this.formatObjectForQueryString(value));
+        }
+        return '(' + String.join(parsedValueList, ', ') + ')';
+      }
+
+      private String convertSetToQueryString(Object valueSet) {
+        String unformattedString = String.valueOf(valueSet).replace('{', '').replace('}', '');
+        List<String> parsedValueList = new List<String>();
+        for (String collectionItem : unformattedString.split(',')) {
+          parsedValueList.add(this.formatObjectForQueryString(collectionItem));
+        }
+        return '(' + String.join(parsedValueList, ', ') + ')';
+      }
+
+      private String convertMapToQueryString(Object valueMap) {
+        Map<String, Object> untypedMap = (Map<String, Object>) Json.deserializeUntyped(Json.serialize(valueMap));
+        return this.convertSetToQueryString(untypedMap.keySet());
+      }
     }
   }
 }

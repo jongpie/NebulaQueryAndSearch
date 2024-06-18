@@ -1,5 +1,6 @@
 /*******************************************************************************************************
  * This file is part of the Nebula Query & Search project, released under the MIT License.             *
+ * Copyright (c) 2018, Jonathan Gillespie. All rights reserved.                                        *
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
@@ -16,9 +17,7 @@ global class Query extends SOQL {
   private String displayFieldApiName;
   private List<String> polymorphicFieldStatements;
   private List<String> childRelationshipQueries;
-  private Boolean forReference;
-  private Boolean forUpdate;
-  private Boolean forView;
+  private String forClause = '';
   private Boolean includeLabels;
   private Boolean includeFormattedValues;
 
@@ -28,9 +27,7 @@ global class Query extends SOQL {
     this.displayFieldApiName = this.getDisplayFieldApiName(this.sobjectType);
     this.polymorphicFieldStatements = new List<String>();
     this.childRelationshipQueries = new List<String>();
-    this.forReference = false;
-    this.forUpdate = false;
-    this.forView = false;
+    this.forClause = '';
     this.includeLabels = false;
     this.includeFormattedValues = false;
 
@@ -275,22 +272,21 @@ global class Query extends SOQL {
   }
 
   global Query forReference() {
-    this.forReference = true;
+    this.forClause = ' FOR REFERENCE';
     return this.setHasChanged();
   }
 
   global Query forUpdate() {
-    this.forUpdate = true;
+    this.forClause = ' FOR UPDATE';
     return this.setHasChanged();
   }
 
   global Query forView() {
-    this.forView = true;
+    this.forClause = 'FOR VIEW';
     return this.setHasChanged();
   }
 
-  // TODO decide if this should be global
-  public Query cacheResults() {
+  global Query cacheResults() {
     super.doCacheResults();
     return this;
   }
@@ -319,14 +315,12 @@ global class Query extends SOQL {
       childRelationshipsQueryFieldString +
       ' FROM ' +
       this.sobjectType +
-      super.doGetUsingScopeString() +
-      super.doGetWhereClauseString() +
-      super.doGetOrderByString() +
-      super.doGetLimitCountString() +
-      super.doGetOffetString() +
-      this.getForReferenceString() +
-      this.getForUpdateString() +
-      this.getForViewString();
+      super.getUsingScopeClause() +
+      super.getWhereClauseClause() +
+      super.getOrderByClause() +
+      super.getLimitClause() +
+      super.getOffetClause() +
+      this.getForClause();
 
     // Change hasChanged to false so that subsequent calls to getQuery() use the cached query string
     // If additional builder methods are later called, the builder methods will set hasChanged = true
@@ -355,10 +349,10 @@ global class Query extends SOQL {
       super.doGetQueryFieldString() +
       ' FROM ' +
       childRelationshipName +
-      super.doGetUsingScopeString() +
-      super.doGetWhereClauseString() +
-      super.doGetOrderByString() +
-      super.doGetLimitCountString() +
+      super.getUsingScopeClause() +
+      super.getWhereClauseClause() +
+      super.getOrderByClause() +
+      super.getLimitClause() +
       ')';
 
     System.debug(LoggingLevel.FINEST, childQuery);
@@ -372,10 +366,10 @@ global class Query extends SOQL {
       childToParentRelationshipField +
       ' FROM ' +
       this.sobjectType +
-      super.doGetUsingScopeString() +
-      super.doGetWhereClauseString() +
-      super.doGetOrderByString() +
-      super.doGetLimitCountString() +
+      super.getUsingScopeClause() +
+      super.getWhereClauseClause() +
+      super.getOrderByClause() +
+      super.getLimitClause() +
       ')';
 
     System.debug(LoggingLevel.FINEST, subquery);
@@ -384,7 +378,7 @@ global class Query extends SOQL {
 
   @SuppressWarnings('PMD.AvoidDebugStatements')
   public String getSearchQuery() {
-    String sobjectTypeOptions = super.doGetQueryFieldString() + super.doGetWhereClauseString() + super.doGetOrderByString() + super.doGetLimitCountString();
+    String sobjectTypeOptions = super.doGetQueryFieldString() + super.getWhereClauseClause() + super.getOrderByClause() + super.getLimitClause();
 
     // If we have any sobject-specific options, then wrap the options in parentheses
     sobjectTypeOptions = String.isEmpty(sobjectTypeOptions) ? '' : '(' + sobjectTypeOptions + ')';
@@ -401,6 +395,31 @@ global class Query extends SOQL {
 
   global List<SObject> getResults() {
     return super.doGetResults();
+  }
+
+  global virtual SOQL.SObjectRecord getFirstRecord() {
+    List<SOQL.SObjectRecord> sobjectRecords = this.getRecords();
+    return sobjectRecords == null || sobjectRecords.isEmpty() ? null : sobjectRecords.get(0);
+  }
+
+  global virtual List<SOQL.SObjectRecord> getRecords() {
+    List<SOQL.SObjectRecord> sobjectRecords = new List<SOQL.SObjectRecord>();
+    for (System.SObject record : this.getResults()) {
+      for (SOQL.QueryField queryField : this.includedQueryFieldsAndCategory.keySet()) {
+        SOQL.sobjectRecord sobjectRecord = new SOQL.sobjectRecord(result);
+
+        // TODO revist constructor & properties for AggregateResultFieldProxy
+        String fieldPath = queryField.getFieldPath();
+        String fieldAlias; // = queryField.getAlias();
+
+
+        Object resultValue = result.get(fieldAlias);
+        sobjectRecord.addField(new SOQL.SObjectRecordField(fieldPath, fieldAlias, resultValue));
+
+        aggregateRecords.add(sobjectRecord);
+      }
+    }
+    return aggregateRecords;
   }
 
   private void addDefaultFields() {
@@ -427,7 +446,7 @@ global class Query extends SOQL {
       }
     }
 
-    // Remove an excluded field paths
+    // Remove any excluded field paths
     for (SOQL.QueryField excludedQueryField : this.excludedQueryFields) {
       distinctFieldApiNamesToQuery.remove(excludedQueryField.toString());
     }
@@ -566,15 +585,7 @@ global class Query extends SOQL {
     return 'format(' + fieldApiName + ') ' + fieldApiName.replace('.', '_') + '__Formatted';
   }
 
-  private String getForReferenceString() {
-    return !this.forReference ? '' : ' FOR REFERENCE';
-  }
-
-  private String getForUpdateString() {
-    return !this.forUpdate ? '' : ' FOR UPDATE';
-  }
-
-  private String getForViewString() {
-    return !this.forView ? '' : ' FOR VIEW';
+  private String getForClause() {
+    return this.forClause;
   }
 }

@@ -1,5 +1,6 @@
 /*******************************************************************************************************
  * This file is part of the Nebula Query & Search project, released under the MIT License.             *
+ * Copyright (c) 2018, Jonathan Gillespie. All rights reserved.                                        *
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 

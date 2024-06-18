@@ -1,5 +1,6 @@
 /*******************************************************************************************************
  * This file is part of the Nebula Query & Search project, released under the MIT License.             *
+ * Copyright (c) 2018, Jonathan Gillespie. All rights reserved.                                        *
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
@@ -12,16 +13,16 @@
 @SuppressWarnings(
   'PMD.ApexDoc, PMD.ApexSharingViolations, PMD.AvoidGlobalModifier, PMD.CyclomaticComplexity, PMD.ExcessiveParameterList, PMD.ExcessivePublicCount, PMD.FieldDeclarationsShouldBeAtStart'
 )
-global class AggregateQuery extends SOQL {
+global virtual class AggregateQuery extends SOQL {
   private SOQL.GroupingDimension groupingDimension;
-  private List<AggregateField> aggregateFields;
-  private List<String> havingConditions;
+  private List<AggregateField> aggregateFields = new List<AggregateField>();
+  private List<GroupByField> groupByFields = new List<GroupByField>();
+  private List<SOQL.GroupBySubtotalField> groupBySubtotalFields = new List<SOQL.GroupBySubtotalField>();
+  private List<SOQL.QueryField> queryFields = new List<SOQL.QueryField>();
+  private List<String> havingConditions = new List<String>();
 
   global AggregateQuery(Schema.SObjectType sobjectType) {
     super(sobjectType, false);
-
-    this.aggregateFields = new List<AggregateField>();
-    this.havingConditions = new List<String>();
   }
 
   global AggregateQuery groupByField(Schema.SObjectField field) {
@@ -41,7 +42,10 @@ global class AggregateQuery extends SOQL {
   }
 
   global AggregateQuery groupByFields(List<SOQL.QueryField> queryFields) {
-    super.doAddFields(queryFields, null);
+    for (SOQL.QueryField queryField : queryFields) {
+      this.groupByFields.add(new GroupByField(queryField));
+    }
+    // super.doAddFields(queryFields, null);
     return this.setHasChanged();
   }
 
@@ -51,6 +55,22 @@ global class AggregateQuery extends SOQL {
       queryFields.add(new SOQL.QueryField(this.sobjectType, fieldSetMember.getFieldPath()));
     }
     return this.groupByFields(queryFields);
+  }
+
+  global AggregateQuery groupBySubtotalField(Schema.SObjectField field) {
+    return this.groupBySubtotalField(new SOQL.QueryField(field));
+  }
+
+  global AggregateQuery groupBySubtotalField(SOQL.QueryField queryField) {
+    return this.groupBySubtotalFields(new List<SOQL.QueryField>{ queryField });
+  }
+
+  global AggregateQuery groupBySubtotalFields(List<SOQL.QueryField> queryFields) {
+    // TODO https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_groupby_grouping.htm
+    for (SOQL.QueryField queryField : queryFields) {
+      this.groupBySubtotalFields.add(new SOQL.GroupBySubtotalField(queryField));
+    }
+    return this.setHasChanged();
   }
 
   global AggregateQuery usingGroupingDimension(SOQL.GroupingDimension groupingDimension) {
@@ -71,7 +91,7 @@ global class AggregateQuery extends SOQL {
   }
 
   global AggregateQuery addAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, String fieldAlias) {
-    this.aggregateFields.add(new AggregateField(this.getSObjectType(), aggregateFunction, queryField, fieldAlias));
+    this.aggregateFields.add(new AggregateField(aggregateFunction, queryField, fieldAlias));
     return this.setHasChanged();
   }
 
@@ -166,69 +186,91 @@ global class AggregateQuery extends SOQL {
     return this.setHasChanged();
   }
 
-  // TODO decide if this should be global
+  // public AggregateQuery cacheQuery(SOQL.Cacheable cache) {
+  //     // TODO
+  //     return this;
+  // }
+
   public AggregateQuery cacheResults() {
     super.doCacheResults();
     return this;
   }
 
-  // TODO decide if this should be global
+  // public AggregateQuery cacheResults(SOQL.Cacheable cache, String key) {
+  //     // TODO
+  //     return this;
+  // }
+
   @SuppressWarnings('PMD.AvoidDebugStatements')
   public override String getQuery() {
-    if (this.query != null && !this.hasChanged) {
+    if (this.query != null && this.hasChanged == false) {
       return this.query;
     }
 
-    String queryFieldString = super.doGetQueryFieldString();
-    String aggregateQueryFieldString = this.getAggregateQueryFieldString();
-    String aggregateFieldDelimiter = !String.isEmpty(queryFieldString) && !String.isEmpty(aggregateQueryFieldString) ? ', ' : '';
+    List<String> queryFieldPaths = new List<String>();
+    // List<SOQL.QueryField> consolidatedFields = new List<SOQL.QueryField>();
+    // // this.aggregateFields.sort();
+    // consolidatedFields.addAll(this.groupByFields);
+    // consolidatedFields.addAll(this.groupBySubtotalFields);
+    // consolidatedFields.addAll(this.aggregateFields);
+    // System.debug('>>> this.groupBySubtotalFields: ' + this.groupBySubtotalFields);
+    // for (SOQL.QueryField queryField : consolidatedFields) {
+    //     queryFieldPaths.add(queryField.getAliasedFieldPath());
+    // }
 
-    String combinedFieldsString = queryFieldString + aggregateFieldDelimiter + aggregateQueryFieldString;
-    if (String.isBlank(combinedFieldsString)) {
+    if (queryFieldPaths.isEmpty()) {
       Schema.SObjectField idField = this.getSObjectType().getDescribe().fields.getMap().get('Id');
-      combinedFieldsString = new AggregateField(this.getSObjectType(), SOQL.Aggregate.COUNT, new SOQL.QueryField(idField), null).toString();
+      queryFieldPaths.add(new AggregateField(SOQL.Aggregate.COUNT, new SOQL.QueryField(idField), null).getAliasedFieldPath());
     }
 
-    this.query =
-      'SELECT ' +
-      combinedFieldsString +
-      ' FROM ' +
-      this.sobjectType +
-      super.doGetUsingScopeString() +
-      super.doGetWhereClauseString() +
-      this.getGroupByString() +
-      this.getHavingString() +
-      super.doGetOrderByString() +
-      super.doGetLimitCountString() +
-      super.doGetOffetString();
-
-    System.debug(LoggingLevel.FINEST, this.query);
+    this.query = this.createQuery(queryFieldPaths);
+    System.debug('>>> query: ' + this.query);
     return this.query;
   }
 
-  // TODO consider renaming to getCountResult()
   @SuppressWarnings('PMD.ApexSOQLInjection')
   global Integer getResultCount() {
-    String countQuery =
-      'SELECT COUNT()' +
-      ' FROM ' +
-      this.sobjectType +
-      super.doGetUsingScopeString() +
-      super.doGetWhereClauseString() +
-      this.getGroupByString() +
-      this.getHavingString() +
-      super.doGetOrderByString() +
-      super.doGetLimitCountString() +
-      super.doGetOffetString();
-    return Database.countQuery(countQuery);
+    String countQuery = this.createQuery(new List<String>{'COUNT()'});
+    return System.Database.countQuery(countQuery);
   }
 
-  global AggregateResult getFirstResult() {
-    return (AggregateResult) super.doGetFirstResult();
+  global virtual Schema.AggregateResult getFirstResult() {
+    return (Schema.AggregateResult) super.doGetFirstResult();
   }
 
-  global List<AggregateResult> getResults() {
-    return (List<AggregateResult>) super.doGetResults();
+  global List<Schema.AggregateResult> getResults() {
+    return (List<Schema.AggregateResult>) super.doGetResults();
+  }
+
+  global virtual SOQL.AggregateRecord getFirstRecord() {
+    List<SOQL.AggregateRecord> records = this.getRecords();
+    return records == null || records.isEmpty() ? null : records.get(0);
+  }
+
+  global virtual List<SOQL.AggregateRecord> getRecords() {
+    List<SOQL.AggregateRecord> aggregateRecords = new List<SOQL.AggregateRecord>();
+    List<SOQL.QueryField> consolidatedFields = new List<SOQL.QueryField>();
+    // this.aggregateFields.sort();
+    // consolidatedFields.addAll(this.groupByFields);
+    // consolidatedFields.addAll(this.groupBySubtotalFields);
+    // consolidatedFields.addAll(this.aggregateFields);
+    for (Schema.AggregateResult result : this.getResults()) {
+      for (SOQL.QueryField queryField : consolidatedFields) {
+        SOQL.AggregateRecord aggregateRecord = new SOQL.AggregateRecord(result);
+
+        // TODO revist constructor & properties for AggregateResultFieldProxy
+        String fieldPath = queryField.getFieldPath();
+        String fieldAlias; // = queryField.getAlias();
+
+        System.debug('converting result field to proxy, fieldPath: ' + fieldPath + ', fieldAlias: ' + fieldAlias);
+
+        Object resultValue = result.get(fieldAlias);
+        aggregateRecord.addField(new SOQL.AggregateRecordField(fieldPath, fieldAlias, resultValue));
+
+        aggregateRecords.add(aggregateRecord);
+      }
+    }
+    return aggregateRecords;
   }
 
   private AggregateQuery setHasChanged() {
@@ -243,14 +285,18 @@ global class AggregateQuery extends SOQL {
 
     List<String> aggregateFieldStrings = new List<String>();
     for (AggregateQuery.AggregateField aggregatedField : this.aggregateFields) {
-      aggregateFieldStrings.add(aggregatedField.toString());
+      aggregateFieldStrings.add(aggregatedField.getFieldPath());
     }
     aggregateFieldStrings.sort();
     return String.join(aggregateFieldStrings, ', ');
   }
 
   private String getGroupByString() {
-    String queryFieldString = super.doGetQueryFieldString();
+    List<String> groupByStatementFieldPaths = new List<String>();
+    for (GroupByField groupByField : this.groupByFields) {
+      groupByStatementFieldPaths.add(groupByField.getFieldPath());
+    }
+    String queryFieldString = String.join(groupByStatementFieldPaths, ', ');
 
     String groupByTextString = ' GROUP BY ';
     String groupingDimensionClosingString = '';
@@ -266,25 +312,15 @@ global class AggregateQuery extends SOQL {
     return this.havingConditions.isEmpty() ? '' : ' HAVING ' + String.join(this.havingConditions, ', ');
   }
 
-  private class AggregateField {
-    private Schema.SObjectType sobjectType;
-    private String aggregateFieldPath;
-
-    public AggregateField(Schema.SObjectType sobjectType, SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, String fieldAlias) {
-      this.sobjectType = sobjectType;
-      this.aggregateFieldPath = this.getAggregateFieldPath(aggregateFunction, queryField, fieldAlias);
-    }
-
-    public override String toString() {
-      return this.aggregateFieldPath;
-    }
-
-    private String getAggregateFieldPath(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, String fieldAlias) {
-      String fieldApiName = queryField.getDescribe().getName();
-      fieldAlias = !String.isEmpty(fieldAlias) ? String.escapeSingleQuotes(fieldAlias) : aggregateFunction.name() + '__' + fieldApiName;
-
-      // Example: MIN(Schema.Lead.MyField__c) is auto-aliased to MyField__c__MIN
-      return aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
-    }
+  private String createQuery(List<String> selectFieldPaths) {
+    return 'SELECT ' + String.join(selectFieldPaths, ', ') + ' FROM ' +
+    this.sobjectType +
+    super.getUsingScopeClause() +
+    super.getWhereClauseClause() +
+    this.getGroupByString() +
+    this.getHavingString() +
+    super.getOrderByClause() +
+    super.getLimitClause() +
+    super.getOffetClause();
   }
 }

@@ -1,5 +1,6 @@
 /*******************************************************************************************************
  * This file is part of the Nebula Query & Search project, released under the MIT License.             *
+ * Copyright (c) 2018, Jonathan Gillespie. All rights reserved.                                        *
  * See LICENSE file or go to https://github.com/jongpie/NebulaQueryAndSearch for full license details. *
  ******************************************************************************************************/
 
@@ -122,6 +123,7 @@ private class Query_Tests {
 
     Map<Schema.SObjectType, List<Schema.SObjectField>> fieldsBySObjectType = new Map<Schema.SObjectType, List<Schema.SObjectField>>();
 
+<<<<<<< Updated upstream
     // Contact fields
     List<Schema.SObjectField> contactFields = new List<Schema.SObjectField>{ Schema.Contact.Id, Schema.Contact.Name, Schema.Contact.AccountId };
     fieldsBySObjectType.put(Schema.Contact.SObjectType, contactFields);
@@ -137,6 +139,68 @@ private class Query_Tests {
 
     System.assertEquals(expectedQuery, taskQuery.getQuery());
   }
+=======
+    @IsTest
+    static void it_should_return_results_for_an_advanced_query() {
+        Datetime now = System.now();
+        String expectedQueryString =
+            'SELECT Alias, Email, Id, IsActive, Profile.Name, ProfileId' +
+            ' FROM User USING SCOPE MINE' +
+            ' WHERE CreatedDate <= LAST_WEEK' +
+            ' AND Email != null' +
+            ' AND IsActive = true' +
+            ' AND LastLoginDate >= LAST_N_DAYS:3' +
+            ' AND LastModifiedDate <= ' +
+            now.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time') +
+            ' AND Profile.Id != \'' +
+            UserInfo.getProfileId() +
+            '\'' +
+            ' ORDER BY Profile.CreatedBy.LastModifiedDate ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST' +
+            ' LIMIT 100 OFFSET 1 FOR VIEW';
+        List<SObjectField> fieldsToQuery = new List<SObjectField>{ Schema.User.IsActive, Schema.User.Alias };
+
+        Query userQuery = new Query(Schema.User.SObjectType)
+            .addFields(fieldsToQuery)
+            .addField(Schema.User.ProfileId)
+            .addField(Schema.User.Email, SOQL.FieldCategory.UPDATEABLE)
+            .removeField(new SOQL.QueryField(Schema.User.Name))
+            .removeField(Schema.User.UserRoleId)
+            .includeLabels()
+            .includeFormattedValues()
+            .usingScope(SOQL.Scope.MINE)
+            .filterWhere(Schema.User.IsActive, SOQL.Operator.EQUALS, true)
+            .filterWhere(new SOQL.QueryField(Schema.User.SObjectType, 'Profile.Id'), SOQL.Operator.NOT_EQUAL_TO, UserInfo.getProfileId())
+            .filterWhere(Schema.User.LastModifiedDate, SOQL.Operator.LESS_THAN_OR_EQUAL_TO, now)
+            .filterWhere(Schema.User.LastLoginDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, new SOQL.DateLiteral(SOQL.RelativeDateLiteral.LAST_N_DAYS, 3))
+            .filterWhere(Schema.User.CreatedDate, SOQL.Operator.LESS_THAN_OR_EQUAL_TO, new SOQL.DateLiteral(SOQL.FixedDateLiteral.LAST_WEEK))
+            .filterWhere(Schema.User.Email, SOQL.Operator.NOT_EQUAL_TO, null)
+            .orderByField(new SOQL.QueryField(Schema.User.SObjectType, 'Profile.CreatedBy.LastModifiedDate'))
+            .orderByField(Schema.User.Name, SOQL.SortOrder.ASCENDING)
+            .orderByField(Schema.User.Email)
+            .limitTo(100)
+            .offsetBy(1)
+            .forView();
+
+        System.assertEquals(expectedQueryString, userQuery.getQuery());
+        List<User> expectedResults = Database.query(expectedQueryString);
+        List<User> returnedResults = userQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+
+    @IsTest
+    static void it_should_return_results_and_include_grandparent_query_field() {
+        String expectedQueryString = 'SELECT Id, Name, Profile.UserLicense.LicenseDefinitionKey FROM User LIMIT 1';
+        List<Schema.SObjectField> fieldChain = new List<Schema.SObjectField>{ Schema.User.ProfileId, Schema.Profile.UserLicenseId, Schema.UserLicense.LicenseDefinitionKey };
+        SOQL.QueryField queryField = new SOQL.QueryField(fieldChain);
+
+        Query userQuery = new Query(Schema.User.SObjectType).addField(queryField).limitTo(1);
+
+        System.assertEquals(expectedQueryString, userQuery.getQuery());
+        List<User> expectedResults = Database.query(expectedQueryString);
+        List<User> returnedResults = userQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+>>>>>>> Stashed changes
 
   @IsTest
   static void it_should_return_results_and_include_sobject_type_for_polymorphic_field() {
@@ -193,9 +257,17 @@ private class Query_Tests {
     System.Assert.areEqual(expectedResults, returnedResults);
   }
 
+<<<<<<< Updated upstream
   @IsTest
   static void it_marks_query_for_reference() {
     String expectedQueryString = 'SELECT Id, Name FROM Lead FOR REFERENCE';
+=======
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+>>>>>>> Stashed changes
 
     Query leadQuery = new Query(Schema.Lead.SObjectType).forReference();
 
@@ -211,6 +283,7 @@ private class Query_Tests {
 
     Query leadQuery = new Query(Schema.Lead.SObjectType).forUpdate();
 
+<<<<<<< Updated upstream
     System.assertEquals(expectedQueryString, leadQuery.getQuery());
     List<Lead> expectedResults = Database.query(expectedQueryString);
     List<Lead> returnedResults = leadQuery.getResults();
@@ -220,6 +293,79 @@ private class Query_Tests {
   @IsTest
   static void it_marks_query_for_view() {
     String expectedQueryString = 'SELECT Id, Name FROM Lead FOR VIEW';
+=======
+    @IsTest
+    static void it_should_return_results_when_filtering_with_an_or_statement() {
+        String expectedQueryString = 'SELECT Id, Name FROM Account WHERE ParentId != null AND (AnnualRevenue = null OR Type = null)';
+
+        Query accountQuery = new Query(Schema.Account.SObjectType)
+            .addField(Schema.Account.AnnualRevenue)
+            .orFilterWhere(
+                new List<SOQL.QueryFilter>{
+                    new SOQL.QueryFilter(Schema.Account.Type, SOQL.Operator.EQUALS, null),
+                    new SOQL.QueryFilter(Schema.Account.AnnualRevenue, SOQL.Operator.EQUALS, null)
+                }
+            )
+            .filterWhere(new SOQL.QueryFilter(Schema.Account.ParentId, SOQL.Operator.NOT_EQUAL_TO, null));
+
+        List<Account> accounts = accountQuery.getResults();
+    }
+
+    @IsTest
+    static void it_includes_order_by_statement_for_single_field() {
+        String expectedQueryString = 'SELECT Id, Name FROM Lead ORDER BY CreatedDate ASC NULLS FIRST';
+
+        Query leadQuery = new Query(Schema.Lead.SObjectType).orderByField(Schema.Lead.CreatedDate);
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+
+    @IsTest
+    static void it_marks_query_for_reference() {
+        String expectedQueryString = 'SELECT Id, Name FROM Lead FOR REFERENCE';
+
+        Query leadQuery = new Query(Schema.Lead.SObjectType).forReference();
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+
+    @IsTest
+    static void it_marks_query_for_update() {
+        String expectedQueryString = 'SELECT Id, Name FROM Lead FOR UPDATE';
+
+        Query leadQuery = new Query(Schema.Lead.SObjectType).forUpdate();
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+
+    @IsTest
+    static void it_marks_query_for_view() {
+        String expectedQueryString = 'SELECT Id, Name FROM Lead FOR VIEW';
+
+        Query leadQuery = new Query(Schema.Lead.SObjectType).forView();
+
+        System.assertEquals(expectedQueryString, leadQuery.getQuery());
+        List<Lead> expectedResults = Database.query(expectedQueryString);
+        List<Lead> returnedResults = leadQuery.getResults();
+        System.Assert.areEqual(expectedResults, returnedResults);
+    }
+
+    @IsTest
+    static void it_should_return_results_when_filtering_with_iso_currency() {
+        // If multi-currency isn't enabled, then we cannot use IsoCurrency, so skip running this test
+        if (!UserInfo.isMultiCurrencyOrganization()) {
+            return;
+        }
+>>>>>>> Stashed changes
 
     Query leadQuery = new Query(Schema.Lead.SObjectType).forView();
 
@@ -264,5 +410,29 @@ private class Query_Tests {
     System.assertEquals(1, Limits.getQueries());
 
     Test.stopTest();
+  }
+
+  @IsTest
+  static void it_allows_deeply_nested_conditionals() {
+    String expected = 'SELECT Id FROM Contact WHERE LastName = :bindVar0 OR LastName = :bindVar1 OR (FirstName = :bindVar2 AND (LastName != :bindVar3 OR LastName != :bindVar4))';
+
+    Query actual = new Query(Schema.Contact.SObjectType)
+      .filterWhere(Schema.Contact.LastName, Soql.Operator.EQUALS, ':bindVar0')
+      .orFilterWhere(new SOQL.QueryFilter(Schema.Contact.LastName, SOQL.Operator.EQUALS, ':bindVar1'))
+      .orFilterWhere(
+        new SOQL.NestedQueryFilter(
+          SOQL.FilterConjunction.AND_FILTER,
+          new List<SOQL.QueryFilter>{
+            new SOQL.QueryFilter(Schema.Contact.FirstName, SOQL.Operator.EQUALS, ':bindVar2'),
+            new SOQL.NestedQueryFilter(
+              SOQL.FilterConjunction.OR_FILTER,
+              new List<SOQL.QueryFilter>{
+                new SOQL.QueryFilter(Schema.Contact.LastName, SOQL.Operator.NOT_EQUAL_TO, ':bindVar3'),
+                new SOQL.QueryFilter(Schema.Contact.LastName, SOQL.Operator.NOT_EQUAL_TO, ':bindVar4')
+              }
+            )
+          }
+        )
+      );
   }
 }
