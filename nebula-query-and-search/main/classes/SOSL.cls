@@ -121,6 +121,10 @@ global abstract class SOSL {
     return this.withClauses.isEmpty() ? '' : ' WITH ' + String.join(this.withClauses, ' WITH ');
   }
 
+  protected void doWithAccessLevel(System.AccessLevel accessLevel) {
+    this.accessLevel = accessLevel;
+  }
+
   protected System.AccessLevel doGetAccessLevel() {
     return this.accessLevel ?? System.AccessLevel.SYSTEM_MODE;
   }

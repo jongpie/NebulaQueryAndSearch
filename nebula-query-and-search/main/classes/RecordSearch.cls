@@ -65,7 +65,7 @@ global class RecordSearch extends SOSL {
   }
 
   global RecordSearch withAccessLevel(System.AccessLevel accessLevel) {
-    this.accessLevel = accessLevel;
+    super.doWithAccessLevel(accessLevel);
     return this.setHasChanged();
   }
 
