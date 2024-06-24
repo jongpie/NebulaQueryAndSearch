@@ -258,6 +258,7 @@ global abstract class SOQL implements Comparable {
     }
 
     for (SOQL.QueryFilter filter : filters) {
+      filter.setBindKey(filter.getBindKey() ?? this.generateNextBindVariableKey());
       this.whereFilters.add(filter.toString());
       if (String.isNotBlank(filter.bindKey)) {
         this.bindsMap.put(filter.bindKey, filter.value);
@@ -275,6 +276,7 @@ global abstract class SOQL implements Comparable {
 
     List<String> orFilterPieces = new List<String>();
     for (SOQL.QueryFilter filter : filters) {
+      filter.setBindKey(filter.getBindKey() ?? this.generateNextBindVariableKey());
       orFilterPieces.add(filter.toString());
     }
     this.whereFilters.add('(' + String.join(orFilterPieces, ' OR ') + ')');
