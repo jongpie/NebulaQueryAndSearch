@@ -136,8 +136,8 @@ global class AggregateQuery extends SOQL {
     return this.setHasChanged();
   }
 
-  global AggregateQuery withAccessLevel(System.AccessLevel mode) {
-    super.doWithAccessLevel(mode);
+  global AggregateQuery withAccessLevel(System.AccessLevel accessLevel) {
+    super.doWithAccessLevel(accessLevel);
     return this.setHasChanged();
   }
 

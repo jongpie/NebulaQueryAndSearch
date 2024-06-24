@@ -247,8 +247,8 @@ global class Query extends SOQL {
   //return this.setHasChanged();
   //}
 
-  global Query withAccessLevel(System.AccessLevel mode) {
-    super.doWithAccessLevel(mode);
+  global Query withAccessLevel(System.AccessLevel accessLevel) {
+    super.doWithAccessLevel(accessLevel);
     return this.setHasChanged();
   }
 
