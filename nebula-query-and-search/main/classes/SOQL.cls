@@ -599,9 +599,11 @@ global abstract class SOQL implements Comparable {
     private SOQL.QueryField queryField;
     private SOQL.Operator operator;
     private Object value;
-    private String formattedValue;
-    private String filterString;
     private String bindKey;
+    private Schema.SObjectType childSObjectType;
+    private Query childQuery;
+    private Boolean inOrNotIn;
+    private Schema.SObjectField lookupFieldOnChildSObject;
 
     global QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
       this(new QueryField(field), operator, value);
@@ -619,20 +621,21 @@ global abstract class SOQL implements Comparable {
       this.queryField = queryField;
       this.operator = operator;
       this.value = value;
-      this.formattedValue = (String.isNotBlank(bindKey) ? ':' + bindKey : new QueryArgument(value).toString());
       this.bindKey = bindKey;
-
-      this.filterString = queryField + ' ' + SOQL.getOperatorValue(operator) + ' ' + formattedValue;
     }
 
     global QueryFilter(Schema.SObjectType childSObjectType, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
       this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
-      this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')';
+      this.childSObjectType = childSObjectType;
+      this.inOrNotIn = inOrNotIn;
+      this.lookupFieldOnChildSObject = lookupFieldOnChildSObject;
     }
 
     global QueryFilter(Query childQuery, Boolean inOrNotIn, Schema.SObjectField lookupFieldOnChildSObject) {
       this.operator = inOrNotIn ? SOQL.Operator.IS_IN : SOQL.Operator.IS_NOT_IN;
-      this.filterString = 'Id ' + SOQL.getOperatorValue(this.operator) + ' ' + childQuery.getSubquery(lookupFieldOnChildSObject);
+      this.childQuery = childQuery;
+      this.inOrNotIn = inOrNotIn;
+      this.lookupFieldOnChildSObject = lookupFieldOnChildSObject;
     }
 
     global Integer compareTo(Object compareTo) {
@@ -659,14 +662,33 @@ global abstract class SOQL implements Comparable {
       return this.value;
     }
 
+    global String getBindKey() {
+      return this.bindKey;
+    }
+
+    global void setBindKey(String bindKey) {
+      if (this.queryField != null)
+      {
+        this.bindKey = bindKey;
+      }
+    }
+
     // TODO decide if this should be global
     public Object getFormattedValue() {
-      return this.formattedValue;
+      return (String.isNotBlank(this.bindKey) ? ':' + this.bindKey : new QueryArgument(this.value).toString());
     }
 
     // TODO decide if this should be global
     public override String toString() {
-      return this.filterString;
+      return (
+        this.queryField != null ?
+        this.queryField + ' ' + SOQL.getOperatorValue(this.operator) + ' ' + this.getFormattedValue() :
+        (
+            this.childSObjectType != null ?
+            'Id ' + SOQL.getOperatorValue(this.operator) + ' (SELECT ' + this.lookupFieldOnChildSObject + ' FROM ' + this.childSObjectType + ')' :
+            'Id ' + SOQL.getOperatorValue(this.operator) + ' ' + this.childQuery.getSubquery(this.lookupFieldOnChildSObject)
+        )
+      );
     }
   }
 
