@@ -189,6 +189,8 @@ global abstract class SOQL implements Comparable {
   protected Boolean sortQueryFields;
   protected Map<String, Object> bindsMap;
   protected Boolean cacheResults;
+  private Boolean generateBindVariableKeys;
+  private Integer generatedBindVariableKeyCounter;
 
   protected SOQL(Schema.SObjectType sobjectType, Boolean sortQueryFields) {
     this.sobjectType = sobjectType;
@@ -203,6 +205,8 @@ global abstract class SOQL implements Comparable {
     this.bindsMap = new Map<String, Object>();
     this.cacheResults = false;
     this.hasChanged = false;
+    this.generateBindVariableKeys = false;
+    this.generatedBindVariableKeyCounter = 0;
   }
 
   global Schema.SObjectType getSObjectType() {
@@ -320,6 +324,14 @@ global abstract class SOQL implements Comparable {
 
   protected void doClearBinds() {
     this.bindsMap.clear();
+  }
+
+  protected void doGenerateBindVariableKeys() {
+    this.generateBindVariableKeys = true;
+  }
+
+  protected String generateNextBindVariableKey() {
+    return this.generateBindVariableKeys != true ? null : 'bindVar' + this.generatedBindVariableKeyCounter++;
   }
 
   protected SObject doGetFirstResult() {

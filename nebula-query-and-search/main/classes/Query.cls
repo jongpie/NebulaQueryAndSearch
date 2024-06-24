@@ -322,6 +322,11 @@ global class Query extends SOQL {
     return this.setHasChanged();
   }
 
+  global Query generateBindVariableKeys() {
+    super.doGenerateBindVariableKeys();
+    return this;
+  }
+
   // TODO decide if this should be global
   public Query cacheResults() {
     super.doCacheResults();

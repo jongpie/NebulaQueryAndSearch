@@ -221,6 +221,11 @@ global class AggregateQuery extends SOQL {
     return this.setHasChanged();
   }
 
+  global AggregateQuery generateBindVariableKeys() {
+    super.doGenerateBindVariableKeys();
+    return this;
+  }
+
   // TODO decide if this should be global
   public AggregateQuery cacheResults() {
     super.doCacheResults();
