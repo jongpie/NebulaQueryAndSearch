@@ -85,7 +85,7 @@ global class AggregateQuery extends SOQL {
   }
 
   global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value) {
-    return this.havingAggregate(aggregateFunction, queryField, operator, value, null);
+    return this.havingAggregate(aggregateFunction, queryField, operator, value, this.generateNextBindVariableKey());
   }
 
   global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindWithKey) {
