@@ -451,4 +451,64 @@ private class AggregateQuery_Tests {
       UserName = 'newuser@testorg.com'
     );
   }
+
+  @IsTest
+  static void it_will_generate_a_bind_variable_for_a_having_filter()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT ParentId, MIN(CreatedDate) MIN__CreatedDate FROM Account GROUP BY ParentId HAVING MIN(CreatedDate) >= :bindVar0';
+    List<Schema.AggregateResult> expectedResults = Database.queryWithBinds(
+      expectedQueryString,
+      new Map<String, Object> {
+        'bindVar0' => Date.today().addDays(-1)
+      },
+      System.AccessLevel.SYSTEM_MODE
+    );
+    AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
+      .generateBindVariableKeys()
+      .addAggregate(SOQL.Aggregate.MIN, Schema.Account.CreatedDate)
+      .groupByField(Account.ParentId)
+      .havingAggregate(SOQL.Aggregate.MIN, Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1));
+
+    // TEST
+    List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+    System.Assert.areEqual(expectedResults, returnedResults);
+    if (!returnedResults.isEmpty())
+    {
+      System.Assert.isFalse((Date)returnedResults[0].get('MIN__CreatedDate') < Date.today().addDays(-1));
+    }
+  }
+
+  @IsTest
+  static void it_will_generate_a_bind_variable_for_a_where_filter()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT MIN(CreatedDate) MIN__CreatedDate FROM Account WHERE CreatedDate >= :bindVar0';
+    List<Schema.AggregateResult> expectedResults = Database.queryWithBinds(
+      expectedQueryString,
+      new Map<String, Object> {
+        'bindVar0' => Date.today().addDays(-1)
+      },
+      System.AccessLevel.SYSTEM_MODE
+    );
+    AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
+      .generateBindVariableKeys()
+      .addAggregate(SOQL.Aggregate.MIN, Schema.Account.CreatedDate)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1)));
+
+    // TEST
+    List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
+    System.Assert.areEqual(expectedResults, returnedResults);
+    if (!returnedResults.isEmpty())
+    {
+      System.Assert.isFalse((Date)returnedResults[0].get('MIN__CreatedDate') < Date.today().addDays(-1));
+    }
+  }
+
 }
