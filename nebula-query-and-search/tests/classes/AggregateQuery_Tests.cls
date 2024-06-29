@@ -112,7 +112,7 @@ private class AggregateQuery_Tests {
 
   @IsTest
   static void it_should_return_results_when_filtering_with_an_or_statement() {
-    String expectedQueryString = 'SELECT Type, COUNT(Id) COUNT__Id FROM Account WHERE (AnnualRevenue = null OR Type = null) AND ParentId != null GROUP BY Type';
+    String expectedQueryString = 'SELECT Type, COUNT(Id) COUNT__Id FROM Account WHERE ParentId != null AND (AnnualRevenue = null OR Type = null) GROUP BY Type';
 
     AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
       .groupByField(Schema.Account.Type)
@@ -135,13 +135,13 @@ private class AggregateQuery_Tests {
   static void it_should_cache_results() {
     AggregateQuery aggregateQuery = new AggregateQuery(Schema.Opportunity.SObjectType);
     aggregateQuery.cacheResults();
-    System.assertEquals(0, System.Limits.getQueries());
+    System.Assert.areEqual(0, System.Limits.getQueries());
 
     for (Integer i = 0; i < 3; i++) {
       aggregateQuery.getResults();
     }
 
-    System.assertEquals(1, System.Limits.getQueries());
+    System.Assert.areEqual(1, System.Limits.getQueries());
   }
 
   @IsTest
@@ -356,7 +356,7 @@ private class AggregateQuery_Tests {
   static void it_will_set_multiple_bind_variables()
   {
     // SETUP
-    String expectedQueryString = 'SELECT MAX(CreatedDate) MAX__CreatedDate, MIN(CreatedDate) MIN__CreatedDate FROM Account WHERE CreatedDate < :maxDateFilter AND CreatedDate >= :minDateFilter';
+    String expectedQueryString = 'SELECT MAX(CreatedDate) MAX__CreatedDate, MIN(CreatedDate) MIN__CreatedDate FROM Account WHERE CreatedDate >= :minDateFilter AND CreatedDate < :maxDateFilter';
     List<Schema.AggregateResult> expectedResults = Database.queryWithBinds(
       expectedQueryString,
       new Map<String, Object> {

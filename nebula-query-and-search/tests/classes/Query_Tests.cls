@@ -43,7 +43,7 @@ private class Query_Tests {
 
     Query simpleAccountQuery = new Query(Schema.Account.SObjectType);
 
-    System.assertEquals(expectedQueryString, simpleAccountQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, simpleAccountQuery.getQuery());
     List<Account> accounts = simpleAccountQuery.getResults();
   }
 
@@ -65,15 +65,15 @@ private class Query_Tests {
     String expectedQueryString =
       'SELECT Alias, Email, Id, IsActive, Profile.Name, ProfileId' +
       ' FROM User USING SCOPE MINE' +
-      ' WHERE CreatedDate <= LAST_WEEK' +
-      ' AND Email != null' +
-      ' AND IsActive = true' +
-      ' AND LastLoginDate >= LAST_N_DAYS:3' +
-      ' AND LastModifiedDate <= ' +
-      now.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time') +
+      ' WHERE IsActive = true' +
       ' AND Profile.Id != \'' +
       System.UserInfo.getProfileId() +
       '\'' +
+      ' AND LastModifiedDate <= ' +
+      now.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'', 'Greenwich Mean Time') +
+      ' AND LastLoginDate >= LAST_N_DAYS:3' +
+      ' AND CreatedDate <= LAST_WEEK' +
+      ' AND Email != null' +
       ' ORDER BY Profile.CreatedBy.LastModifiedDate ASC NULLS FIRST, Name ASC NULLS FIRST, Email ASC NULLS FIRST' +
       ' LIMIT 100 OFFSET 1 FOR VIEW';
     List<Schema.SObjectField> fieldsToQuery = new List<Schema.SObjectField>{ Schema.User.IsActive, Schema.User.Alias };
@@ -100,7 +100,7 @@ private class Query_Tests {
       .offsetBy(1)
       .forView();
 
-    System.assertEquals(expectedQueryString, userQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, userQuery.getQuery());
     List<User> expectedResults = Database.query(expectedQueryString);
     List<User> returnedResults = userQuery.getResults();
     System.Assert.areEqual(expectedResults, returnedResults);
@@ -118,7 +118,7 @@ private class Query_Tests {
 
     Query userQuery = new Query(Schema.User.SObjectType).addField(queryField).limitTo(1);
 
-    System.assertEquals(expectedQueryString, userQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, userQuery.getQuery());
     List<User> expectedResults = Database.query(expectedQueryString);
     List<User> returnedResults = userQuery.getResults();
     System.Assert.areEqual(expectedResults, returnedResults);
@@ -130,7 +130,7 @@ private class Query_Tests {
 
     Query accountQuery = new Query(Schema.Account.SObjectType).addField(new SOQL.QueryField(Schema.Account.OwnerId));
 
-    System.assertEquals(expectedQueryString, accountQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
     List<Account> accounts = accountQuery.getResults();
   }
 
@@ -176,7 +176,7 @@ private class Query_Tests {
 
     System.Test.stopTest();
 
-    System.assertEquals(expectedQuery, taskQuery.getQuery());
+    System.Assert.areEqual(expectedQuery, taskQuery.getQuery());
   }
 
   @IsTest
@@ -185,7 +185,7 @@ private class Query_Tests {
 
     Query leadQuery = new Query(Schema.Lead.SObjectType).addField(new SOQL.QueryField(Schema.Lead.OwnerId));
 
-    System.assertEquals(expectedQueryString, leadQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, leadQuery.getQuery());
     List<Lead> expectedResults = Database.query(expectedQueryString);
     List<Lead> returnedResults = leadQuery.getResults();
     System.Assert.areEqual(expectedResults, returnedResults);
@@ -201,7 +201,7 @@ private class Query_Tests {
       .includeRelatedRecords(Schema.Contact.AccountId, contactQuery)
       .addField(new SOQL.QueryField(Schema.Account.Type));
 
-    System.assertEquals(expectedQueryString, accountQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
     List<Account> accounts = accountQuery.getResults();
   }
 
@@ -297,7 +297,7 @@ private class Query_Tests {
 
     Query leadQuery = new Query(Schema.Lead.SObjectType).orderByField(Schema.Lead.CreatedDate);
 
-    System.assertEquals(expectedQueryString, leadQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, leadQuery.getQuery());
     List<Lead> expectedResults = Database.query(expectedQueryString);
     List<Lead> returnedResults = leadQuery.getResults();
     System.Assert.areEqual(expectedResults, returnedResults);
@@ -309,7 +309,7 @@ private class Query_Tests {
 
     Query leadQuery = new Query(Schema.Lead.SObjectType).forReference();
 
-    System.assertEquals(expectedQueryString, leadQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, leadQuery.getQuery());
     List<Lead> expectedResults = Database.query(expectedQueryString);
     List<Lead> returnedResults = leadQuery.getResults();
     System.Assert.areEqual(expectedResults, returnedResults);
@@ -321,7 +321,7 @@ private class Query_Tests {
 
     Query leadQuery = new Query(Schema.Lead.SObjectType).forUpdate();
 
-    System.assertEquals(expectedQueryString, leadQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, leadQuery.getQuery());
     List<Lead> expectedResults = Database.query(expectedQueryString);
     List<Lead> returnedResults = leadQuery.getResults();
     System.Assert.areEqual(expectedResults, returnedResults);
@@ -333,7 +333,7 @@ private class Query_Tests {
 
     Query leadQuery = new Query(Schema.Lead.SObjectType).forView();
 
-    System.assertEquals(expectedQueryString, leadQuery.getQuery());
+    System.Assert.areEqual(expectedQueryString, leadQuery.getQuery());
     List<Lead> expectedResults = Database.query(expectedQueryString);
     List<Lead> returnedResults = leadQuery.getResults();
     System.Assert.areEqual(expectedResults, returnedResults);
@@ -359,11 +359,11 @@ private class Query_Tests {
     Query userQuery = new Query(Schema.User.SObjectType).limitTo(1);
 
     // First, verify that caching is not enabled by default
-    System.assertEquals(0, System.Limits.getQueries());
+    System.Assert.areEqual(0, System.Limits.getQueries());
     for (Integer i = 0; i < loops; i++) {
       userQuery.getResults();
     }
-    System.assertEquals(loops, System.Limits.getQueries());
+    System.Assert.areEqual(loops, System.Limits.getQueries());
 
     System.Test.startTest();
 
@@ -371,13 +371,13 @@ private class Query_Tests {
     for (Integer i = 0; i < loops; i++) {
       userQuery.getResults();
     }
-    System.assertEquals(1, System.Limits.getQueries());
+    System.Assert.areEqual(1, System.Limits.getQueries());
 
     System.Test.stopTest();
   }
 
   @IsTest
-  static void it_will_set_a_bind_variable()
+  static void it_will_set_a_bind_key()
   {
     // SETUP
     String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= :dateFilter ORDER BY CreatedDate ASC NULLS FIRST LIMIT 1';
@@ -408,10 +408,10 @@ private class Query_Tests {
   }
 
   @IsTest
-  static void it_will_set_multiple_bind_variables()
+  static void it_will_set_multiple_bind_keys()
   {
     // SETUP
-    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate < :maxDateFilter AND CreatedDate >= :minDateFilter ORDER BY CreatedDate ASC NULLS FIRST LIMIT 1';
+    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= :minDateFilter AND CreatedDate < :maxDateFilter ORDER BY CreatedDate ASC NULLS FIRST LIMIT 1';
     List<Account> expectedResults = Database.queryWithBinds(
       expectedQueryString,
       new Map<String, Object> {
@@ -490,7 +490,7 @@ private class Query_Tests {
   }
 
   @IsTest
-  static void it_will_generate_a_bind_variable()
+  static void it_will_generate_a_bind_key()
   {
     // SETUP
     String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= :bindVar0 ORDER BY CreatedDate ASC NULLS FIRST LIMIT 1';
