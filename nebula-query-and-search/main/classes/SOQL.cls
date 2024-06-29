@@ -322,10 +322,21 @@ global abstract class SOQL implements Comparable {
 
   protected void doRemoveBind(String key) {
     this.bindsMap.remove(key);
+    for (QueryFilter filter : this.whereFilters)
+    {
+      if (filter.bindKey == key)
+      {
+        filter.bindKey = null;
+      }
+    }
   }
 
   protected void doClearBinds() {
     this.bindsMap.clear();
+    for (QueryFilter filter : this.whereFilters)
+    {
+      filter.bindKey = null;
+    }
   }
 
   protected void doGenerateBindVariableKeys() {

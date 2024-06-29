@@ -443,54 +443,36 @@ private class Query_Tests {
   }
 
   @IsTest
-  static void it_will_remove_a_bind_variable()
+  static void it_will_remove_a_bind_key()
   {
     // SETUP
-    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= :dateFilter';
+    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= 2000-01-01T05:00:00Z';
     Query accountQuery = new Query(Schema.Account.SObjectType)
       .addField(Schema.Account.CreatedDate)
-      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'dateFilter'));
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Datetime.newInstance(2000, 1, 1), 'dateFilter'));
 
     // TEST
     accountQuery.removeBind('dateFilter');
-    Exception caughtException;
-    try {
-      List<Account> returnedResults = accountQuery.getResults();
-    }
-    catch (Exception e) {
-      caughtException = e;
-    }
 
     // VERIFY
     System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
-    System.Assert.isInstanceOfType(caughtException, QueryException.class);
-    System.Assert.areEqual('Key \'dateFilter\' does not exist in the bindMap', caughtException.getMessage());
   }
 
   @IsTest
-  static void it_will_clear_all_bind_variables()
+  static void it_will_clear_all_bind_keys()
   {
     // SETUP
-    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate < :maxDateFilter AND CreatedDate >= :minDateFilter';
+    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= 2000-01-01T05:00:00Z AND CreatedDate < 2001-01-01T05:00:00Z';
     Query accountQuery = new Query(Schema.Account.SObjectType)
       .addField(Schema.Account.CreatedDate)
-      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'minDateFilter'))
-      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.LESS_THAN, Date.today().addDays(-1), 'maxDateFilter'));
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Datetime.newInstance(2000, 1, 1), 'minDateFilter'))
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.LESS_THAN, Datetime.newInstance(2001, 1, 1), 'maxDateFilter'));
 
     // TEST
     accountQuery.clearBinds();
-    Exception caughtException;
-    try {
-      List<Account> returnedResults = accountQuery.getResults();
-    }
-    catch (Exception e) {
-      caughtException = e;
-    }
 
     // VERIFY
     System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
-    System.Assert.isInstanceOfType(caughtException, QueryException.class);
-    System.Assert.areEqual('Key \'maxDateFilter\' does not exist in the bindMap', caughtException.getMessage());
   }
 
   static User minimumAccessUser() {

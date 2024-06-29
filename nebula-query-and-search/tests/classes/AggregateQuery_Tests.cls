@@ -390,52 +390,34 @@ private class AggregateQuery_Tests {
   static void it_will_remove_a_bind_variable()
   {
     // SETUP
-    String expectedQueryString = 'SELECT MIN(CreatedDate) MIN__CreatedDate FROM Account WHERE CreatedDate >= :dateFilter';
+    String expectedQueryString = 'SELECT MIN(CreatedDate) MIN__CreatedDate FROM Account WHERE CreatedDate >= 2000-01-01T05:00:00Z';
     AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
       .addAggregate(SOQL.Aggregate.MIN, Schema.Account.CreatedDate)
-      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'dateFilter'));
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Datetime.newInstance(2000, 1, 1), 'dateFilter'));
 
     // TEST
     aggregateQuery.removeBind('dateFilter');
-    Exception caughtException;
-    try {
-      List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
-    }
-    catch (Exception e) {
-      caughtException = e;
-    }
 
     // VERIFY
     System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
-    System.Assert.isInstanceOfType(caughtException, QueryException.class);
-    System.Assert.areEqual('Key \'dateFilter\' does not exist in the bindMap', caughtException.getMessage());
   }
 
   @IsTest
   static void it_will_clear_all_bind_variables()
   {
     // SETUP
-    String expectedQueryString = 'SELECT MAX(CreatedDate) MAX__CreatedDate, MIN(CreatedDate) MIN__CreatedDate FROM Account WHERE CreatedDate < :maxDateFilter AND CreatedDate >= :minDateFilter';
+    String expectedQueryString = 'SELECT MAX(CreatedDate) MAX__CreatedDate, MIN(CreatedDate) MIN__CreatedDate FROM Account WHERE CreatedDate >= 2000-01-01T05:00:00Z AND CreatedDate < 2001-01-01T05:00:00Z';
     AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
       .addAggregate(SOQL.Aggregate.MIN, Schema.Account.CreatedDate)
       .addAggregate(SOQL.Aggregate.MAX, Schema.Account.CreatedDate)
-      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'minDateFilter'))
-      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.LESS_THAN, Date.today().addDays(-1), 'maxDateFilter'));
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Datetime.newInstance(2000, 1, 1), 'minDateFilter'))
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.LESS_THAN, Datetime.newInstance(2001, 1, 1), 'maxDateFilter'));
 
     // TEST
     aggregateQuery.clearBinds();
-    Exception caughtException;
-    try {
-      List<Schema.AggregateResult> returnedResults = aggregateQuery.getResults();
-    }
-    catch (Exception e) {
-      caughtException = e;
-    }
 
     // VERIFY
     System.Assert.areEqual(expectedQueryString, aggregateQuery.getQuery());
-    System.Assert.isInstanceOfType(caughtException, QueryException.class);
-    System.Assert.areEqual('Key \'maxDateFilter\' does not exist in the bindMap', caughtException.getMessage());
   }
 
   static User minimumAccessUser() {
