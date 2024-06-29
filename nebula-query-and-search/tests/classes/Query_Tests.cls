@@ -613,4 +613,36 @@ private class Query_Tests {
     }
   }
 
+  @IsTest
+  static void it_will_generate_a_bind_key_if_removed()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT CreatedDate, Id, Name FROM Account WHERE CreatedDate >= :bindVar0 ORDER BY CreatedDate ASC NULLS FIRST LIMIT 1';
+    List<Account> expectedResults = Database.queryWithBinds(
+      expectedQueryString,
+      new Map<String, Object> {
+        'bindVar0' => Date.today().addDays(-1)
+      },
+      System.AccessLevel.SYSTEM_MODE
+    );
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .addField(Schema.Account.CreatedDate)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.GREATER_THAN_OR_EQUAL_TO, Date.today().addMonths(-1), 'dateFilter'))
+      .orderByField(Schema.Account.CreatedDate, SOQL.SortOrder.ASCENDING)
+      .limitTo(1)
+      .removeBind('dateFilter')
+      .generateBindVariableKeys();
+
+    // TEST
+    List<Account> returnedResults = accountQuery.getResults();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, accountQuery.getQuery());
+    System.Assert.areEqual(expectedResults, returnedResults);
+    if (!returnedResults.isEmpty())
+    {
+      System.Assert.isFalse(returnedResults[0].CreatedDate < Date.today().addDays(-1));
+    }
+  }
+
 }
