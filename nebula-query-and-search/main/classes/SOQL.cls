@@ -180,7 +180,8 @@ global abstract class SOQL implements Comparable {
   protected Map<SOQL.QueryField, SOQL.FieldCategory> includedQueryFieldsAndCategory;
   protected Set<SOQL.QueryField> excludedQueryFields;
   protected Scope scope;
-  protected List<String> whereFilters;
+  protected List<QueryFilter> whereFilters;
+  protected String whereFilterConditionsString;
   protected System.AccessLevel accessLevel;
   protected List<String> orderByFieldApiNames;
   protected Integer limitCount;
@@ -199,7 +200,8 @@ global abstract class SOQL implements Comparable {
     this.sobjectDescribe = this.sobjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED);
     this.includedQueryFieldsAndCategory = new Map<SOQL.QueryField, SOQL.FieldCategory>();
     this.excludedQueryFields = new Set<SOQL.QueryField>();
-    this.whereFilters = new List<String>();
+    this.whereFilters = new List<QueryFilter>();
+    this.whereFilterConditionsString = '';
     this.orderByFieldApiNames = new List<String>();
     this.accessLevel = System.AccessLevel.SYSTEM_MODE;
     this.bindsMap = new Map<String, Object>();
@@ -258,28 +260,26 @@ global abstract class SOQL implements Comparable {
     }
 
     for (SOQL.QueryFilter filter : filters) {
-      filter.setBindKey(filter.getBindKey() ?? this.generateNextBindVariableKey());
-      this.whereFilters.add(filter.toString());
-      if (String.isNotBlank(filter.bindKey)) {
-        this.bindsMap.put(filter.bindKey, filter.value);
-      }
+      this.whereFilters.add(filter);
+      this.whereFilterConditionsString += (this.whereFilters.size() == 1 ? '1' : ' AND ' + this.whereFilters.size());
     }
     this.doSetHasChanged();
   }
 
   protected void doOrFilterWhere(List<SOQL.QueryFilter> filters) {
-    if (filters == null || filters.isEmpty()) {
+    if (filters?.isEmpty() != false) {
       return;
     }
 
     filters.sort();
 
-    List<String> orFilterPieces = new List<String>();
-    for (SOQL.QueryFilter filter : filters) {
-      filter.setBindKey(filter.getBindKey() ?? this.generateNextBindVariableKey());
-      orFilterPieces.add(filter.toString());
+    this.whereFilterConditionsString += (this.whereFilters.isEmpty() ? '' : ' AND ') + '(';
+    for (Integer i = 0; i < filters.size(); i++) {
+        SOQL.QueryFilter filter = filters[i];
+        this.whereFilters.add(filter);
+        this.whereFilterConditionsString += (i == 0 ? '' : ' OR ') + this.whereFilters.size();
     }
-    this.whereFilters.add('(' + String.join(orFilterPieces, ' OR ') + ')');
+    this.whereFilterConditionsString += ')';
     this.doSetHasChanged();
   }
 
@@ -401,8 +401,49 @@ global abstract class SOQL implements Comparable {
   }
 
   protected String doGetWhereClauseString() {
-    this.whereFilters.sort();
-    return this.whereFilters.isEmpty() ? '' : ' WHERE ' + String.join(this.whereFilters, ' AND ');
+    List<String> whereFilterStrings = new List<String>();
+    for (QueryFilter filter : this.whereFilters)
+    {
+        filter.setBindKey(filter.getBindKey() ?? this.generateNextBindVariableKey());
+        if (String.isNotBlank(filter.bindKey)) {
+          this.bindsMap.put(filter.bindKey, filter.value);
+        }
+        whereFilterStrings.add(filter.toString());
+    }
+    if (String.isBlank(this.whereFilterConditionsString))
+    {
+        return '';
+    }
+
+    List<String> whereFilterConditionsParts = this.whereFilterConditionsString.split('\\s+');
+    List<String> whereFilterConditionsPartsReplaced = new List<String>();
+    for (String whereFilterConditionsPart : whereFilterConditionsParts)
+    {
+        Matcher m = Pattern.compile('\\d+').matcher(whereFilterConditionsPart);
+        Boolean indexFound = m.find();
+        if (indexFound)
+        {
+            Integer whereFilterConditionsIndex = Integer.valueOf(m.group());
+            try
+            {
+                whereFilterConditionsPartsReplaced.add(
+                    whereFilterConditionsPart.replace(
+                        m.group(),
+                        whereFilterStrings[whereFilterConditionsIndex - 1]
+                    )
+                );
+            }
+            catch (ListException e)
+            {
+                throw new QueryException('No query WHERE filter defined for index "' + whereFilterConditionsIndex + '" specified in filter conditions "' + this.whereFilterConditionsString + '"');
+            }
+        }
+        else
+        {
+            whereFilterConditionsPartsReplaced.add(whereFilterConditionsPart);
+        }
+    }
+    return ' WHERE ' + String.join(whereFilterConditionsPartsReplaced, ' ');
   }
 
   protected System.AccessLevel doGetAccessLevel() {
