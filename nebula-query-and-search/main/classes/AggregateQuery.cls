@@ -99,19 +99,7 @@ global class AggregateQuery extends SOQL {
   }
 
   global AggregateQuery orHavingAggregate(List<AggregateQueryFilter> filters) {
-    if (filters?.isEmpty() != false) {
-      return this;
-    }
-
-    filters.sort();
-
-    this.havingClauseFilterLogic += (this.havingClauseFilters.isEmpty() ? '' : ' AND ') + '(';
-    for (Integer i = 0; i < filters.size(); i++) {
-        AggregateQueryFilter filter = filters[i];
-        this.havingClauseFilters.add(filter);
-        this.havingClauseFilterLogic += (i == 0 ? '' : ' OR ') + this.havingClauseFilters.size();
-    }
-    this.havingClauseFilterLogic += ')';
+    this.havingClauseFilterLogic = this.doOrFilter(this.havingClauseFilters, this.havingClauseFilterLogic);
     return this.setHasChanged();
   }
 

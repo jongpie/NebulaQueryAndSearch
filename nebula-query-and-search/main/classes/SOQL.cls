@@ -266,21 +266,26 @@ global abstract class SOQL implements Comparable {
     this.doSetHasChanged();
   }
 
-  protected void doOrFilterWhere(List<SOQL.QueryFilter> filters) {
+  protected String doOrFilter(List<SOQL.QueryFilter> filters, String filterLogic) {
     if (filters?.isEmpty() != false) {
-      return;
+      return filterLogic;
     }
 
     filters.sort();
 
-    this.whereClauseFilterLogic += (this.whereClauseFilters.isEmpty() ? '' : ' AND ') + '(';
+    filterLogic += (filters.isEmpty() ? '' : ' AND ') + '(';
     for (Integer i = 0; i < filters.size(); i++) {
         SOQL.QueryFilter filter = filters[i];
-        this.whereClauseFilters.add(filter);
-        this.whereClauseFilterLogic += (i == 0 ? '' : ' OR ') + this.whereClauseFilters.size();
+        filters.add(filter);
+        filterLogic += (i == 0 ? '' : ' OR ') + filters.size();
     }
-    this.whereClauseFilterLogic += ')';
+    filterLogic += ')';
     this.doSetHasChanged();
+    return filterLogic;
+  }
+
+  protected void doOrFilterWhere(List<SOQL.QueryFilter> filters) {
+    this.whereClauseFilterLogic = this.doOrFilter(this.whereClauseFilters, this.whereClauseFilterLogic);
   }
 
   protected void doWithAccessLevel(System.AccessLevel accessLevel) {
