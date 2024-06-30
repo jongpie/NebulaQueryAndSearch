@@ -263,7 +263,6 @@ global abstract class SOQL implements Comparable {
       this.whereClauseFilters.add(filter);
       this.whereClauseFilterLogic += (this.whereClauseFilters.size() == 1 ? '1' : ' AND ' + this.whereClauseFilters.size());
     }
-    this.doSetHasChanged();
   }
 
   protected String doOrFilter(List<SOQL.QueryFilter> filters, String filterLogic) {
@@ -280,7 +279,6 @@ global abstract class SOQL implements Comparable {
         filterLogic += (i == 0 ? '' : ' OR ') + filters.size();
     }
     filterLogic += ')';
-    this.doSetHasChanged();
     return filterLogic;
   }
 
@@ -486,7 +484,7 @@ global abstract class SOQL implements Comparable {
     return this.bindsMap ?? new Map<String, Object>();
   }
 
-  private void doSetHasChanged() {
+  protected void doSetHasChanged() {
     this.hasChanged = true;
   }
 

@@ -303,7 +303,7 @@ global class AggregateQuery extends SOQL {
   }
 
   private AggregateQuery setHasChanged() {
-    this.hasChanged = true;
+    this.doSetHasChanged();
     return this;
   }
 

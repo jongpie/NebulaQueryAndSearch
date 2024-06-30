@@ -450,7 +450,7 @@ global class Query extends SOQL {
   }
 
   private Query setHasChanged() {
-    this.hasChanged = true;
+    this.doSetHasChanged();
     return this;
   }
 
