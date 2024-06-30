@@ -647,15 +647,15 @@ global abstract class SOQL implements Comparable {
     }
   }
 
-  global class QueryFilter implements Comparable {
-    private SOQL.QueryField queryField;
-    private SOQL.Operator operator;
-    private Object value;
-    private String bindKey;
-    private Schema.SObjectType childSObjectType;
-    private Query childQuery;
-    private Boolean inOrNotIn;
-    private Schema.SObjectField lookupFieldOnChildSObject;
+  global virtual class QueryFilter implements Comparable {
+    protected SOQL.QueryField queryField;
+    protected SOQL.Operator operator;
+    protected Object value;
+    protected String bindKey;
+    protected Schema.SObjectType childSObjectType;
+    protected Query childQuery;
+    protected Boolean inOrNotIn;
+    protected Schema.SObjectField lookupFieldOnChildSObject;
 
     global QueryFilter(Schema.SObjectField field, SOQL.Operator operator, Object value) {
       this(new QueryField(field), operator, value);
@@ -731,7 +731,7 @@ global abstract class SOQL implements Comparable {
     }
 
     // TODO decide if this should be global
-    public override String toString() {
+    public virtual override String toString() {
       return (
         this.queryField != null ?
         this.queryField + ' ' + SOQL.getOperatorValue(this.operator) + ' ' + this.getFormattedValue() :

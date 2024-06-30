@@ -361,4 +361,29 @@ global class AggregateQuery extends SOQL {
       return aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
     }
   }
+
+  global class AggregateQueryFilter extends SOQL.QueryFilter {
+    private SOQL.Aggregate aggregateFunction;
+
+    public AggregateQueryFilter(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindKey)
+    {
+        super(queryField, operator, value, bindKey);
+        this.aggregateFunction = aggregateFunction;
+    }
+
+    public override String toString()
+    {
+        return String.format(
+          '{0}({1}) {2} {3}',
+          new List<String> {
+          this.aggregateFunction.name(),
+          this.queryField.toString(),
+          SOQL.getOperatorValue(this.operator),
+          (String.isNotBlank(this.bindKey) ? ':' + this.bindKey : new QueryArgument(this.value).toString())
+          }
+        );
+    }
+
+  }
+
 }
