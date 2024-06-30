@@ -15,14 +15,16 @@
 global class AggregateQuery extends SOQL {
   private SOQL.GroupingDimension groupingDimension;
   private List<AggregateField> aggregateFields;
-  private List<String> havingConditions;
+  private List<AggregateQueryFilter> havingConditions;
+  protected String havingConditionsLogic;
   private String countQuery;
 
   global AggregateQuery(Schema.SObjectType sobjectType) {
     super(sobjectType, false);
 
     this.aggregateFields = new List<AggregateField>();
-    this.havingConditions = new List<String>();
+    this.havingConditions = new List<AggregateQueryFilter>();
+    this.havingConditionsLogic = '';
   }
 
   global AggregateQuery groupByField(Schema.SObjectField field) {
@@ -90,19 +92,26 @@ global class AggregateQuery extends SOQL {
 
   global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindWithKey) {
     this.havingConditions.add(
-      String.format(
-        '{0}({1}) {2} {3}',
-        new List<String> {
-          aggregateFunction.name(),
-          queryField.toString(),
-          SOQL.getOperatorValue(operator),
-          (String.isNotBlank(bindWithKey) ? ':' + bindWithKey : new QueryArgument(value).toString())
-        }
-      )
+        new AggregateQueryFilter(aggregateFunction, queryField, operator, value, bindWithKey)
     );
-    if (String.isNotBlank(bindWithKey)) {
-      this.bindsMap.put(bindWithKey, value);
+    this.havingConditionsLogic += (this.havingConditions.size() == 1 ? '1' : ' AND ' + this.havingConditions.size());
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery havingOrAggregate(List<AggregateQueryFilter> filters) {
+    if (filters?.isEmpty() != false) {
+      return this;
     }
+
+    filters.sort();
+
+    this.havingConditionsLogic += (this.havingConditions.isEmpty() ? '' : ' AND ') + '(';
+    for (Integer i = 0; i < filters.size(); i++) {
+        AggregateQueryFilter filter = filters[i];
+        this.havingConditions.add(filter);
+        this.havingConditionsLogic += (i == 0 ? '' : ' OR ') + this.havingConditions.size();
+    }
+    this.havingConditionsLogic += ')';
     return this.setHasChanged();
   }
 
@@ -337,7 +346,49 @@ global class AggregateQuery extends SOQL {
   }
 
   private String getHavingString() {
-    return this.havingConditions.isEmpty() ? '' : ' HAVING ' + String.join(this.havingConditions, ', ');
+    List<String> havingConditionStrings = new List<String>();
+    for (AggregateQueryFilter condition : this.havingConditions)
+    {
+        condition.setBindKey(condition.getBindKey() ?? this.generateNextBindVariableKey());
+        if (String.isNotBlank(condition.getBindKey())) {
+          this.bindsMap.put(condition.getBindKey(), condition.getValue());
+        }
+        havingConditionStrings.add(condition.toString());
+    }
+    if (String.isBlank(this.havingConditionsLogic))
+    {
+        return '';
+    }
+
+    List<String> havingConditionsLogicParts = this.havingConditionsLogic.split('\\s+');
+    List<String> havingConditionsLogicPartsReplaced = new List<String>();
+    for (String havingConditionsLogicPart : havingConditionsLogicParts)
+    {
+        Matcher m = Pattern.compile('\\d+').matcher(havingConditionsLogicPart);
+        Boolean indexFound = m.find();
+        if (indexFound)
+        {
+            Integer havingConditionsIndex = Integer.valueOf(m.group());
+            try
+            {
+                havingConditionsLogicPartsReplaced.add(
+                    havingConditionsLogicPart.replace(
+                        m.group(),
+                        havingConditionStrings[havingConditionsIndex - 1]
+                    )
+                );
+            }
+            catch (ListException e)
+            {
+                throw new QueryException('No query HAVING filter defined for index "' + havingConditionsIndex + '" specified in filter conditions "' + this.havingConditionsLogic + '"');
+            }
+        }
+        else
+        {
+            havingConditionsLogicPartsReplaced.add(havingConditionsLogicPart);
+        }
+    }
+    return ' HAVING ' + String.join(havingConditionsLogicPartsReplaced, ' ');
   }
 
   private class AggregateField {
