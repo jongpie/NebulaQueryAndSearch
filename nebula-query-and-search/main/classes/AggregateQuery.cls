@@ -15,16 +15,16 @@
 global class AggregateQuery extends SOQL {
   private SOQL.GroupingDimension groupingDimension;
   private List<AggregateField> aggregateFields;
-  private List<AggregateQueryFilter> havingConditions;
-  protected String havingConditionsLogic;
+  private List<AggregateQueryFilter> havingClauseFilters;
+  protected String havingClauseFilterLogic;
   private String countQuery;
 
   global AggregateQuery(Schema.SObjectType sobjectType) {
     super(sobjectType, false);
 
     this.aggregateFields = new List<AggregateField>();
-    this.havingConditions = new List<AggregateQueryFilter>();
-    this.havingConditionsLogic = '';
+    this.havingClauseFilters = new List<AggregateQueryFilter>();
+    this.havingClauseFilterLogic = '';
   }
 
   global AggregateQuery groupByField(Schema.SObjectField field) {
@@ -91,27 +91,27 @@ global class AggregateQuery extends SOQL {
   }
 
   global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindWithKey) {
-    this.havingConditions.add(
+    this.havingClauseFilters.add(
         new AggregateQueryFilter(aggregateFunction, queryField, operator, value, bindWithKey)
     );
-    this.havingConditionsLogic += (this.havingConditions.size() == 1 ? '1' : ' AND ' + this.havingConditions.size());
+    this.havingClauseFilterLogic += (this.havingClauseFilters.size() == 1 ? '1' : ' AND ' + this.havingClauseFilters.size());
     return this.setHasChanged();
   }
 
-  global AggregateQuery havingOrAggregate(List<AggregateQueryFilter> filters) {
+  global AggregateQuery orHavingAggregate(List<AggregateQueryFilter> filters) {
     if (filters?.isEmpty() != false) {
       return this;
     }
 
     filters.sort();
 
-    this.havingConditionsLogic += (this.havingConditions.isEmpty() ? '' : ' AND ') + '(';
+    this.havingClauseFilterLogic += (this.havingClauseFilters.isEmpty() ? '' : ' AND ') + '(';
     for (Integer i = 0; i < filters.size(); i++) {
         AggregateQueryFilter filter = filters[i];
-        this.havingConditions.add(filter);
-        this.havingConditionsLogic += (i == 0 ? '' : ' OR ') + this.havingConditions.size();
+        this.havingClauseFilters.add(filter);
+        this.havingClauseFilterLogic += (i == 0 ? '' : ' OR ') + this.havingClauseFilters.size();
     }
-    this.havingConditionsLogic += ')';
+    this.havingClauseFilterLogic += ')';
     return this.setHasChanged();
   }
 
@@ -266,7 +266,7 @@ global class AggregateQuery extends SOQL {
       super.doGetUsingScopeString() +
       super.doGetWhereClauseString() +
       this.getGroupByString() +
-      this.getHavingString() +
+      this.getHavingClauseString() +
       super.doGetOrderByString() +
       super.doGetLimitCountString() +
       super.doGetOffetString();
@@ -287,7 +287,7 @@ global class AggregateQuery extends SOQL {
       super.doGetUsingScopeString() +
       super.doGetWhereClauseString() +
       this.getGroupByString() +
-      this.getHavingString() +
+      this.getHavingClauseString() +
       super.doGetOrderByString() +
       super.doGetLimitCountString() +
       super.doGetOffetString();
@@ -345,8 +345,8 @@ global class AggregateQuery extends SOQL {
     return String.isEmpty(queryFieldString) ? '' : groupByTextString + queryFieldString + groupingDimensionClosingString;
   }
 
-  private String getHavingString() {
-    return this.doGetFilterableClauseString('HAVING', this.havingConditions, this.havingConditionsLogic);
+  private String getHavingClauseString() {
+    return this.doGetFilterableClauseString('HAVING', this.havingClauseFilters, this.havingClauseFilterLogic);
   }
 
   private class AggregateField {

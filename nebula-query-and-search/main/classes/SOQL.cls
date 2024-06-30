@@ -180,8 +180,8 @@ global abstract class SOQL implements Comparable {
   protected Map<SOQL.QueryField, SOQL.FieldCategory> includedQueryFieldsAndCategory;
   protected Set<SOQL.QueryField> excludedQueryFields;
   protected Scope scope;
-  protected List<QueryFilter> whereFilters;
-  protected String whereFilterConditionsString;
+  protected List<QueryFilter> whereClauseFilters;
+  protected String whereClauseFilterLogic;
   protected System.AccessLevel accessLevel;
   protected List<String> orderByFieldApiNames;
   protected Integer limitCount;
@@ -200,8 +200,8 @@ global abstract class SOQL implements Comparable {
     this.sobjectDescribe = this.sobjectType.getDescribe(Schema.SObjectDescribeOptions.DEFERRED);
     this.includedQueryFieldsAndCategory = new Map<SOQL.QueryField, SOQL.FieldCategory>();
     this.excludedQueryFields = new Set<SOQL.QueryField>();
-    this.whereFilters = new List<QueryFilter>();
-    this.whereFilterConditionsString = '';
+    this.whereClauseFilters = new List<QueryFilter>();
+    this.whereClauseFilterLogic = '';
     this.orderByFieldApiNames = new List<String>();
     this.accessLevel = System.AccessLevel.SYSTEM_MODE;
     this.bindsMap = new Map<String, Object>();
@@ -260,8 +260,8 @@ global abstract class SOQL implements Comparable {
     }
 
     for (SOQL.QueryFilter filter : filters) {
-      this.whereFilters.add(filter);
-      this.whereFilterConditionsString += (this.whereFilters.size() == 1 ? '1' : ' AND ' + this.whereFilters.size());
+      this.whereClauseFilters.add(filter);
+      this.whereClauseFilterLogic += (this.whereClauseFilters.size() == 1 ? '1' : ' AND ' + this.whereClauseFilters.size());
     }
     this.doSetHasChanged();
   }
@@ -273,13 +273,13 @@ global abstract class SOQL implements Comparable {
 
     filters.sort();
 
-    this.whereFilterConditionsString += (this.whereFilters.isEmpty() ? '' : ' AND ') + '(';
+    this.whereClauseFilterLogic += (this.whereClauseFilters.isEmpty() ? '' : ' AND ') + '(';
     for (Integer i = 0; i < filters.size(); i++) {
         SOQL.QueryFilter filter = filters[i];
-        this.whereFilters.add(filter);
-        this.whereFilterConditionsString += (i == 0 ? '' : ' OR ') + this.whereFilters.size();
+        this.whereClauseFilters.add(filter);
+        this.whereClauseFilterLogic += (i == 0 ? '' : ' OR ') + this.whereClauseFilters.size();
     }
-    this.whereFilterConditionsString += ')';
+    this.whereClauseFilterLogic += ')';
     this.doSetHasChanged();
   }
 
@@ -322,7 +322,7 @@ global abstract class SOQL implements Comparable {
 
   protected void doRemoveBind(String key) {
     this.bindsMap.remove(key);
-    for (QueryFilter filter : this.whereFilters)
+    for (QueryFilter filter : this.whereClauseFilters)
     {
       if (filter.bindKey == key)
       {
@@ -333,7 +333,7 @@ global abstract class SOQL implements Comparable {
 
   protected void doClearBinds() {
     this.bindsMap.clear();
-    for (QueryFilter filter : this.whereFilters)
+    for (QueryFilter filter : this.whereClauseFilters)
     {
       filter.bindKey = null;
     }
@@ -458,7 +458,7 @@ global abstract class SOQL implements Comparable {
   }
 
   protected String doGetWhereClauseString() {
-    return this.doGetFilterableClauseString('WHERE', this.whereFilters, this.whereFilterConditionsString);
+    return this.doGetFilterableClauseString('WHERE', this.whereClauseFilters, this.whereClauseFilterLogic);
   }
 
   protected System.AccessLevel doGetAccessLevel() {
