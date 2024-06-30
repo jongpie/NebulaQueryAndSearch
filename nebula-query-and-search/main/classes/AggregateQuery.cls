@@ -346,49 +346,7 @@ global class AggregateQuery extends SOQL {
   }
 
   private String getHavingString() {
-    List<String> havingConditionStrings = new List<String>();
-    for (AggregateQueryFilter condition : this.havingConditions)
-    {
-        condition.setBindKey(condition.getBindKey() ?? this.generateNextBindVariableKey());
-        if (String.isNotBlank(condition.getBindKey())) {
-          this.bindsMap.put(condition.getBindKey(), condition.getValue());
-        }
-        havingConditionStrings.add(condition.toString());
-    }
-    if (String.isBlank(this.havingConditionsLogic))
-    {
-        return '';
-    }
-
-    List<String> havingConditionsLogicParts = this.havingConditionsLogic.split('\\s+');
-    List<String> havingConditionsLogicPartsReplaced = new List<String>();
-    for (String havingConditionsLogicPart : havingConditionsLogicParts)
-    {
-        Matcher m = Pattern.compile('\\d+').matcher(havingConditionsLogicPart);
-        Boolean indexFound = m.find();
-        if (indexFound)
-        {
-            Integer havingConditionsIndex = Integer.valueOf(m.group());
-            try
-            {
-                havingConditionsLogicPartsReplaced.add(
-                    havingConditionsLogicPart.replace(
-                        m.group(),
-                        havingConditionStrings[havingConditionsIndex - 1]
-                    )
-                );
-            }
-            catch (ListException e)
-            {
-                throw new QueryException('No query HAVING filter defined for index "' + havingConditionsIndex + '" specified in filter conditions "' + this.havingConditionsLogic + '"');
-            }
-        }
-        else
-        {
-            havingConditionsLogicPartsReplaced.add(havingConditionsLogicPart);
-        }
-    }
-    return ' HAVING ' + String.join(havingConditionsLogicPartsReplaced, ' ');
+    return this.doGetFilterableClauseString('HAVING', this.havingConditions, this.havingConditionsLogic);
   }
 
   private class AggregateField {

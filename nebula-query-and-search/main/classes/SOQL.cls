@@ -411,50 +411,54 @@ global abstract class SOQL implements Comparable {
     return this.scope == null ? '' : ' USING SCOPE ' + this.scope.name();
   }
 
-  protected String doGetWhereClauseString() {
-    List<String> whereFilterStrings = new List<String>();
-    for (QueryFilter filter : this.whereFilters)
+  protected String doGetFilterableClauseString(String clause, LIST<SOQL.QueryFilter> filters, String filterLogic) {
+    List<String> filterStrings = new List<String>();
+    for (Soql.QueryFilter filter : filters)
     {
         filter.setBindKey(filter.getBindKey() ?? this.generateNextBindVariableKey());
-        if (String.isNotBlank(filter.bindKey)) {
-          this.bindsMap.put(filter.bindKey, filter.value);
+        if (String.isNotBlank(filter.getBindKey())) {
+          this.bindsMap.put(filter.getBindKey(), filter.getValue());
         }
-        whereFilterStrings.add(filter.toString());
+        filterStrings.add(filter.toString());
     }
-    if (String.isBlank(this.whereFilterConditionsString))
+    if (String.isBlank(filterLogic))
     {
         return '';
     }
 
-    List<String> whereFilterConditionsParts = this.whereFilterConditionsString.split('\\s+');
-    List<String> whereFilterConditionsPartsReplaced = new List<String>();
-    for (String whereFilterConditionsPart : whereFilterConditionsParts)
+    List<String> filterLogicParts = filterLogic.split('\\s+');
+    List<String> filterLogicPartsReplaced = new List<String>();
+    for (String filterLogicPart : filterLogicParts)
     {
-        Matcher m = Pattern.compile('\\d+').matcher(whereFilterConditionsPart);
+        Matcher m = Pattern.compile('\\d+').matcher(filterLogicPart);
         Boolean indexFound = m.find();
         if (indexFound)
         {
-            Integer whereFilterConditionsIndex = Integer.valueOf(m.group());
+            Integer filterLogicIndex = Integer.valueOf(m.group());
             try
             {
-                whereFilterConditionsPartsReplaced.add(
-                    whereFilterConditionsPart.replace(
+                filterLogicPartsReplaced.add(
+                    filterLogicPart.replace(
                         m.group(),
-                        whereFilterStrings[whereFilterConditionsIndex - 1]
+                        filterStrings[filterLogicIndex - 1]
                     )
                 );
             }
             catch (ListException e)
             {
-                throw new QueryException('No query WHERE filter defined for index "' + whereFilterConditionsIndex + '" specified in filter conditions "' + this.whereFilterConditionsString + '"');
+                throw new QueryException('No query ' + clause + ' filter defined for index "' + filterLogicIndex + '" specified in filter conditions "' + filterLogic + '"');
             }
         }
         else
         {
-            whereFilterConditionsPartsReplaced.add(whereFilterConditionsPart);
+            filterLogicPartsReplaced.add(filterLogicPart);
         }
     }
-    return ' WHERE ' + String.join(whereFilterConditionsPartsReplaced, ' ');
+    return ' ' + clause + ' ' + String.join(filterLogicPartsReplaced, ' ');
+  }
+
+  protected String doGetWhereClauseString() {
+    return this.doGetFilterableClauseString('WHERE', this.whereFilters, this.whereFilterConditionsString);
   }
 
   protected System.AccessLevel doGetAccessLevel() {
