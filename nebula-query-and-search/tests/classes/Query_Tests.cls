@@ -645,4 +645,28 @@ private class Query_Tests {
     }
   }
 
+  @IsTest
+  static void it_will_construct_a_where_clause_based_on_custom_logic()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT Id, Name FROM Account WHERE (CreatedDate = :bindVar1 OR LastModifiedDate = :bindVar0) AND (Name LIKE :bindVar3 OR Parent.Name LIKE :bindVar2)';
+    Query accountQuery = new Query(Schema.Account.SObjectType)
+      .generateBindVariableKeys()
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.LastModifiedDate, SOQL.Operator.EQUALS, Date.today()))
+      .orFilterWhere(
+        new List<SOQL.QueryFilter> {
+          new SOQL.QueryFilter(new SOQL.QueryField(Schema.Account.getSObjectType(), 'Parent.Name'), SOQL.Operator.IS_LIKE, 'Test%'),
+          new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.EQUALS, Date.today().addDays(-1))
+        }
+      )
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.Name, SOQL.Operator.IS_LIKE, 'Smith%'))
+      .setWhereFilterLogic('(2 OR 1) AND (4 OR 3)');
+
+    // TEST
+    String actualQueryString = accountQuery.getQuery();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, actualQueryString);
+  }
+
 }

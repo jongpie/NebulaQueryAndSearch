@@ -493,4 +493,52 @@ private class AggregateQuery_Tests {
     }
   }
 
+  @IsTest
+  static void it_will_construct_a_where_clause_based_on_custom_logic()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT MIN(CreatedDate) MIN__CreatedDate FROM Account WHERE (CreatedDate = :bindVar1 OR LastModifiedDate = :bindVar0) AND (Name LIKE :bindVar3 OR Parent.Name LIKE :bindVar2)';
+    AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
+      .generateBindVariableKeys()
+      .addAggregate(SOQL.Aggregate.MIN, Schema.Account.CreatedDate)
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.LastModifiedDate, SOQL.Operator.EQUALS, Date.today()))
+      .orFilterWhere(
+        new List<SOQL.QueryFilter> {
+          new SOQL.QueryFilter(new SOQL.QueryField(Schema.Account.getSObjectType(), 'Parent.Name'), SOQL.Operator.IS_LIKE, 'Test%'),
+          new SOQL.QueryFilter(Schema.Account.CreatedDate, SOQL.Operator.EQUALS, Date.today().addDays(-1))
+        }
+      )
+      .filterWhere(new SOQL.QueryFilter(Schema.Account.Name, SOQL.Operator.IS_LIKE, 'Smith%'))
+      .setWhereFilterLogic('(2 OR 1) AND (4 OR 3)');
+
+    // TEST
+    String actualQueryString = aggregateQuery.getQuery();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, actualQueryString);
+  }
+
+  @IsTest
+  static void it_will_construct_a_having_clause_based_on_custom_logic()
+  {
+    // SETUP
+    String expectedQueryString = 'SELECT COUNT(Id) COUNT__Id, MIN(CreatedDate) MIN__CreatedDate, MIN(LastModifiedDate) MIN__LastModifiedDate FROM Account HAVING (MIN(CreatedDate) = :bindVar2 OR MIN(LastModifiedDate) = :bindVar1) AND (COUNT(Id) = :bindVar3 OR COUNT(Id) = :bindVar0)';
+    AggregateQuery aggregateQuery = new AggregateQuery(Schema.Account.SObjectType)
+      .generateBindVariableKeys()
+      .addAggregate(SOQL.Aggregate.MIN, Schema.Account.CreatedDate)
+      .addAggregate(SOQL.Aggregate.MIN, Schema.Account.LastModifiedDate)
+      .addAggregate(SOQL.Aggregate.COUNT, Schema.Account.Id)
+      .havingAggregate(SOQL.Aggregate.COUNT, Schema.Account.Id, SOQL.Operator.EQUALS, 10)
+      .havingAggregate(SOQL.Aggregate.MIN, Schema.Account.LastModifiedDate, SOQL.Operator.EQUALS, Datetime.newInstance(2000, 1, 1))
+      .havingAggregate(SOQL.Aggregate.MIN, Schema.Account.CreatedDate, SOQL.Operator.EQUALS, Datetime.newInstance(2021, 12, 31))
+      .havingAggregate(SOQL.Aggregate.COUNT, Schema.Account.Id, SOQL.Operator.EQUALS, 100)
+      .setHavingFilterLogic('(3 OR 2) AND (4 OR 1)');
+
+    // TEST
+    String actualQueryString = aggregateQuery.getQuery();
+
+    // VERIFY
+    System.Assert.areEqual(expectedQueryString, actualQueryString);
+  }
+
 }
