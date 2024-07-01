@@ -15,13 +15,16 @@
 global class AggregateQuery extends SOQL {
   private SOQL.GroupingDimension groupingDimension;
   private List<AggregateField> aggregateFields;
-  private List<String> havingConditions;
+  private List<AggregateQueryFilter> havingClauseFilters;
+  protected String havingClauseFilterLogic;
+  private String countQuery;
 
   global AggregateQuery(Schema.SObjectType sobjectType) {
     super(sobjectType, false);
 
     this.aggregateFields = new List<AggregateField>();
-    this.havingConditions = new List<String>();
+    this.havingClauseFilters = new List<AggregateQueryFilter>();
+    this.havingClauseFilterLogic = '';
   }
 
   global AggregateQuery groupByField(Schema.SObjectField field) {
@@ -79,8 +82,29 @@ global class AggregateQuery extends SOQL {
     return this.havingAggregate(aggregateFunction, new SOQL.QueryField(field), operator, value);
   }
 
+  global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, Schema.SObjectField field, SOQL.Operator operator, Object value, String bindWithKey) {
+    return this.havingAggregate(aggregateFunction, new SOQL.QueryField(field), operator, value, bindWithKey);
+  }
+
   global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value) {
-    this.havingConditions.add(aggregateFunction.name() + '(' + queryField + ') ' + SOQL.getOperatorValue(operator) + ' ' + value);
+    return this.havingAggregate(aggregateFunction, queryField, operator, value, this.generateNextBindVariableKey());
+  }
+
+  global AggregateQuery havingAggregate(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindWithKey) {
+    this.havingClauseFilters.add(
+        new AggregateQueryFilter(aggregateFunction, queryField, operator, value, bindWithKey)
+    );
+    this.havingClauseFilterLogic += (this.havingClauseFilters.size() == 1 ? '1' : ' AND ' + this.havingClauseFilters.size());
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery orHavingAggregate(List<AggregateQueryFilter> filters) {
+    this.havingClauseFilterLogic = this.doOrFilter(filters, this.havingClauseFilters, this.havingClauseFilterLogic);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery setHavingFilterLogic(String filterLogic) {
+    this.havingClauseFilterLogic = filterLogic;
     return this.setHasChanged();
   }
 
@@ -88,8 +112,16 @@ global class AggregateQuery extends SOQL {
     return this.filterWhere(new SOQL.QueryField(field), operator, value);
   }
 
+  global AggregateQuery filterWhere(Schema.SObjectField field, SOQL.Operator operator, Object value, String bindWithKey) {
+    return this.filterWhere(new SOQL.QueryField(field), operator, value, bindWithKey);
+  }
+
   global AggregateQuery filterWhere(SOQL.QueryField queryField, SOQL.Operator operator, Object value) {
     return this.filterWhere(new SOQL.QueryFilter(queryField, operator, value));
+  }
+
+  global AggregateQuery filterWhere(SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindWithKey) {
+    return this.filterWhere(new SOQL.QueryFilter(queryField, operator, value, bindWithKey));
   }
 
   global AggregateQuery filterWhere(SOQL.QueryFilter filter) {
@@ -103,6 +135,16 @@ global class AggregateQuery extends SOQL {
 
   global AggregateQuery orFilterWhere(List<SOQL.QueryFilter> filters) {
     super.doOrFilterWhere(filters);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery setWhereFilterLogic(String filterLogic) {
+    super.doSetWhereFilterLogic(filterLogic);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery withAccessLevel(System.AccessLevel accessLevel) {
+    super.doWithAccessLevel(accessLevel);
     return this.setHasChanged();
   }
 
@@ -166,6 +208,31 @@ global class AggregateQuery extends SOQL {
     return this.setHasChanged();
   }
 
+  global AggregateQuery setBind(String key, Object value) {
+    super.doSetBind(key, value);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery setBinds(Map<String, Object> binds) {
+    super.doSetBinds(binds);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery removeBind(String key) {
+    super.doRemoveBind(key);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery clearBinds() {
+    super.doClearBinds();
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery generateBindVariableKeys() {
+    super.doGenerateBindVariableKeys();
+    return this;
+  }
+
   // TODO decide if this should be global
   public AggregateQuery cacheResults() {
     super.doCacheResults();
@@ -197,7 +264,7 @@ global class AggregateQuery extends SOQL {
       super.doGetUsingScopeString() +
       super.doGetWhereClauseString() +
       this.getGroupByString() +
-      this.getHavingString() +
+      this.getHavingClauseString() +
       super.doGetOrderByString() +
       super.doGetLimitCountString() +
       super.doGetOffetString();
@@ -206,21 +273,35 @@ global class AggregateQuery extends SOQL {
     return this.query;
   }
 
-  // TODO consider renaming to getCountResult()
-  @SuppressWarnings('PMD.ApexSOQLInjection')
-  global Integer getResultCount() {
-    String countQuery =
+  global String getCountQuery() {
+    if (this.countQuery != null && !this.hasChanged) {
+      return this.countQuery;
+    }
+
+    this.countQuery =
       'SELECT COUNT()' +
       ' FROM ' +
       this.sobjectType +
       super.doGetUsingScopeString() +
       super.doGetWhereClauseString() +
       this.getGroupByString() +
-      this.getHavingString() +
+      this.getHavingClauseString() +
       super.doGetOrderByString() +
       super.doGetLimitCountString() +
       super.doGetOffetString();
-    return Database.countQuery(countQuery);
+
+    System.debug(System.LoggingLevel.FINEST, this.countQuery);
+    return this.countQuery;
+  }
+
+  // TODO consider renaming to getCountResult()
+  @SuppressWarnings('PMD.ApexSOQLInjection')
+  global Integer getResultCount() {
+    return Database.countQueryWithBinds(
+      this.getCountQuery(),
+      this.doGetBindsMap(),
+      this.doGetAccessLevel()
+    );
   }
 
   global AggregateResult getFirstResult() {
@@ -232,7 +313,7 @@ global class AggregateQuery extends SOQL {
   }
 
   private AggregateQuery setHasChanged() {
-    this.hasChanged = true;
+    this.doSetHasChanged();
     return this;
   }
 
@@ -262,8 +343,8 @@ global class AggregateQuery extends SOQL {
     return String.isEmpty(queryFieldString) ? '' : groupByTextString + queryFieldString + groupingDimensionClosingString;
   }
 
-  private String getHavingString() {
-    return this.havingConditions.isEmpty() ? '' : ' HAVING ' + String.join(this.havingConditions, ', ');
+  private String getHavingClauseString() {
+    return this.doGetFilterableClauseString('HAVING', this.havingClauseFilters, this.havingClauseFilterLogic);
   }
 
   private class AggregateField {
@@ -287,4 +368,29 @@ global class AggregateQuery extends SOQL {
       return aggregateFunction.name() + '(' + fieldApiName + ') ' + fieldAlias;
     }
   }
+
+  global class AggregateQueryFilter extends SOQL.QueryFilter {
+    private SOQL.Aggregate aggregateFunction;
+
+    public AggregateQueryFilter(SOQL.Aggregate aggregateFunction, SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindKey)
+    {
+        super(queryField, operator, value, bindKey);
+        this.aggregateFunction = aggregateFunction;
+    }
+
+    public override String toString()
+    {
+        return String.format(
+          '{0}({1}) {2} {3}',
+          new List<String> {
+          this.aggregateFunction.name(),
+          this.queryField.toString(),
+          SOQL.getOperatorValue(this.operator),
+          (String.isNotBlank(this.bindKey) ? ':' + this.bindKey : new QueryArgument(this.value).toString())
+          }
+        );
+    }
+
+  }
+
 }

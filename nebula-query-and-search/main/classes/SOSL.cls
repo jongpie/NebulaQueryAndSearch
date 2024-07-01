@@ -42,6 +42,7 @@ global abstract class SOSL {
   protected SOSL.ArticleReporting articleReporting;
   protected List<String> withClauses;
   protected List<String> withDataCategoryClauses;
+  protected System.AccessLevel accessLevel;
   protected SOSL.SearchGroup searchGroup;
 
   protected SOSL(String searchTerm, Query sobjectQuery) {
@@ -57,6 +58,7 @@ global abstract class SOSL {
     this.searchGroup = SOSL.SearchGroup.ALL_FIELDS;
     this.withClauses = new List<String>();
     this.withDataCategoryClauses = new List<String>();
+    this.accessLevel = System.AccessLevel.SYSTEM_MODE;
   }
 
   public Set<Schema.SObjectType> getSObjectTypes() {
@@ -88,7 +90,7 @@ global abstract class SOSL {
     if (this.cacheResults) {
       return this.getCachedResults();
     } else {
-      return System.Search.query(this.getSearch());
+      return System.Search.query(this.getSearch(), this.doGetAccessLevel());
     }
   }
 
@@ -119,6 +121,14 @@ global abstract class SOSL {
     return this.withClauses.isEmpty() ? '' : ' WITH ' + String.join(this.withClauses, ' WITH ');
   }
 
+  protected void doWithAccessLevel(System.AccessLevel accessLevel) {
+    this.accessLevel = accessLevel;
+  }
+
+  protected System.AccessLevel doGetAccessLevel() {
+    return this.accessLevel ?? System.AccessLevel.SYSTEM_MODE;
+  }
+
   protected String doGetUpdateArticleReportingString() {
     return this.articleReporting == null ? '' : ' UPDATE ' + this.articleReporting.name();
   }
@@ -129,7 +139,10 @@ global abstract class SOSL {
 
     Boolean isCached = cachedSearchResultsByHashCode.containsKey(hashCode);
     if (!isCached) {
-      cachedSearchResultsByHashCode.put(hashCode, Search.query(searchQuery));
+      cachedSearchResultsByHashCode.put(
+        hashCode,
+        System.Search.query(searchQuery, this.doGetAccessLevel())
+      );
     }
 
     // Always return a deep clone so the original cached version is never modified

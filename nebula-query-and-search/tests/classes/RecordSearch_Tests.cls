@@ -128,6 +128,56 @@ private class RecordSearch_Tests {
   }
 
   @IsTest
+  static void it_should_run_with_system_mode() {
+    String expectedSearchQueryString = 'FIND \'' + System.UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING Contact(Id, Name)';
+
+    Query contactQuery = new Query(Schema.Contact.SObjectType);
+    RecordSearch contactSearch = new RecordSearch(System.UserInfo.getUserEmail(), contactQuery)
+      .withAccessLevel(System.AccessLevel.SYSTEM_MODE);
+
+    System.assertEquals(expectedSearchQueryString, contactSearch.getSearch());
+    List<Contact> contactSearchResults = contactSearch.getFirstResults();
+
+    List<List<SObject>> expectedResults = Search.query(expectedSearchQueryString);
+    List<List<SObject>> returnedResults;
+    Exception caughtException;
+    System.runAs(minimumAccessUser()) {
+        try {
+            returnedResults = contactSearch.getResults();
+        } catch (Exception e) {
+            caughtException = e;
+        }
+    }
+    System.Assert.isNull(caughtException, 'Search should not throw exception when run in System Mode');
+    System.Assert.areEqual(expectedResults, returnedResults);
+  }
+
+  @IsTest
+  static void it_should_run_with_user_mode() {
+    String expectedSearchQueryString = 'FIND \'' + System.UserInfo.getUserEmail() + '\' IN ALL FIELDS RETURNING Contact(Id, Name)';
+
+    Query contactQuery = new Query(Schema.Contact.SObjectType);
+    RecordSearch contactSearch = new RecordSearch(System.UserInfo.getUserEmail(), contactQuery)
+      .withAccessLevel(System.AccessLevel.USER_MODE);
+
+    System.assertEquals(expectedSearchQueryString, contactSearch.getSearch());
+    List<Contact> contactSearchResults = contactSearch.getFirstResults();
+
+    List<List<SObject>> expectedResults = Search.query(expectedSearchQueryString);
+    List<List<SObject>> returnedResults;
+    Exception caughtException;
+    System.runAs(minimumAccessUser()) {
+        try {
+            returnedResults = contactSearch.getResults();
+        } catch (Exception e) {
+            caughtException = e;
+        }
+    }
+    System.Assert.isInstanceOfType(caughtException, System.QueryException.class, 'Search should throw exception when run in User Mode');
+    System.Assert.isTrue(caughtException.getMessage().contains('sObject type \'contact\' is not supported'), 'Search should throw exception when run in User Mode');
+  }
+
+  @IsTest
   static void it_should_cache_search_results_when_enabled() {
     Integer loops = 4;
     Query userQuery = new Query(Schema.User.SObjectType);
@@ -149,5 +199,19 @@ private class RecordSearch_Tests {
     System.assertEquals(1, System.Limits.getSoslQueries());
 
     System.Test.stopTest();
+  }
+
+  static User minimumAccessUser() {
+    return new User(
+      Alias = 'newUser',
+      Email = 'newuser@testorg.com',
+      EmailEncodingKey = 'UTF-8',
+      LastName = 'Testing',
+      LanguageLocaleKey = 'en_US',
+      LocaleSidKey = 'en_US',
+      ProfileId = [SELECT Id FROM Profile WHERE Name = 'Minimum Access - Salesforce'].Id,
+      TimeZoneSidKey = 'GMT',
+      UserName = 'newuser@testorg.com'
+    );
   }
 }

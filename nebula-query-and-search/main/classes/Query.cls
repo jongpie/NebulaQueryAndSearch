@@ -199,8 +199,16 @@ global class Query extends SOQL {
     return this.filterWhere(new SOQL.QueryField(field), operator, value);
   }
 
+  global Query filterWhere(Schema.SObjectField field, SOQL.Operator operator, Object value, String bindWithKey) {
+    return this.filterWhere(new SOQL.QueryField(field), operator, value, bindWithKey);
+  }
+
   global Query filterWhere(SOQL.QueryField queryField, SOQL.Operator operator, Object value) {
     return this.filterWhere(new SOQL.QueryFilter(queryField, operator, value));
+  }
+
+  global Query filterWhere(SOQL.QueryField queryField, SOQL.Operator operator, Object value, String bindWithKey) {
+    return this.filterWhere(new SOQL.QueryFilter(queryField, operator, value, bindWithKey));
   }
 
   global Query filterWhere(SOQL.QueryFilter filter) {
@@ -214,6 +222,11 @@ global class Query extends SOQL {
 
   global Query orFilterWhere(List<SOQL.QueryFilter> filters) {
     super.doOrFilterWhere(filters);
+    return this.setHasChanged();
+  }
+
+  global Query setWhereFilterLogic(String filterLogic) {
+    super.doSetWhereFilterLogic(filterLogic);
     return this.setHasChanged();
   }
 
@@ -238,6 +251,11 @@ global class Query extends SOQL {
   //this.whereFilters.add('Id NOT IN ' + subqueryString);
   //return this.setHasChanged();
   //}
+
+  global Query withAccessLevel(System.AccessLevel accessLevel) {
+    super.doWithAccessLevel(accessLevel);
+    return this.setHasChanged();
+  }
 
   global Query orderByField(Schema.SObjectField field) {
     return this.orderByField(new SOQL.QueryField(field));
@@ -287,6 +305,31 @@ global class Query extends SOQL {
   global Query forView() {
     this.forView = true;
     return this.setHasChanged();
+  }
+
+  global Query setBind(String key, Object value) {
+    super.doSetBind(key, value);
+    return this.setHasChanged();
+  }
+
+  global Query setBinds(Map<String, Object> binds) {
+    super.doSetBinds(binds);
+    return this.setHasChanged();
+  }
+
+  global Query removeBind(String key) {
+    super.doRemoveBind(key);
+    return this.setHasChanged();
+  }
+
+  global Query clearBinds() {
+    super.doClearBinds();
+    return this.setHasChanged();
+  }
+
+  global Query generateBindVariableKeys() {
+    super.doGenerateBindVariableKeys();
+    return this;
   }
 
   // TODO decide if this should be global
@@ -412,7 +455,7 @@ global class Query extends SOQL {
   }
 
   private Query setHasChanged() {
-    this.hasChanged = true;
+    this.doSetHasChanged();
     return this;
   }
 
