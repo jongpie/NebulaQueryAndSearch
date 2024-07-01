@@ -265,25 +265,25 @@ global abstract class SOQL implements Comparable {
     }
   }
 
-  protected String doOrFilter(List<SOQL.QueryFilter> filters, String filterLogic) {
-    if (filters?.isEmpty() != false) {
+  protected String doOrFilter(List<SOQL.QueryFilter> newFilters, List<SOQL.QueryFilter> clauseFilters, String filterLogic) {
+    if (newFilters?.isEmpty() != false) {
       return filterLogic;
     }
 
-    filters.sort();
+    newFilters.sort();
 
-    filterLogic += (filters.isEmpty() ? '' : ' AND ') + '(';
-    for (Integer i = 0; i < filters.size(); i++) {
-        SOQL.QueryFilter filter = filters[i];
-        filters.add(filter);
-        filterLogic += (i == 0 ? '' : ' OR ') + filters.size();
+    filterLogic += (clauseFilters.isEmpty() ? '' : ' AND ') + '(';
+    for (Integer i = 0; i < newFilters.size(); i++) {
+        SOQL.QueryFilter filter = newFilters[i];
+        clauseFilters.add(filter);
+        filterLogic += (i == 0 ? '' : ' OR ') + clauseFilters.size();
     }
     filterLogic += ')';
     return filterLogic;
   }
 
   protected void doOrFilterWhere(List<SOQL.QueryFilter> filters) {
-    this.whereClauseFilterLogic = this.doOrFilter(this.whereClauseFilters, this.whereClauseFilterLogic);
+    this.whereClauseFilterLogic = this.doOrFilter(filters, this.whereClauseFilters, this.whereClauseFilterLogic);
   }
 
   protected void doWithAccessLevel(System.AccessLevel accessLevel) {

@@ -99,7 +99,7 @@ global class AggregateQuery extends SOQL {
   }
 
   global AggregateQuery orHavingAggregate(List<AggregateQueryFilter> filters) {
-    this.havingClauseFilterLogic = this.doOrFilter(this.havingClauseFilters, this.havingClauseFilterLogic);
+    this.havingClauseFilterLogic = this.doOrFilter(filters, this.havingClauseFilters, this.havingClauseFilterLogic);
     return this.setHasChanged();
   }
 
