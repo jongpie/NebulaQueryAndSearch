@@ -225,6 +225,11 @@ global class Query extends SOQL {
     return this.setHasChanged();
   }
 
+  global Query setWhereFilterLogic(String filterLogic) {
+    super.doSetWhereFilterLogic(filterLogic);
+    return this.setHasChanged();
+  }
+
   //global Query filterWhereInSubquery(Schema.SObjectType childSObjectType, Schema.SObjectField lookupFieldOnChildSObject) {
   //this.whereFilters.add('Id IN (SELECT ' + lookupFieldOnChildSObject + ' FROM ' + childSObjectType + ')');
   //return this.setHasChanged();

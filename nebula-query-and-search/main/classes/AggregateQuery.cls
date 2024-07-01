@@ -103,6 +103,11 @@ global class AggregateQuery extends SOQL {
     return this.setHasChanged();
   }
 
+  global AggregateQuery setHavingFilterLogic(String filterLogic) {
+    this.havingClauseFilterLogic = filterLogic;
+    return this.setHasChanged();
+  }
+
   global AggregateQuery filterWhere(Schema.SObjectField field, SOQL.Operator operator, Object value) {
     return this.filterWhere(new SOQL.QueryField(field), operator, value);
   }
@@ -130,6 +135,11 @@ global class AggregateQuery extends SOQL {
 
   global AggregateQuery orFilterWhere(List<SOQL.QueryFilter> filters) {
     super.doOrFilterWhere(filters);
+    return this.setHasChanged();
+  }
+
+  global AggregateQuery setWhereFilterLogic(String filterLogic) {
+    super.doSetWhereFilterLogic(filterLogic);
     return this.setHasChanged();
   }
 
